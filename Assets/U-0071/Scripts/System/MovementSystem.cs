@@ -22,10 +22,33 @@ namespace U0071
 		{
 			public float DeltaTime;
 
-			public void Execute(ref LocalTransform transform, in MovementComponent movement)
+			public void Execute(ref PositionComponent position, in MovementComponent movement)
 			{
 				// input should already be normalized
-				transform.Position += new float3(movement.Input.x * movement.Speed * DeltaTime,	0f,	movement.Input.y * movement.Speed * DeltaTime);
+				position.Value += movement.Input * movement.Speed * DeltaTime;
+
+				// TODO: enable MovedFlag if needed
+			}
+		}
+	}
+
+	[UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
+	[UpdateAfter(typeof(MovementSystem))]
+	public partial struct TransformSystem : ISystem
+	{
+		[BurstCompile]
+		public void OnUpdate(ref SystemState state)
+		{
+			state.Dependency = new TransformUpdateJob().ScheduleParallel(state.Dependency);
+		}
+
+		[BurstCompile]
+		// TODO: filter by MovedFlag
+		public partial struct TransformUpdateJob : IJobEntity
+		{
+			public void Execute(ref LocalTransform transform, in PositionComponent position)
+			{
+				transform.Position = new float3(position.x, transform.Position.y, position.y);
 			}
 		}
 	}

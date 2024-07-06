@@ -1,0 +1,32 @@
+using Unity.Entities;
+using Unity.Mathematics;
+using UnityEngine;
+
+namespace U0071
+{
+	[DisallowMultipleComponent]
+	public class RoomAuthoring : MonoBehaviour
+	{
+		public class Baker : Baker<RoomAuthoring>
+		{
+			public override void Bake(RoomAuthoring authoring)
+			{
+				Entity entity = GetEntity(TransformUsageFlags.Dynamic);
+
+				Transform transform = authoring.gameObject.transform;
+				Vector3 position = transform.position;
+				Vector3 scale = transform.lossyScale;
+
+				AddComponent(entity, new NameComponent { Value = new Unity.Collections.FixedString32Bytes("Room") });
+				AddComponent(entity, new PositionComponent { Value = new float2(position.x, position.z) });
+				AddComponent(entity, new RoomComponent
+				{
+					Dimensions = transform.rotation.eulerAngles.y == 0f || transform.rotation.eulerAngles.y == 180f ? new int2((int)scale.x, (int)scale.y) : new int2((int)scale.y, (int)scale.x),
+				});
+
+				AddBuffer<RoomElementBufferElement>(entity);
+				AddBuffer<RoomLinkBufferElement>(entity);
+			}
+		}
+	}
+}
