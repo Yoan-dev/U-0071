@@ -1,5 +1,6 @@
 using Unity.Entities;
 using Unity.Mathematics;
+using Unity.Rendering;
 using UnityEngine;
 
 namespace U0071
@@ -17,6 +18,7 @@ namespace U0071
 				Vector3 position = transform.position;
 				Vector3 scale = transform.lossyScale;
 
+				AddComponent(entity, new DepthSorted_Tag());
 				AddComponent(entity, new NameComponent { Value = new Unity.Collections.FixedString32Bytes("Room") });
 				AddComponent(entity, new PositionComponent { Value = new float2(position.x, position.z) });
 				AddComponent(entity, new RoomComponent

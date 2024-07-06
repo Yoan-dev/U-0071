@@ -25,9 +25,7 @@ namespace U0071
 			public void Execute(ref PositionComponent position, in MovementComponent movement)
 			{
 				// input should already be normalized
-				position.Value += movement.Input * movement.Speed * DeltaTime;
-
-				// TODO: enable MovedFlag if needed
+				position.Add(movement.Input * movement.Speed * DeltaTime);
 			}
 		}
 	}
@@ -40,6 +38,8 @@ namespace U0071
 		public void OnUpdate(ref SystemState state)
 		{
 			state.Dependency = new TransformUpdateJob().ScheduleParallel(state.Dependency);
+
+			// TODO: pickable entities local transform (PickedFlag)
 		}
 
 		[BurstCompile]

@@ -19,7 +19,9 @@ namespace U0071
 	[InternalBufferCapacity(32)]
 	public struct RoomElementBufferElement : IBufferElementData
 	{
+		public float2 Position;
 		public Entity Element;
+		public ActionType ActionType;
 	}
 
 	[InternalBufferCapacity(4)]

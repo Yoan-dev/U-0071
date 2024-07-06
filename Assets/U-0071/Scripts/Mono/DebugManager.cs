@@ -25,7 +25,7 @@ public class DebugManager : MonoBehaviour
 			_roomElements = new Dictionary<Entity, TMP_Text>();
 			foreach (var info in roomInfos)
 			{
-				TMP_Text element = Instantiate(ElementPrefab, new Vector3(info.Position.x, 0.2f, info.Position.y), ElementPrefab.transform.rotation, transform);
+				TMP_Text element = Instantiate(ElementPrefab, new Vector3(info.Position.x, 0.3f, info.Position.y), ElementPrefab.transform.rotation, transform);
 				SetRoomInfo(element, in info);
 				_roomElements.Add(info.Entity, element);
 			}

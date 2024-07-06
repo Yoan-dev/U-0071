@@ -17,7 +17,7 @@ namespace U0071
 			public int ElementCount;
 		}
 
-		private EntityQuery _roomQuery;
+		private EntityQuery _query;
 		private bool _debugRooms;
 
 		[BurstCompile]
@@ -25,7 +25,7 @@ namespace U0071
 		{
 			//state.Enabled = false;
 
-			_roomQuery = SystemAPI.QueryBuilder()
+			_query = SystemAPI.QueryBuilder()
 				.WithAll<PositionComponent, NameComponent, RoomElementBufferElement>()
 				.Build();
 		}
@@ -44,12 +44,12 @@ namespace U0071
 			}
 			if (_debugRooms)
 			{
-				NativeList<RoomInfo> roomInfos = new NativeList<RoomInfo>(_roomQuery.CalculateEntityCount(), Allocator.TempJob);
+				NativeList<RoomInfo> roomInfos = new NativeList<RoomInfo>(_query.CalculateEntityCount(), Allocator.TempJob);
 
 				new RoomInfoCollectorJob
 				{
 					RoomInfos = roomInfos.AsParallelWriter(),
-				}.ScheduleParallel(_roomQuery, state.Dependency).Complete();
+				}.ScheduleParallel(_query, state.Dependency).Complete();
 
 				DebugManager.Instance.UpdateRoomElements(in roomInfos);
 				roomInfos.Dispose();

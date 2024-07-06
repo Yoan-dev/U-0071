@@ -12,7 +12,11 @@ namespace U0071
 			{
 				Entity entity = GetEntity(TransformUsageFlags.Dynamic);
 
-				AddComponent(entity, new PlayerController());
+				AddComponent(entity, new PlayerController
+				{
+					FirstInteraction = new InteractionInput { Key = KeyCode.E },
+					SecondInteraction = new InteractionInput { Key = KeyCode.F },
+				});
 				AddComponent(entity, new CameraComponent());
 			}
 		}

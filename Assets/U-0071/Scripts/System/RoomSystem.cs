@@ -1,6 +1,7 @@
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Mathematics;
 
 namespace U0071
 {
@@ -8,23 +9,32 @@ namespace U0071
 	[UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
 	public partial struct RoomSystem : ISystem
 	{
+		public enum RoomUpdateType
+		{
+			Addition = 0,
+			Deletion,
+			Update
+		}
+
 		public struct RoomUpdateEvent
 		{
+			public float2 Position;
 			public Entity Entity;
-			public bool Addition;
+			public ActionType ActionType;
+			public RoomUpdateType UpdateType;
 		}
 
 		private NativeParallelMultiHashMap<Entity, RoomUpdateEvent> _updates;
-		private EntityQuery _partitionQuery;
+		private EntityQuery _query;
 
 		[BurstCompile]
 		public void OnCreate(ref SystemState state)
 		{
 			state.RequireForUpdate<RoomPartition>();
 
-			_partitionQuery = SystemAPI.QueryBuilder()
+			_query = SystemAPI.QueryBuilder()
 				.WithAllRW<PartitionComponent>()
-				.WithAll<PositionComponent>()
+				.WithAll<PositionComponent, InteractableComponent>()
 				.Build();
 
 			_updates = new NativeParallelMultiHashMap<Entity, RoomUpdateEvent>(0, Allocator.Persistent);
@@ -44,7 +54,7 @@ namespace U0071
 			ref RoomPartition partition = ref SystemAPI.GetSingletonRW<RoomPartition>().ValueRW;
 
 			// map should be able to receive an add and leave event for each paritioned entity
-			int count = _partitionQuery.CalculateEntityCount() * 2;
+			int count = _query.CalculateEntityCount() * 2;
 			if (_updates.Capacity < count)
 			{
 				_updates.Capacity = count;
@@ -55,7 +65,7 @@ namespace U0071
 			{
 				Partition = partition,
 				Updates = _updates.AsParallelWriter(),
-			}.ScheduleParallel(state.Dependency);
+			}.ScheduleParallel(_query, state.Dependency);
 
 			state.Dependency = new PartitionUpdateJob
 			{
@@ -64,7 +74,7 @@ namespace U0071
 		}
 
 		[BurstCompile]
-		// TODO: filter by MovedFlag (need to be true on first frame)
+		// TODO: filter by !PickedFlag (TBD)
 		public partial struct RoomUpdateJob : IJobEntity
 		{
 			[ReadOnly]
@@ -72,23 +82,35 @@ namespace U0071
 			[WriteOnly]
 			public NativeParallelMultiHashMap<Entity, RoomUpdateEvent>.ParallelWriter Updates;
 
-			public void Execute(Entity entity, ref PartitionComponent partition, in PositionComponent position)
+			public void Execute(Entity entity, ref PartitionComponent partition, in PositionComponent position, in InteractableComponent interactable)
 			{
+				// Entity.Null events will be ignored during partition update
 				Entity newRoom = Partition.GetRoom(position.Value);
 				if (newRoom != partition.CurrentRoom)
 				{
-					// Entity.Null events will be ignored during partition update
 					Updates.Add(newRoom, new RoomUpdateEvent
 					{
 						Entity = entity,
-						Addition = true,
+						Position = position.Value,
+						ActionType = interactable.Type,
+						UpdateType = RoomUpdateType.Addition,
 					});
 					Updates.Add(partition.CurrentRoom, new RoomUpdateEvent
 					{
 						Entity = entity,
-						Addition = false,
+						UpdateType = RoomUpdateType.Deletion,
 					});
 					partition.CurrentRoom = newRoom;
+				}
+				else if (position.MovedFlag)
+				{
+					Updates.Add(partition.CurrentRoom, new RoomUpdateEvent
+					{
+						Entity = entity,
+						Position = position.Value,
+						ActionType = interactable.Type,
+						UpdateType = RoomUpdateType.Update,
+					});
 				}
 			}
 		}
@@ -105,14 +127,10 @@ namespace U0071
 				{
 					do
 					{
-						if (update.Addition)
+						// TODO: keep an eye on perf (deletion/update)
+						// reverse search because moving entities have more chance to be at the back
+						if (update.UpdateType == RoomUpdateType.Deletion)
 						{
-							elements.Add(new RoomElementBufferElement { Element = update.Entity });
-						}
-						else
-						{
-							// TODO: keep an eye on perf
-							// reverse search because moving entities have more chance to be at the back
 							for (int i = elements.Length - 1; i >= 0; i--)
 							{
 								if (elements[i].Element == update.Entity)
@@ -121,6 +139,31 @@ namespace U0071
 									break;
 								}
 							}
+						}
+						else if (update.UpdateType == RoomUpdateType.Update)
+						{
+							for (int i = elements.Length - 1; i >= 0; i--)
+							{
+								if (elements[i].Element == update.Entity)
+								{
+									elements[i] = new RoomElementBufferElement
+									{
+										Element = update.Entity,
+										Position = update.Position,
+										ActionType = update.ActionType,
+									};
+									break;
+								}
+							}
+						}
+						else // addition
+						{
+							elements.Add(new RoomElementBufferElement
+							{
+								Element = update.Entity,
+								Position = update.Position,
+								ActionType = update.ActionType,
+							});
 						}
 					}
 					while (Updates.TryGetNextValue(out update, ref it));
