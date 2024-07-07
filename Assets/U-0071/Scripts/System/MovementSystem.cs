@@ -43,6 +43,7 @@ namespace U0071
 			public void Execute(ref PickComponent pick, in PositionComponent position, in Orientation orientation)
 			{
 				pick.Position = new float2(position.x + Const.CarriedOffset.x * orientation.Value, position.y + Const.CarriedOffset.y);
+				pick.YOffset = position.CurrentYOffset;
 			}
 		}
 
@@ -59,7 +60,7 @@ namespace U0071
 				// we assume Carrier entity is not Null
 				PickComponent pick = PickLookup[picked.Carrier];
 				position.Value = pick.Position;
-				position.CurrentYOffset = Const.CarriedItemYOffset;
+				position.CurrentYOffset = pick.YOffset + Const.CarriedItemYOffset;
 			}
 		}
 

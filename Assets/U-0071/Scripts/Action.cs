@@ -53,8 +53,9 @@ namespace U0071
 
 	public struct PickComponent : IComponentData, IEnableableComponent
 	{
-		public Entity Picked;
 		public float2 Position;
+		public Entity Picked;
+		public float YOffset;
 	}
 
 	public struct PickableComponent : IComponentData, IEnableableComponent
