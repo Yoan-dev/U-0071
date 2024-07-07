@@ -118,7 +118,7 @@ namespace U0071
 
 				if (pick.Picked != Entity.Null)
 				{
-					controller.Secondary = new ActionTarget(pick.Picked, ActionType.Drop, position.Value, 0f);
+					controller.Secondary = new ActionTarget(pick.Picked, ActionType.Drop, position.Value + new float2(Const.DropItemOffset.x * orientation.Value, Const.DropItemOffset.y), 0f);
 					controller.SecondaryInfo.Name = NameLookup[pick.Picked].Value;
 					controller.SecondaryInfo.Type = ActionType.Drop;
 				}

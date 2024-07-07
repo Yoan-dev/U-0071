@@ -54,6 +54,5 @@ namespace U0071
 		{
 			return new float4(color.r, color.g, color.b, color.a);
 		}
-
 	}
 }

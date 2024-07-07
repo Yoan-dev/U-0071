@@ -55,7 +55,6 @@ namespace U0071
 	{
 		public Entity Picked;
 		public float2 Position;
-		public float YOffset;
 	}
 
 	public struct PickableComponent : IComponentData, IEnableableComponent

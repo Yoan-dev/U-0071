@@ -59,7 +59,7 @@ namespace U0071
 				// we assume Carrier entity is not Null
 				PickComponent pick = PickLookup[picked.Carrier];
 				position.Value = pick.Position;
-				position.YOffset = Const.CarriedItemYOffset;
+				position.CurrentYOffset = Const.CarriedItemYOffset;
 			}
 		}
 
@@ -95,7 +95,7 @@ namespace U0071
 		{
 			public void Execute(ref LocalTransform transform, in PositionComponent position)
 			{
-				transform.Position = new float3(position.x, position.YOffset, position.y);
+				transform.Position = new float3(position.x, position.CurrentYOffset, position.y);
 			}
 		}
 	}

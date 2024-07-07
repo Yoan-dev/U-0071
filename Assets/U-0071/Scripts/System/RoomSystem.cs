@@ -1,6 +1,7 @@
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Mathematics;
 
 namespace U0071
 {
@@ -81,13 +82,25 @@ namespace U0071
 			[WriteOnly]
 			public NativeParallelMultiHashMap<Entity, RoomUpdateEvent>.ParallelWriter Updates;
 
-			public void Execute(Entity entity, ref PartitionComponent partition, in PositionComponent position, in InteractableComponent interactable)
+			public void Execute(Entity entity, ref PartitionComponent partition, ref PositionComponent position, in InteractableComponent interactable)
 			{
+				// TODO: static entities should be initiated once on start and get filtered from this job
+
 				// Entity.Null events will be ignored during partition update
-				Entity newRoom = Partition.GetRoom(position.Value);
-				if (newRoom != partition.CurrentRoom)
+				RoomData newRoom = Partition.GetRoomData(position.Value);
+
+				if (newRoom.Entity != Entity.Null)
 				{
-					Updates.Add(newRoom, new RoomUpdateEvent
+					// update Y offset (for sorting) depending on position ratio in the room
+					float2 roomRatio = newRoom.GetRoomRatio(position.Value);
+					position.CurrentYOffset = position.BaseYOffset +
+						roomRatio.x * Const.YOffsetRatio.x +
+						roomRatio.y * Const.YOffsetRatio.y;
+				}
+
+				if (newRoom.Entity != partition.CurrentRoom)
+				{
+					Updates.Add(newRoom.Entity, new RoomUpdateEvent
 					{
 						Element = new RoomElementBufferElement(entity, position.Value, interactable.Flags, interactable.Range),
 						Type = RoomUpdateType.Addition,
@@ -97,7 +110,7 @@ namespace U0071
 						Element = new RoomElementBufferElement(entity),
 						Type = RoomUpdateType.Deletion,
 					});
-					partition.CurrentRoom = newRoom;
+					partition.CurrentRoom = newRoom.Entity;
 				}
 				else if (position.MovedFlag)
 				{

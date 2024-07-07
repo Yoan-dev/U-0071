@@ -53,8 +53,15 @@ namespace U0071
 				{
 					for (int x = 0; x < room.Dimensions.x; x++)
 					{
-						Partition.SetRoom(entity, new float2
-						{
+						Partition.SetRoomData(
+							new RoomData
+							{
+								Entity = entity,
+								Position = position.Value,
+								Room = room,
+							},
+							new float2
+							{
 							x = position.x + x - room.Dimensions.x / 2f,
 							y = position.y + y - room.Dimensions.y / 2f,
 						});

@@ -33,7 +33,7 @@ namespace U0071
 				AddComponent(entity, new PositionComponent
 				{
 					Value = new float2(position.x, position.z),
-					YOffset = authoring.Pickable ? Const.ItemYOffset : Const.DeviceYOffset,
+					BaseYOffset = authoring.Pickable ? Const.ItemYOffset : Const.DeviceYOffset,
 				});
 				AddComponent(entity, new PartitionComponent());
 

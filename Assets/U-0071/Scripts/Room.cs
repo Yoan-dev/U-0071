@@ -16,6 +16,23 @@ namespace U0071
 		public int2 Dimensions;
 	}
 
+	public struct RoomData
+	{
+		public RoomComponent Room;
+		public float2 Position;
+		public Entity Entity;
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public float2 GetRoomRatio(float2 position)
+		{
+			return new float2
+			{
+				x = (position.x - (Position.x - Room.Dimensions.x / 2f)) / Room.Dimensions.x,
+				y = -(position.y - (Position.y + Room.Dimensions.y / 2f)) / Room.Dimensions.y,
+			};
+		}
+	}
+
 	[InternalBufferCapacity(32)]
 	public struct RoomElementBufferElement : IBufferElementData
 	{
@@ -87,13 +104,13 @@ namespace U0071
 
 	public struct RoomPartition : IComponentData, IDisposable
 	{
-		public NativeArray<Entity> Cells; // cell to room
+		public NativeArray<RoomData> Cells; // cell to room
 		public int2 Dimensions;
 
 		public RoomPartition(int2 dimensions)
 		{
 			Dimensions = dimensions;
-			Cells = new NativeArray<Entity>(dimensions.x * dimensions.y, Allocator.Persistent);
+			Cells = new NativeArray<RoomData>(dimensions.x * dimensions.y, Allocator.Persistent);
 		}
 
 		public void Dispose()
@@ -102,14 +119,14 @@ namespace U0071
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public Entity GetRoom(float2 position)
+		public RoomData GetRoomData(float2 position)
 		{
 			int index = GetIndex(position);
-			return index >= 0 && index < Cells.Length ? Cells[index] : Entity.Null;
+			return index >= 0 && index < Cells.Length ? Cells[index] : new RoomData();
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void SetRoom(Entity room, float2 position)
+		public void SetRoomData(RoomData room, float2 position)
 		{
 			int index = GetIndex(position);
 			if (index >= 0 && index < Cells.Length)

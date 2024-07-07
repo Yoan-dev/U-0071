@@ -31,7 +31,7 @@ namespace U0071
 				AddComponent(entity, new PositionComponent
 				{
 					Value = new float2(position.x, position.z),
-					YOffset = Const.CharacterYOffset,
+					BaseYOffset = Const.CharacterYOffset,
 				});
 				AddComponent(entity, new MovementComponent { Speed = authoring.Speed });
 				AddComponent(entity, AnimationController.GetDefault());

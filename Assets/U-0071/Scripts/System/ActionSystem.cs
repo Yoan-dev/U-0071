@@ -2,12 +2,11 @@ using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
-using UnityEngine.UIElements;
-using static UnityEngine.Rendering.DebugUI;
 
 namespace U0071
 {
 	[UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
+	[UpdateBefore(typeof(MovementSystem))]
 	public partial struct ActionSystem : ISystem
 	{
 		private BufferLookup<ActionEventBufferElement> _actionEventLookup;
@@ -108,7 +107,7 @@ namespace U0071
 							PickableLookup.GetRefRW(actionEvent.Target).ValueRW.Carrier = actionEvent.Source;
 							PickableLookup.SetComponentEnabled(actionEvent.Target, true);
 
-							Entity room = Partition.GetRoom(actionEvent.Position);
+							Entity room = Partition.GetRoomData(actionEvent.Position).Entity;
 							if (room != Entity.Null)
 							{
 								DynamicBuffer<RoomElementBufferElement> roomElements = RoomElementLookup[room];
@@ -125,15 +124,7 @@ namespace U0071
 
 							ref PositionComponent position = ref PositionLookup.GetRefRW(actionEvent.Target).ValueRW;
 							position.Value = actionEvent.Action.Position;
-							position.YOffset = Const.ItemYOffset;
-
-							Entity room = Partition.GetRoom(actionEvent.Position);
-							if (room != Entity.Null)
-							{
-								InteractableComponent interactable = InteractableLookup[actionEvent.Target];
-								RoomElementLookup[room].Add(new RoomElementBufferElement(actionEvent.Target, actionEvent.Position, interactable.Flags, interactable.Range));
-								PartitionLookup.GetRefRW(actionEvent.Target).ValueRW.CurrentRoom = room;
-							}
+							position.BaseYOffset = Const.ItemYOffset;
 						}
 					}
 				}
