@@ -125,7 +125,14 @@ namespace U0071
 				if (Utilities.GetClosestRoomElement(RoomElementBufferLookup[partition.CurrentRoom], position.Value, entity, ActionType.All, out RoomElementBufferElement target) &&
 					position.IsInActionRange(target.Position))
 				{
-					if (!controller.HasSecondaryAction && Utilities.HasActionType(target.ActionType, ActionType.Pick))
+					// TODO: check !controller.HasPrimaryAction for subsequent actions
+					if (pick.Picked != Entity.Null && target.HasActionType(ActionType.Store))
+					{
+						controller.Primary = new ActionTarget(target.Entity, ActionType.Store, target.Position);
+						controller.PrimaryInfo.Name = NameLookup[target.Entity].Value;
+						controller.PrimaryInfo.Type = ActionType.Store;
+					}
+					else if (!controller.HasSecondaryAction && target.HasActionType(ActionType.Pick))
 					{
 						controller.Secondary = new ActionTarget(target.Entity, ActionType.Pick, target.Position);
 						controller.SecondaryInfo.Name = NameLookup[target.Entity].Value;

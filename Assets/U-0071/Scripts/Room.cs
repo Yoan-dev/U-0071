@@ -40,7 +40,7 @@ namespace U0071
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public bool IsActionType(ActionType inType)
+		public bool HasActionType(ActionType inType)
 		{
 			return Utilities.HasActionType(ActionType, inType);
 		}
