@@ -29,8 +29,8 @@ namespace U0071
 				if (authoring.Pickable)
 				{
 					actionType |= ActionType.Pick;
-					AddComponent(entity, new PickedTag());
-					SetComponentEnabled<PickedTag>(entity, false);
+					AddComponent(entity, new PickedComponent());
+					SetComponentEnabled<PickedComponent>(entity, false);
 				}
 				AddComponent(entity, new InteractableComponent { Type = actionType });
 			}

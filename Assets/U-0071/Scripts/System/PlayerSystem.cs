@@ -3,6 +3,7 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace U0071
 {
@@ -86,6 +87,7 @@ namespace U0071
 		}
 
 		[BurstCompile]
+		[WithOptions(EntityQueryOptions.IgnoreComponentEnabledState)]
 		public partial struct PlayerActionJob : IJobEntity
 		{
 			public Entity LookupEntity;
@@ -103,12 +105,15 @@ namespace U0071
 				controller.SecondInteraction.Type = 0;
 				Entity firstTarget = Entity.Null;
 				Entity secondTarget = Entity.Null;
+				float2 firstPosition = float2.zero;
+				float2 secondPosition = float2.zero;
 
 				// we boldly assume that all partitioned elements have an interactable and a name component
 
 				if (pick.Picked != Entity.Null)
 				{
 					secondTarget = pick.Picked;
+					secondPosition = position.Value;
 					controller.SecondInteraction.Name = NameLookup[pick.Picked].Value;
 					controller.SecondInteraction.Type = ActionType.Drop;
 				}
@@ -120,8 +125,9 @@ namespace U0071
 						if (controller.SecondInteraction.Type != ActionType.Drop && 
 							Utilities.IsActionType(target.ActionType, ActionType.Pick))
 						{
-							secondTarget = target.Element;
-							controller.SecondInteraction.Name = NameLookup[target.Element].Value;
+							secondTarget = target.Entity;
+							secondPosition = target.Position;
+							controller.SecondInteraction.Name = NameLookup[target.Entity].Value;
 							controller.SecondInteraction.Type = ActionType.Pick;
 						}
 					}
@@ -135,6 +141,7 @@ namespace U0071
 						Source = entity,
 						Target = firstTarget,
 						Type = controller.FirstInteraction.Type,
+						Position = firstPosition,
 					});
 				}
 				if (controller.SecondInteraction.IsPressed && secondTarget != Entity.Null)
@@ -144,6 +151,7 @@ namespace U0071
 						Source = entity,
 						Target = secondTarget,
 						Type = controller.SecondInteraction.Type,
+						Position = secondPosition,
 					});
 				}
 

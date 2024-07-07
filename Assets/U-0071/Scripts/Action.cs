@@ -1,6 +1,7 @@
 using System;
 using System.Runtime.CompilerServices;
 using Unity.Entities;
+using Unity.Mathematics;
 
 namespace U0071
 {
@@ -22,16 +23,20 @@ namespace U0071
 		}
 	}
 
-	public struct PickComponent : IComponentData
+	public struct PickComponent : IComponentData, IEnableableComponent
 	{
 		public Entity Picked;
 	}
 
-	public struct PickedTag : IComponentData, IEnableableComponent { }
+	public struct PickedComponent : IComponentData, IEnableableComponent
+	{
+		public Entity Carrier;
+	}
 
 	[InternalBufferCapacity(0)]
 	public struct ActionEventBufferElement : IBufferElementData
 	{
+		public float2 Position;
 		public Entity Source;
 		public Entity Target;
 		public ActionType Type;

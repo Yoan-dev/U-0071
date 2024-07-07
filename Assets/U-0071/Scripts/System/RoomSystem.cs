@@ -18,10 +18,8 @@ namespace U0071
 
 		public struct RoomUpdateEvent
 		{
-			public float2 Position;
-			public Entity Entity;
-			public ActionType ActionType;
-			public RoomUpdateType UpdateType;
+			public RoomElementBufferElement Element;
+			public RoomUpdateType Type;
 		}
 
 		private NativeParallelMultiHashMap<Entity, RoomUpdateEvent> _updates;
@@ -35,6 +33,7 @@ namespace U0071
 			_query = SystemAPI.QueryBuilder()
 				.WithAllRW<PartitionComponent>()
 				.WithAll<PositionComponent, InteractableComponent>()
+				.WithNone<PickedComponent>()
 				.Build();
 
 			_updates = new NativeParallelMultiHashMap<Entity, RoomUpdateEvent>(0, Allocator.Persistent);
@@ -49,10 +48,6 @@ namespace U0071
 		[BurstCompile]
 		public void OnUpdate(ref SystemState state)
 		{
-			// force dependency for other systems
-			// (native collection RW)
-			ref RoomPartition partition = ref SystemAPI.GetSingletonRW<RoomPartition>().ValueRW;
-
 			// map should be able to receive an add and leave event for each paritioned entity
 			int count = _query.CalculateEntityCount() * 2;
 			if (_updates.Capacity < count)
@@ -63,7 +58,7 @@ namespace U0071
 
 			state.Dependency = new RoomUpdateJob
 			{
-				Partition = partition,
+				Partition = SystemAPI.GetSingleton<RoomPartition>(),
 				Updates = _updates.AsParallelWriter(),
 			}.ScheduleParallel(_query, state.Dependency);
 
@@ -74,7 +69,6 @@ namespace U0071
 		}
 
 		[BurstCompile]
-		// TODO: filter by !PickedFlag (TBD)
 		public partial struct RoomUpdateJob : IJobEntity
 		{
 			[ReadOnly]
@@ -90,15 +84,13 @@ namespace U0071
 				{
 					Updates.Add(newRoom, new RoomUpdateEvent
 					{
-						Entity = entity,
-						Position = position.Value,
-						ActionType = interactable.Type,
-						UpdateType = RoomUpdateType.Addition,
+						Element = new RoomElementBufferElement(entity, position.Value, interactable.Type),
+						Type = RoomUpdateType.Addition,
 					});
 					Updates.Add(partition.CurrentRoom, new RoomUpdateEvent
 					{
-						Entity = entity,
-						UpdateType = RoomUpdateType.Deletion,
+						Element = new RoomElementBufferElement(entity),
+						Type = RoomUpdateType.Deletion,
 					});
 					partition.CurrentRoom = newRoom;
 				}
@@ -106,10 +98,8 @@ namespace U0071
 				{
 					Updates.Add(partition.CurrentRoom, new RoomUpdateEvent
 					{
-						Entity = entity,
-						Position = position.Value,
-						ActionType = interactable.Type,
-						UpdateType = RoomUpdateType.Update,
+						Element = new RoomElementBufferElement(entity, position.Value, interactable.Type),
+						Type = RoomUpdateType.Update,
 					});
 				}
 			}
@@ -128,42 +118,17 @@ namespace U0071
 					do
 					{
 						// TODO: keep an eye on perf (deletion/update)
-						// reverse search because moving entities have more chance to be at the back
-						if (update.UpdateType == RoomUpdateType.Deletion)
+						if (update.Type == RoomUpdateType.Deletion)
 						{
-							for (int i = elements.Length - 1; i >= 0; i--)
-							{
-								if (elements[i].Element == update.Entity)
-								{
-									elements.RemoveAtSwapBack(i);
-									break;
-								}
-							}
+							RoomElementBufferElement.RemoveElement(ref elements, in update.Element);
 						}
-						else if (update.UpdateType == RoomUpdateType.Update)
+						else if (update.Type == RoomUpdateType.Update)
 						{
-							for (int i = elements.Length - 1; i >= 0; i--)
-							{
-								if (elements[i].Element == update.Entity)
-								{
-									elements[i] = new RoomElementBufferElement
-									{
-										Element = update.Entity,
-										Position = update.Position,
-										ActionType = update.ActionType,
-									};
-									break;
-								}
-							}
+							RoomElementBufferElement.UpdateElement(ref elements, in update.Element);
 						}
 						else // addition
 						{
-							elements.Add(new RoomElementBufferElement
-							{
-								Element = update.Entity,
-								Position = update.Position,
-								ActionType = update.ActionType,
-							});
+							elements.Add(update.Element);
 						}
 					}
 					while (Updates.TryGetNextValue(out update, ref it));

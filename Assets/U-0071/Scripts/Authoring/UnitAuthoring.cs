@@ -28,6 +28,7 @@ namespace U0071
 				AddComponent(entity, new PartitionComponent());
 				AddComponent(entity, new InteractableComponent());
 				AddComponent(entity, new PickComponent());
+				SetComponentEnabled<PickComponent>(entity, false);
 			}
 		}
 	}

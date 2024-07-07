@@ -16,7 +16,7 @@ namespace U0071
 			{
 				while (enumerator.MoveNext())
 				{
-					if (enumerator.Current.Element != self && IsActionType(enumerator.Current.ActionType, filter))
+					if (enumerator.Current.Entity != self && IsActionType(enumerator.Current.ActionType, filter))
 					{
 						float magn = math.lengthsq(position - enumerator.Current.Position);
 						if (magn < minMagn)
@@ -27,7 +27,7 @@ namespace U0071
 					}
 				}
 			}
-			return element.Element != Entity.Null;
+			return element.Entity != Entity.Null;
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]

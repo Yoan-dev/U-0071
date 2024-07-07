@@ -20,8 +20,52 @@ namespace U0071
 	public struct RoomElementBufferElement : IBufferElementData
 	{
 		public float2 Position;
-		public Entity Element;
+		public Entity Entity;
 		public ActionType ActionType;
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public RoomElementBufferElement(Entity entity, float2 position, ActionType actionType)
+		{
+			Entity = entity;
+			Position = position;
+			ActionType = actionType;
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public RoomElementBufferElement(Entity entity)
+		{
+			Entity = entity;
+			Position = float2.zero;
+			ActionType = 0;
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static void RemoveElement(ref DynamicBuffer<RoomElementBufferElement> elements, in RoomElementBufferElement element)
+		{
+			// reverse search because moving entities have more chance to be at the back
+			for (int i = elements.Length - 1; i >= 0; i--)
+			{
+				if (elements[i].Entity == element.Entity)
+				{
+					elements.RemoveAtSwapBack(i);
+					break;
+				}
+			}
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static void UpdateElement(ref DynamicBuffer<RoomElementBufferElement> elements, in RoomElementBufferElement element)
+		{
+			// reverse search because moving entities have more chance to be at the back
+			for (int i = elements.Length - 1; i >= 0; i--)
+			{
+				if (elements[i].Entity == element.Entity)
+				{
+					elements[i] = element;
+					break;
+				}
+			}
+		}
 	}
 
 	[InternalBufferCapacity(4)]
