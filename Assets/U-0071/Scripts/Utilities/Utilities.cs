@@ -1,6 +1,7 @@
 using System.Runtime.CompilerServices;
 using Unity.Entities;
 using Unity.Mathematics;
+using UnityEngine;
 
 namespace U0071
 {
@@ -47,5 +48,12 @@ namespace U0071
 		{
 			return World.DefaultGameObjectInjectionWorld.Unmanaged.EntityManager;
 		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static float4 ToFloat4(this Color color)
+		{
+			return new float4(color.r, color.g, color.b, color.a);
+		}
+
 	}
 }

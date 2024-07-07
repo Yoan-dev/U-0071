@@ -100,6 +100,7 @@ namespace U0071
 			public void Execute(
 				Entity entity,
 				ref PlayerController controller,
+				ref Orientation orientation,
 				in PositionComponent position,
 				in PickComponent pick,
 				in PartitionComponent partition)
@@ -147,14 +148,16 @@ namespace U0071
 						Source = entity,
 						Action = controller.Primary,
 					});
+					orientation.Update(controller.Primary.Position.x - position.x);
 				}
-				if (controller.SecondaryInfo.IsPressed && controller.HasSecondaryAction)
+				else if (controller.SecondaryInfo.IsPressed && controller.HasSecondaryAction)
 				{
 					ActionEventBufferLookup[LookupEntity].Add(new ActionEventBufferElement
 					{
 						Source = entity,
 						Action = controller.Secondary,
 					});
+					orientation.Update(controller.Secondary.Position.x - position.x);
 				}
 
 				// consume inputs

@@ -445,6 +445,66 @@ PrefabInstance:
       propertyPath: m_Name
       value: AIUnit
       objectReference: {fileID: 0}
+    - target: {fileID: 6182060189481554560, guid: a153a4c14592d0646afb9e802275efe5,
+        type: 3}
+      propertyPath: SkinColor.b
+      value: 0.41963333
+      objectReference: {fileID: 0}
+    - target: {fileID: 6182060189481554560, guid: a153a4c14592d0646afb9e802275efe5,
+        type: 3}
+      propertyPath: SkinColor.g
+      value: 0.5923954
+      objectReference: {fileID: 0}
+    - target: {fileID: 6182060189481554560, guid: a153a4c14592d0646afb9e802275efe5,
+        type: 3}
+      propertyPath: SkinColor.r
+      value: 0.7735849
+      objectReference: {fileID: 0}
+    - target: {fileID: 6182060189481554560, guid: a153a4c14592d0646afb9e802275efe5,
+        type: 3}
+      propertyPath: BeardColor.b
+      value: 0.41960788
+      objectReference: {fileID: 0}
+    - target: {fileID: 6182060189481554560, guid: a153a4c14592d0646afb9e802275efe5,
+        type: 3}
+      propertyPath: BeardColor.g
+      value: 0.5921569
+      objectReference: {fileID: 0}
+    - target: {fileID: 6182060189481554560, guid: a153a4c14592d0646afb9e802275efe5,
+        type: 3}
+      propertyPath: BeardColor.r
+      value: 0.7725491
+      objectReference: {fileID: 0}
+    - target: {fileID: 6182060189481554560, guid: a153a4c14592d0646afb9e802275efe5,
+        type: 3}
+      propertyPath: LongHairColor.b
+      value: 0.14901961
+      objectReference: {fileID: 0}
+    - target: {fileID: 6182060189481554560, guid: a153a4c14592d0646afb9e802275efe5,
+        type: 3}
+      propertyPath: LongHairColor.g
+      value: 0.19215688
+      objectReference: {fileID: 0}
+    - target: {fileID: 6182060189481554560, guid: a153a4c14592d0646afb9e802275efe5,
+        type: 3}
+      propertyPath: LongHairColor.r
+      value: 0.227451
+      objectReference: {fileID: 0}
+    - target: {fileID: 6182060189481554560, guid: a153a4c14592d0646afb9e802275efe5,
+        type: 3}
+      propertyPath: ShortHairColor.b
+      value: 0.1505874
+      objectReference: {fileID: 0}
+    - target: {fileID: 6182060189481554560, guid: a153a4c14592d0646afb9e802275efe5,
+        type: 3}
+      propertyPath: ShortHairColor.g
+      value: 0.19360559
+      objectReference: {fileID: 0}
+    - target: {fileID: 6182060189481554560, guid: a153a4c14592d0646afb9e802275efe5,
+        type: 3}
+      propertyPath: ShortHairColor.r
+      value: 0.2264151
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -948,6 +1008,66 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: AIUnit (1)
+      objectReference: {fileID: 0}
+    - target: {fileID: 6182060189481554560, guid: a153a4c14592d0646afb9e802275efe5,
+        type: 3}
+      propertyPath: SkinColor.b
+      value: 0.6392157
+      objectReference: {fileID: 0}
+    - target: {fileID: 6182060189481554560, guid: a153a4c14592d0646afb9e802275efe5,
+        type: 3}
+      propertyPath: SkinColor.g
+      value: 0.76470596
+      objectReference: {fileID: 0}
+    - target: {fileID: 6182060189481554560, guid: a153a4c14592d0646afb9e802275efe5,
+        type: 3}
+      propertyPath: SkinColor.r
+      value: 0.9333334
+      objectReference: {fileID: 0}
+    - target: {fileID: 6182060189481554560, guid: a153a4c14592d0646afb9e802275efe5,
+        type: 3}
+      propertyPath: BeardColor.b
+      value: 0.5019608
+      objectReference: {fileID: 0}
+    - target: {fileID: 6182060189481554560, guid: a153a4c14592d0646afb9e802275efe5,
+        type: 3}
+      propertyPath: BeardColor.g
+      value: 0.5019608
+      objectReference: {fileID: 0}
+    - target: {fileID: 6182060189481554560, guid: a153a4c14592d0646afb9e802275efe5,
+        type: 3}
+      propertyPath: BeardColor.r
+      value: 0.5019608
+      objectReference: {fileID: 0}
+    - target: {fileID: 6182060189481554560, guid: a153a4c14592d0646afb9e802275efe5,
+        type: 3}
+      propertyPath: LongHairColor.b
+      value: 0.6039216
+      objectReference: {fileID: 0}
+    - target: {fileID: 6182060189481554560, guid: a153a4c14592d0646afb9e802275efe5,
+        type: 3}
+      propertyPath: LongHairColor.g
+      value: 0.76470596
+      objectReference: {fileID: 0}
+    - target: {fileID: 6182060189481554560, guid: a153a4c14592d0646afb9e802275efe5,
+        type: 3}
+      propertyPath: LongHairColor.r
+      value: 0.9333334
+      objectReference: {fileID: 0}
+    - target: {fileID: 6182060189481554560, guid: a153a4c14592d0646afb9e802275efe5,
+        type: 3}
+      propertyPath: ShortHairColor.b
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 6182060189481554560, guid: a153a4c14592d0646afb9e802275efe5,
+        type: 3}
+      propertyPath: ShortHairColor.g
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 6182060189481554560, guid: a153a4c14592d0646afb9e802275efe5,
+        type: 3}
+      propertyPath: ShortHairColor.r
+      value: 0.5
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

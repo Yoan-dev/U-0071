@@ -3,10 +3,6 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
-using UnityEngine;
-using UnityEngine.UIElements;
-using static U0071.MovementSystem;
-using static U0071.TransformSystem;
 
 namespace U0071
 {
@@ -28,10 +24,13 @@ namespace U0071
 		{
 			public float DeltaTime;
 
-			public void Execute(ref PositionComponent position, in MovementComponent movement)
+			public void Execute(ref PositionComponent position, ref Orientation orientation, in MovementComponent movement)
 			{
+				float2 input = movement.Input * movement.Speed * DeltaTime;
+
 				// input should already be normalized
-				position.Add(movement.Input * movement.Speed * DeltaTime);
+				position.Add(input);
+				orientation.Update(input.x);
 			}
 		}
 	}

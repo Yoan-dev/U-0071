@@ -1,7 +1,10 @@
+using TMPro;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
+using static UnityEngine.GraphicsBuffer;
+using static UnityEngine.Rendering.DebugUI;
 
 namespace U0071
 {
@@ -22,7 +25,7 @@ namespace U0071
 			state.RequireForUpdate<ActionEventBufferElement>();
 
 			_query = SystemAPI.QueryBuilder()
-				.WithAllRW<AIController>()
+				.WithAllRW<AIController, Orientation>()
 				.WithAll<PositionComponent, PartitionComponent>()
 				.WithPresent<PickComponent>()
 				.Build();
@@ -83,6 +86,7 @@ namespace U0071
 			public void Execute(
 				Entity entity,
 				ref AIController controller,
+				ref Orientation orientation,
 				in PositionComponent position,
 				in PickComponent pick,
 				in PartitionComponent partition)
@@ -108,6 +112,8 @@ namespace U0071
 							Action = controller.Target,
 							Source = entity,
 						});
+
+						orientation.Update(controller.Target.Position.x - position.Value.x);
 
 						// reset
 						controller.Target.Target = Entity.Null;
@@ -155,6 +161,8 @@ namespace U0071
 									Action = new ActionTarget(target.Entity, actionType, target.Position),
 									Source = entity,
 								});
+
+								orientation.Update(target.Position.x - position.Value.x);
 							}
 							else
 							{

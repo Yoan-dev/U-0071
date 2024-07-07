@@ -6,7 +6,7 @@ using Unity.Jobs;
 
 namespace U0071
 {
-	// attention to reader: this is an attempt of wrapping an event system allowing parallel writing
+	// note to reader: this is an attempt of wrapping an event system allowing parallel writing
 	//
 	// in producer system:
 	/*

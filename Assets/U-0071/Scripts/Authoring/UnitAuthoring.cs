@@ -11,6 +11,11 @@ namespace U0071
 	{
 		public string Name;
 		public float Speed;
+		public Color ShirtColor;
+		public Color SkinColor;
+		public Color ShortHairColor;
+		public Color LongHairColor;
+		public Color BeardColor;
 
 		public class Baker : Baker<UnitAuthoring>
 		{
@@ -28,6 +33,15 @@ namespace U0071
 				AddComponent(entity, new InteractableComponent());
 				AddComponent(entity, new PickComponent());
 				SetComponentEnabled<PickComponent>(entity, false);
+
+				// render
+				AddComponent(entity, new TextureArrayIndex { Value = 0f });
+				AddComponent(entity, new Orientation { Value = 1f });
+				AddComponent(entity, new ShirtColor { Value = authoring.ShirtColor.linear.ToFloat4() });
+				AddComponent(entity, new SkinColor { Value = authoring.SkinColor.linear.ToFloat4() });
+				AddComponent(entity, new ShortHairColor { Value = authoring.ShortHairColor.linear.ToFloat4() });
+				AddComponent(entity, new LongHairColor { Value = authoring.LongHairColor.linear.ToFloat4() });
+				AddComponent(entity, new BeardColor { Value = authoring.BeardColor.linear.ToFloat4() });
 			}
 		}
 	}
