@@ -9,5 +9,8 @@ namespace U0071
 	{
 		public int2 WorldDimensions;
 		public uint Seed;
+		public Animation CharacterIdle;
+		public Animation CharacterWalk;
+		public Animation CharacterInteract;
 	}
 }

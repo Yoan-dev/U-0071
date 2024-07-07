@@ -49,3 +49,18 @@ MonoBehaviour:
       x: 64
       y: 64
     Seed: 1
+    CharacterIdle:
+      StartIndex: 0
+      Duration: 4
+      FrameTime: 0.2
+      Looping: 1
+    CharacterWalk:
+      StartIndex: 4
+      Duration: 6
+      FrameTime: 0.1
+      Looping: 1
+    CharacterInteract:
+      StartIndex: 10
+      Duration: 6
+      FrameTime: 0.15
+      Looping: 1

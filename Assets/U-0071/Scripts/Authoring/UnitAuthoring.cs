@@ -29,6 +29,7 @@ namespace U0071
 				AddComponent(entity, new NameComponent { Value = new FixedString32Bytes(authoring.Name) });
 				AddComponent(entity, new PositionComponent { Value = new float2(position.x, position.z) });
 				AddComponent(entity, new MovementComponent { Speed = authoring.Speed });
+				AddComponent(entity, AnimationController.GetDefault());
 				AddComponent(entity, new PartitionComponent());
 				AddComponent(entity, new InteractableComponent());
 				AddComponent(entity, new PickComponent());

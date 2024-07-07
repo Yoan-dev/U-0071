@@ -1922,7 +1922,7 @@
     "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
     "m_ObjectId": "2937fb1a33184dd68db67ed1167fe3d6",
     "m_Id": 0,
-    "m_DisplayName": "Index",
+    "m_DisplayName": "TextureIndex",
     "m_SlotType": 1,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
@@ -2905,10 +2905,10 @@
     "m_Guid": {
         "m_GuidSerialized": "c8d17fc1-254c-4b69-8cff-49ce6beacab7"
     },
-    "m_Name": "Index",
+    "m_Name": "TextureIndex",
     "m_DefaultRefNameVersion": 1,
-    "m_RefNameGeneratedByDisplayName": "Index",
-    "m_DefaultReferenceName": "_Index",
+    "m_RefNameGeneratedByDisplayName": "TextureIndex",
+    "m_DefaultReferenceName": "_TextureIndex",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
     "m_UseCustomSlotLabel": false,
@@ -6170,7 +6170,7 @@
     "hlslDeclarationOverride": 0,
     "m_Hidden": false,
     "m_Value": {
-        "m_SerializedTexture": "{\"textureArray\":{\"fileID\":18700000,\"guid\":\"4e5c3de25db03064692ac678b0e41db8\",\"type\":3}}",
+        "m_SerializedTexture": "{\"textureArray\":{\"fileID\":18700000,\"guid\":\"e60481e4b26e55d40b2ee10befa592e1\",\"type\":3}}",
         "m_Guid": ""
     },
     "m_Modifiable": true
