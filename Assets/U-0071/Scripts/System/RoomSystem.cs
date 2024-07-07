@@ -1,10 +1,15 @@
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
-using Unity.Mathematics;
 
 namespace U0071
 {
+	// note to reader: this is an attempt of a room-based partitioning system (see Room.cs for the components/singleton)
+	// the goal is to ease detection by only iterating the elements in the same room of the enquiring process
+	// at the beginning of the frame, objects that move or change room will queue an update for the related room entities (addition, deletion, cache update)
+	// rooms can be queried afterwards in order to retrieve their elements
+	// room elements can also be modified outside of this system (example in ActionSystem.cs)
+
 	// TODO: update before everyone except game init
 	[UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
 	public partial struct RoomSystem : ISystem
