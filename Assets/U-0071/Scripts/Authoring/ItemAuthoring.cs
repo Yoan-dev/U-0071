@@ -10,8 +10,15 @@ namespace U0071
 	public class ItemAuthoring : MonoBehaviour
 	{
 		public string Name;
+
+		[Header("Interactable")]
 		public bool Pickable;
 		public bool Storage;
+		public float Range = 0.5f;
+
+		[Header("Animation")]
+		public bool Animated;
+		public Animation Animation;
 
 		public class Baker : Baker<ItemAuthoring>
 		{
@@ -26,6 +33,15 @@ namespace U0071
 				AddComponent(entity, new PositionComponent { Value = new float2(position.x, position.z) });
 				AddComponent(entity, new PartitionComponent());
 
+				if (authoring.Animated)
+				{
+					AnimationController controller = new AnimationController();
+					controller.StartAnimation(authoring.Animation);
+					AddComponent(entity, controller);
+					AddComponent(entity, new SimpleAnimationTag());
+					AddComponent(entity, new TextureArrayIndex());
+				}
+
 				ActionType actionType = 0;
 				if (authoring.Pickable)
 				{
@@ -35,9 +51,13 @@ namespace U0071
 				}
 				if (authoring.Storage)
 				{
-					actionType |= ActionType.Store;
+					actionType |= ActionType.Grind;
 				}
-				AddComponent(entity, new InteractableComponent { Flags = actionType });
+				AddComponent(entity, new InteractableComponent
+				{
+					Flags = actionType,
+					Range = authoring.Range,
+				});
 			}
 		}
 	}

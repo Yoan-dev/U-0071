@@ -28,7 +28,7 @@ Material:
   m_ValidKeywords: []
   m_InvalidKeywords: []
   m_LightmapFlags: 2
-  m_EnableInstancingVariants: 0
+  m_EnableInstancingVariants: 1
   m_DoubleSidedGI: 0
   m_CustomRenderQueue: -1
   stringTagMap: {}
@@ -59,6 +59,7 @@ Material:
     - _Orientation: 1
     - _QueueControl: 0
     - _QueueOffset: 0
+    - _TextureIndex: 0
     m_Colors:
     - _BeardColor: {r: 0.9333334, g: 0.76470596, b: 0.6039216, a: 1}
     - _LongHairColor: {r: 0.9333334, g: 0.76470596, b: 0.6039216, a: 1}

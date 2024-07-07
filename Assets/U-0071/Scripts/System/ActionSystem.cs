@@ -86,9 +86,8 @@ namespace U0071
 					{
 						ActionEventBufferElement actionEvent = enumerator.Current;
 
-						if (actionEvent.Type == ActionType.Store)
+						if (actionEvent.Type == ActionType.Grind)
 						{
-							// TODO: storage logic
 							ref PickComponent pick = ref PickLookup.GetRefRW(actionEvent.Source).ValueRW;
 							Ecb.DestroyEntity(pick.Picked);
 							pick.Picked = Entity.Null;
@@ -111,7 +110,7 @@ namespace U0071
 							if (room != Entity.Null)
 							{
 								DynamicBuffer<RoomElementBufferElement> roomElements = RoomElementLookup[room];
-								RoomElementBufferElement.RemoveElement(ref roomElements, new RoomElementBufferElement(actionEvent.Target, actionEvent.Position, InteractableLookup[actionEvent.Target].Flags));
+								RoomElementBufferElement.RemoveElement(ref roomElements, new RoomElementBufferElement(actionEvent.Target));
 								PartitionLookup.GetRefRW(actionEvent.Target).ValueRW.CurrentRoom = Entity.Null;
 							}
 						}
@@ -126,7 +125,8 @@ namespace U0071
 							Entity room = Partition.GetRoom(actionEvent.Position);
 							if (room != Entity.Null)
 							{
-								RoomElementLookup[room].Add(new RoomElementBufferElement(actionEvent.Target, actionEvent.Position, InteractableLookup[actionEvent.Target].Flags));
+								InteractableComponent interactable = InteractableLookup[actionEvent.Target];
+								RoomElementLookup[room].Add(new RoomElementBufferElement(actionEvent.Target, actionEvent.Position, interactable.Flags, interactable.Range));
 								PartitionLookup.GetRefRW(actionEvent.Target).ValueRW.CurrentRoom = room;
 							}
 						}

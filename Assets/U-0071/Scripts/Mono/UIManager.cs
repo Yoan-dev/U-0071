@@ -58,7 +58,7 @@ public class UIManager : MonoBehaviour
 	{
 		return type switch
 		{
-			ActionType.Store => "Store",
+			ActionType.Grind => "Grind",
 			ActionType.Pick => "Pick",
 			ActionType.Drop => "Drop",
 			_ => "none",

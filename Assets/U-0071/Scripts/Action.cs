@@ -10,8 +10,8 @@ namespace U0071
 	{
 		Pick = 1 << 0,
 		Drop = 1 << 1,
-		Store = 1 << 2,
-		All = Pick | Store,
+		Grind = 1 << 2,
+		All = Pick | Grind,
 	}
 
 	public struct ActionTarget
@@ -19,15 +19,17 @@ namespace U0071
 		public float2 Position;
 		public Entity Target;
 		public ActionType Type;
+		public float Range;
 
 		public bool Has => Target != Entity.Null;
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public ActionTarget(Entity target, ActionType type, float2 position)
+		public ActionTarget(Entity target, ActionType type, float2 position, float range)
 		{
 			Target = target;
 			Type = type;
 			Position = position;
+			Range = range;
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -39,6 +41,7 @@ namespace U0071
 
 	public struct InteractableComponent : IComponentData
 	{
+		public float Range;
 		public ActionType Flags;
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]

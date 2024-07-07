@@ -2,8 +2,6 @@ using System.Runtime.CompilerServices;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
-using static UnityEngine.GraphicsBuffer;
-using UnityEngine.UIElements;
 
 namespace U0071
 {
@@ -35,9 +33,9 @@ namespace U0071
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public bool IsInActionRange(float2 targetPosition)
+		public bool IsInRange(float2 position, float range)
 		{
-			return math.lengthsq(Value - targetPosition) <= math.pow(Const.ActionRange, 2f);
+			return math.lengthsq(Value - position) <= math.pow(range, 2f);
 		}
 	}
 }

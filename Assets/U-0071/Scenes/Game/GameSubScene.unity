@@ -695,7 +695,7 @@ PrefabInstance:
     - target: {fileID: 1177275384974132183, guid: 530cc151b2f886b4ebca1baed316b2f5,
         type: 3}
       propertyPath: m_LocalPosition.z
-      value: -1
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 1177275384974132183, guid: 530cc151b2f886b4ebca1baed316b2f5,
         type: 3}
@@ -735,7 +735,7 @@ PrefabInstance:
     - target: {fileID: 3777985933561052076, guid: 530cc151b2f886b4ebca1baed316b2f5,
         type: 3}
       propertyPath: m_Name
-      value: PlaceholderStorage
+      value: Grinder
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

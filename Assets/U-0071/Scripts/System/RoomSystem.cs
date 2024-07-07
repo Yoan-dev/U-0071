@@ -89,7 +89,7 @@ namespace U0071
 				{
 					Updates.Add(newRoom, new RoomUpdateEvent
 					{
-						Element = new RoomElementBufferElement(entity, position.Value, interactable.Flags),
+						Element = new RoomElementBufferElement(entity, position.Value, interactable.Flags, interactable.Range),
 						Type = RoomUpdateType.Addition,
 					});
 					Updates.Add(partition.CurrentRoom, new RoomUpdateEvent
@@ -103,7 +103,7 @@ namespace U0071
 				{
 					Updates.Add(partition.CurrentRoom, new RoomUpdateEvent
 					{
-						Element = new RoomElementBufferElement(entity, position.Value, interactable.Flags),
+						Element = new RoomElementBufferElement(entity, position.Value, interactable.Flags, interactable.Range),
 						Type = RoomUpdateType.Update,
 					});
 				}

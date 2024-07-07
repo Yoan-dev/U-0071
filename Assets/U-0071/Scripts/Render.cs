@@ -4,7 +4,7 @@ using Unity.Rendering;
 
 namespace U0071
 {
-	[MaterialProperty("_TextureIndex")]
+	[MaterialProperty("_Index")]
 	public struct TextureArrayIndex : IComponentData
 	{
 		public float Value;

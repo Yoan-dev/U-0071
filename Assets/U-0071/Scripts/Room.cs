@@ -22,13 +22,15 @@ namespace U0071
 		public float2 Position;
 		public Entity Entity;
 		public ActionType ActionType;
+		public float Range;
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public RoomElementBufferElement(Entity entity, float2 position, ActionType actionType)
+		public RoomElementBufferElement(Entity entity, float2 position, ActionType actionType, float range)
 		{
 			Entity = entity;
 			Position = position;
 			ActionType = actionType;
+			Range = range;
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -37,6 +39,7 @@ namespace U0071
 			Entity = entity;
 			Position = float2.zero;
 			ActionType = 0;
+			Range = 0f;
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]

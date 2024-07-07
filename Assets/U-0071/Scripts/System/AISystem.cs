@@ -105,7 +105,7 @@ namespace U0071
 					// (use cached value)
 					controller.Target.Position = PositionLookup[controller.Target.Target].Value;
 
-					if (position.IsInActionRange(controller.Target.Position))
+					if (position.IsInRange(controller.Target.Position, controller.Target.Range))
 					{
 						ActionEvents.AddNoResize(new ActionEventBufferElement
 						{
@@ -133,7 +133,7 @@ namespace U0071
 					}
 					else
 					{
-						filter &= ~ActionType.Store;
+						filter &= ~ActionType.Grind;
 					}
 
 					// look for target
@@ -146,19 +146,19 @@ namespace U0071
 						{
 							actionType = ActionType.Pick;
 						}
-						else if (Utilities.HasActionType(target.ActionType, ActionType.Store))
+						else if (Utilities.HasActionType(target.ActionType, ActionType.Grind))
 						{
-							actionType = ActionType.Store;
+							actionType = ActionType.Grind;
 						}
 
 						if (actionType != 0)
 						{
-							if (position.IsInActionRange(target.Position))
+							if (position.IsInRange(target.Position, target.Range))
 							{
 								// interact
 								ActionEvents.AddNoResize(new ActionEventBufferElement
 								{
-									Action = new ActionTarget(target.Entity, actionType, target.Position),
+									Action = new ActionTarget(target.Entity, actionType, target.Position, target.Range),
 									Source = entity,
 								});
 
@@ -167,7 +167,7 @@ namespace U0071
 							else
 							{
 								// track
-								controller.Target = new ActionTarget(target.Entity, actionType, target.Position);
+								controller.Target = new ActionTarget(target.Entity, actionType, target.Position, target.Range);
 							}
 						}
 					}
@@ -183,7 +183,7 @@ namespace U0071
 				if (controller.HasTarget)
 				{
 					float2 direction = controller.Target.Position - position.Value;
-					movement.Input = math.lengthsq(direction) > math.pow(Const.ActionRange, 2f) ? math.normalize(direction) : float2.zero;
+					movement.Input = math.lengthsq(direction) > math.pow(controller.Target.Range, 2f) ? math.normalize(direction) : float2.zero;
 				}
 				else
 				{

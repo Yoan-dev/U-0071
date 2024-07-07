@@ -118,24 +118,24 @@ namespace U0071
 
 				if (pick.Picked != Entity.Null)
 				{
-					controller.Secondary = new ActionTarget(pick.Picked, ActionType.Drop, position.Value);
+					controller.Secondary = new ActionTarget(pick.Picked, ActionType.Drop, position.Value, 0f);
 					controller.SecondaryInfo.Name = NameLookup[pick.Picked].Value;
 					controller.SecondaryInfo.Type = ActionType.Drop;
 				}
 
 				if (Utilities.GetClosestRoomElement(RoomElementBufferLookup[partition.CurrentRoom], position.Value, entity, ActionType.All, out RoomElementBufferElement target) &&
-					position.IsInActionRange(target.Position))
+					position.IsInRange(target.Position, target.Range))
 				{
 					// TODO: check !controller.HasPrimaryAction for subsequent actions
-					if (pick.Picked != Entity.Null && target.HasActionType(ActionType.Store))
+					if (pick.Picked != Entity.Null && target.HasActionType(ActionType.Grind))
 					{
-						controller.Primary = new ActionTarget(target.Entity, ActionType.Store, target.Position);
+						controller.Primary = new ActionTarget(target.Entity, ActionType.Grind, target.Position, target.Range);
 						controller.PrimaryInfo.Name = NameLookup[target.Entity].Value;
-						controller.PrimaryInfo.Type = ActionType.Store;
+						controller.PrimaryInfo.Type = ActionType.Grind;
 					}
 					else if (!controller.HasSecondaryAction && target.HasActionType(ActionType.Pick))
 					{
-						controller.Secondary = new ActionTarget(target.Entity, ActionType.Pick, target.Position);
+						controller.Secondary = new ActionTarget(target.Entity, ActionType.Pick, target.Position, target.Range);
 						controller.SecondaryInfo.Name = NameLookup[target.Entity].Value;
 						controller.SecondaryInfo.Type = ActionType.Pick;
 					}
