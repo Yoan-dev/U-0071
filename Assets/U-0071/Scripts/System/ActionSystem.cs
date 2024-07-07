@@ -8,7 +8,7 @@ namespace U0071
 	[UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
 	public partial struct ActionSystem : ISystem
 	{
-		private BufferLookup<PickDropEventBufferElement> _pickDropEventLookup;
+		private BufferLookup<ActionEventBufferElement> _actionEventLookup;
 		private BufferLookup<RoomElementBufferElement> _roomElementLookup;
 		private ComponentLookup<PickComponent> _pickLookup;
 		private ComponentLookup<PickableComponent> _pickableLookup;
@@ -19,10 +19,10 @@ namespace U0071
 		[BurstCompile]
 		public void OnCreate(ref SystemState state)
 		{
-			state.RequireForUpdate<PickDropEventBufferElement>();
+			state.RequireForUpdate<ActionEventBufferElement>();
 			state.RequireForUpdate<RoomPartition>();
 
-			_pickDropEventLookup = state.GetBufferLookup<PickDropEventBufferElement>();
+			_actionEventLookup = state.GetBufferLookup<ActionEventBufferElement>();
 			_roomElementLookup = state.GetBufferLookup<RoomElementBufferElement>();
 			_pickLookup = state.GetComponentLookup<PickComponent>();
 			_pickableLookup = state.GetComponentLookup<PickableComponent>();
@@ -34,7 +34,9 @@ namespace U0071
 		[BurstCompile]
 		public void OnUpdate(ref SystemState state)
 		{
-			_pickDropEventLookup.Update(ref state);
+			var ecbs = SystemAPI.GetSingleton<EndFixedStepSimulationEntityCommandBufferSystem.Singleton>();
+
+			_actionEventLookup.Update(ref state);
 			_roomElementLookup.Update(ref state);
 			_pickLookup.Update(ref state);
 			_pickableLookup.Update(ref state);
@@ -42,14 +44,14 @@ namespace U0071
 			_partitionLookup.Update(ref state);
 			_interactableLookup.Update(ref state);
 
-			// TODO: verify // between different action processing jobs (avoid dependencies)
-			// TBD: use Ecb/events in case of conflicts
+			// TODO/TBD: split action event types depending on dependencies (parallel processing)
 
-			state.Dependency = new PickDropEventsJob
+			state.Dependency = new ActionEventsJob
 			{
-				LookupEntity = SystemAPI.GetSingletonEntity<PickDropEventBufferElement>(),
+				Ecb = ecbs.CreateCommandBuffer(state.WorldUnmanaged),
+				LookupEntity = SystemAPI.GetSingletonEntity<ActionEventBufferElement>(),
 				Partition = SystemAPI.GetSingleton<RoomPartition>(),
-				ActionLookup = _pickDropEventLookup,
+				ActionLookup = _actionEventLookup,
 				RoomElementLookup = _roomElementLookup,
 				PickLookup = _pickLookup,
 				PickableLookup = _pickableLookup,
@@ -60,10 +62,11 @@ namespace U0071
 		}
 
 		[BurstCompile]
-		public partial struct PickDropEventsJob : IJob
+		public partial struct ActionEventsJob : IJob
 		{
+			public EntityCommandBuffer Ecb;
 			public Entity LookupEntity;
-			public BufferLookup<PickDropEventBufferElement> ActionLookup;
+			public BufferLookup<ActionEventBufferElement> ActionLookup;
 			public BufferLookup<RoomElementBufferElement> RoomElementLookup;
 			public ComponentLookup<PickComponent> PickLookup;
 			public ComponentLookup<PickableComponent> PickableLookup;
@@ -76,42 +79,55 @@ namespace U0071
 
 			public void Execute()
 			{
-				DynamicBuffer<PickDropEventBufferElement> actions = ActionLookup[LookupEntity];
+				DynamicBuffer<ActionEventBufferElement> actions = ActionLookup[LookupEntity];
 				using (var enumerator = actions.GetEnumerator())
 				{
 					while (enumerator.MoveNext())
 					{
-						PickDropEventBufferElement actionEvent = enumerator.Current;
+						ActionEventBufferElement actionEvent = enumerator.Current;
 
-						// verify target has not been picked by another event
-						if (actionEvent.Action.Type == ActionType.Pick && !PickableLookup.IsComponentEnabled(actionEvent.Action.Target))
+						if (actionEvent.Type == ActionType.Store)
 						{
-							PickLookup.GetRefRW(actionEvent.Source).ValueRW.Picked = actionEvent.Action.Target;
-							PickableLookup.GetRefRW(actionEvent.Action.Target).ValueRW.Carrier = actionEvent.Source;
-							PickLookup.SetComponentEnabled(actionEvent.Source, true);
-							PickableLookup.SetComponentEnabled(actionEvent.Action.Target, true);
+							// TODO: storage logic
+							ref PickComponent pick = ref PickLookup.GetRefRW(actionEvent.Source).ValueRW;
+							Ecb.DestroyEntity(pick.Picked);
+							pick.Picked = Entity.Null;
+							PickLookup.SetComponentEnabled(actionEvent.Source, false);
+						}
+						else if (actionEvent.Type == ActionType.Pick)
+						{
+							// verify target has not been picked by another event
+							if (PickableLookup.IsComponentEnabled(actionEvent.Target))
+							{
+								continue;
+							}
 
-							Entity room = Partition.GetRoom(actionEvent.Action.Position);
+							PickLookup.GetRefRW(actionEvent.Source).ValueRW.Picked = actionEvent.Target;
+							PickLookup.SetComponentEnabled(actionEvent.Source, true);
+							PickableLookup.GetRefRW(actionEvent.Target).ValueRW.Carrier = actionEvent.Source;
+							PickableLookup.SetComponentEnabled(actionEvent.Target, true);
+
+							Entity room = Partition.GetRoom(actionEvent.Position);
 							if (room != Entity.Null)
 							{
 								DynamicBuffer<RoomElementBufferElement> roomElements = RoomElementLookup[room];
-								RoomElementBufferElement.RemoveElement(ref roomElements, new RoomElementBufferElement(actionEvent.Action.Target, actionEvent.Action.Position, InteractableLookup[actionEvent.Action.Target].Flags));
-								PartitionLookup.GetRefRW(actionEvent.Action.Target).ValueRW.CurrentRoom = Entity.Null;
+								RoomElementBufferElement.RemoveElement(ref roomElements, new RoomElementBufferElement(actionEvent.Target, actionEvent.Position, InteractableLookup[actionEvent.Target].Flags));
+								PartitionLookup.GetRefRW(actionEvent.Target).ValueRW.CurrentRoom = Entity.Null;
 							}
 						}
-						else if (actionEvent.Action.Type == ActionType.Drop)
+						else if (actionEvent.Type == ActionType.Drop)
 						{
 							PickLookup.GetRefRW(actionEvent.Source).ValueRW.Picked = Entity.Null;
-							PickableLookup.GetRefRW(actionEvent.Action.Target).ValueRW.Carrier = Entity.Null;
 							PickLookup.SetComponentEnabled(actionEvent.Source, false);
-							PickableLookup.SetComponentEnabled(actionEvent.Action.Target, false);
-							PositionLookup.GetRefRW(actionEvent.Action.Target).ValueRW.Value = actionEvent.Action.Position;
+							PickableLookup.GetRefRW(actionEvent.Target).ValueRW.Carrier = Entity.Null;
+							PickableLookup.SetComponentEnabled(actionEvent.Target, false);
+							PositionLookup.GetRefRW(actionEvent.Target).ValueRW.Value = actionEvent.Action.Position;
 
-							Entity room = Partition.GetRoom(actionEvent.Action.Position);
+							Entity room = Partition.GetRoom(actionEvent.Position);
 							if (room != Entity.Null)
 							{
-								RoomElementLookup[room].Add(new RoomElementBufferElement(actionEvent.Action.Target, actionEvent.Action.Position, InteractableLookup[actionEvent.Action.Target].Flags));
-								PartitionLookup.GetRefRW(actionEvent.Action.Target).ValueRW.CurrentRoom = room;
+								RoomElementLookup[room].Add(new RoomElementBufferElement(actionEvent.Target, actionEvent.Position, InteractableLookup[actionEvent.Target].Flags));
+								PartitionLookup.GetRefRW(actionEvent.Target).ValueRW.CurrentRoom = room;
 							}
 						}
 					}

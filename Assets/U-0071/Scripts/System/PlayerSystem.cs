@@ -44,7 +44,7 @@ namespace U0071
 	[UpdateBefore(typeof(MovementSystem))]
 	public partial struct PlayerControllerSystem : ISystem
 	{
-		private BufferLookup<PickDropEventBufferElement> _pickDropEventLookup;
+		private BufferLookup<ActionEventBufferElement> _actionEventLookup;
 		private BufferLookup<RoomElementBufferElement> _roomElementLookup;
 		private ComponentLookup<NameComponent> _nameLookup;
 
@@ -52,9 +52,9 @@ namespace U0071
 		public void OnCreate(ref SystemState state)
 		{
 			state.RequireForUpdate<PlayerController>();
-			state.RequireForUpdate<PickDropEventBufferElement>();
+			state.RequireForUpdate<ActionEventBufferElement>();
 
-			_pickDropEventLookup = state.GetBufferLookup<PickDropEventBufferElement>();
+			_actionEventLookup = state.GetBufferLookup<ActionEventBufferElement>();
 			_roomElementLookup = state.GetBufferLookup<RoomElementBufferElement>(true);
 			_nameLookup = state.GetComponentLookup<NameComponent>(true);
 		}
@@ -62,7 +62,7 @@ namespace U0071
 		[BurstCompile]
 		public void OnUpdate(ref SystemState state)
 		{
-			_pickDropEventLookup.Update(ref state);
+			_actionEventLookup.Update(ref state);
 			_roomElementLookup.Update(ref state);
 			_nameLookup.Update(ref state);
 
@@ -70,8 +70,8 @@ namespace U0071
 
 			state.Dependency = new PlayerActionJob
 			{
-				LookupEntity = SystemAPI.GetSingletonEntity<PickDropEventBufferElement>(),
-				PickDropEventBufferLookup = _pickDropEventLookup,
+				LookupEntity = SystemAPI.GetSingletonEntity<ActionEventBufferElement>(),
+				ActionEventBufferLookup = _actionEventLookup,
 				RoomElementBufferLookup = _roomElementLookup,
 				NameLookup = _nameLookup,
 			}.Schedule(state.Dependency);
@@ -91,7 +91,7 @@ namespace U0071
 		public partial struct PlayerActionJob : IJobEntity
 		{
 			public Entity LookupEntity;
-			public BufferLookup<PickDropEventBufferElement> PickDropEventBufferLookup;
+			public BufferLookup<ActionEventBufferElement> ActionEventBufferLookup;
 			[ReadOnly]
 			public BufferLookup<RoomElementBufferElement> RoomElementBufferLookup;
 			[ReadOnly]
@@ -104,13 +104,14 @@ namespace U0071
 				in PickComponent pick,
 				in PartitionComponent partition)
 			{
-				if (partition.CurrentRoom == Entity.Null) return;
-
 				// reset
 				controller.Primary.Target = Entity.Null;
 				controller.Secondary.Target = Entity.Null;
 				controller.PrimaryInfo.Type = 0;
 				controller.SecondaryInfo.Type = 0;
+
+				// cannot act if not in partition
+				if (partition.CurrentRoom == Entity.Null) return;
 
 				// we boldly assume that all partitioned elements have an interactable and a name component
 
@@ -134,7 +135,7 @@ namespace U0071
 
 				if (controller.PrimaryInfo.IsPressed && controller.HasPrimaryAction)
 				{
-					PickDropEventBufferLookup[LookupEntity].Add(new PickDropEventBufferElement
+					ActionEventBufferLookup[LookupEntity].Add(new ActionEventBufferElement
 					{
 						Source = entity,
 						Action = controller.Primary,
@@ -142,7 +143,7 @@ namespace U0071
 				}
 				if (controller.SecondaryInfo.IsPressed && controller.HasSecondaryAction)
 				{
-					PickDropEventBufferLookup[LookupEntity].Add(new PickDropEventBufferElement
+					ActionEventBufferLookup[LookupEntity].Add(new ActionEventBufferElement
 					{
 						Source = entity,
 						Action = controller.Secondary,

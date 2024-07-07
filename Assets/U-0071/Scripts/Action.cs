@@ -10,8 +10,8 @@ namespace U0071
 	{
 		Pick = 1 << 0,
 		Drop = 1 << 1,
-		Use = 1 << 2,
-		All = Pick | Use,
+		Store = 1 << 2,
+		All = Pick | Store,
 	}
 
 	public struct ActionTarget
@@ -59,9 +59,13 @@ namespace U0071
 	}
 
 	[InternalBufferCapacity(0)]
-	public struct PickDropEventBufferElement : IBufferElementData
+	public struct ActionEventBufferElement : IBufferElementData
 	{
 		public ActionTarget Action;
 		public Entity Source;
+
+		public Entity Target => Action.Target;
+		public ActionType Type => Action.Type;
+		public float2 Position => Action.Position;
 	}
 }

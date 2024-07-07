@@ -2,53 +2,67 @@ using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
-using static UnityEngine.GraphicsBuffer;
 
 namespace U0071
 {
-
 	[UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
 	[UpdateBefore(typeof(MovementSystem))]
 	public partial struct AIControllerSystem : ISystem
 	{
-		private BufferLookup<PickDropEventBufferElement> _pickDropEventLookup;
+		public EventCollector<ActionEventBufferElement> _actionEventCollector;
 		private BufferLookup<RoomElementBufferElement> _roomElementLookup;
-		private ComponentLookup<InteractableComponent> _interactableLookup;
+		private ComponentLookup<PositionComponent> _positionLookup;
 		private ComponentLookup<PickableComponent> _pickableLookup;
+		private EntityQuery _query;
 		private float _timer;
 
 		[BurstCompile]
 		public void OnCreate(ref SystemState state)
 		{
-			state.RequireForUpdate<PickDropEventBufferElement>();
+			state.RequireForUpdate<ActionEventBufferElement>();
 
-			_pickDropEventLookup = state.GetBufferLookup<PickDropEventBufferElement>();
+			_query = SystemAPI.QueryBuilder()
+				.WithAllRW<AIController>()
+				.WithAll<PositionComponent, PartitionComponent>()
+				.WithPresent<PickComponent>()
+				.Build();
+
+			_actionEventCollector = new EventCollector<ActionEventBufferElement>(SystemAPI.GetBufferLookup<ActionEventBufferElement>());
 			_roomElementLookup = state.GetBufferLookup<RoomElementBufferElement>(true);
-			_interactableLookup = state.GetComponentLookup<InteractableComponent>(true);
+			_positionLookup = state.GetComponentLookup<PositionComponent>(true);
 			_pickableLookup = state.GetComponentLookup<PickableComponent>(true);
+		}
+
+		[BurstCompile]
+		public void OnDestroy(ref SystemState state)
+		{
+			_actionEventCollector.Dispose();
 		}
 
 		[BurstCompile]
 		public void OnUpdate(ref SystemState state)
 		{
-			// TODO: try batching
+			// TODO: batching
 			_timer += SystemAPI.Time.DeltaTime;
 			if (_timer >= Const.AITick)
 			{
 				_timer -= Const.AITick;
 
-				_pickDropEventLookup.Update(ref state);
+				_actionEventCollector.Update(ref state, _query.CalculateEntityCount());
 				_roomElementLookup.Update(ref state);
-				_interactableLookup.Update(ref state);
+				_positionLookup.Update(ref state);
 				_pickableLookup.Update(ref state);
 
 				state.Dependency = new AIActionJob
 				{
+					ActionEvents = _actionEventCollector.Writer,
 					RoomElementBufferLookup = _roomElementLookup,
-					InteractableLookup = _interactableLookup,
+					PositionLookup = _positionLookup,
 					PickableLookup = _pickableLookup,
-				}.ScheduleParallel(state.Dependency);
+				}.ScheduleParallel(_query, state.Dependency);
 
+				state.Dependency = _actionEventCollector.WriteEventsToBuffer(state.Dependency);
+			
 				state.Dependency = new AIMovementJob().ScheduleParallel(state.Dependency);
 			}
 		}
@@ -57,11 +71,12 @@ namespace U0071
 		[WithOptions(EntityQueryOptions.IgnoreComponentEnabledState)]
 		public partial struct AIActionJob : IJobEntity
 		{
-			// TODO: native list or wrapper for action events
+			[WriteOnly]
+			public NativeList<ActionEventBufferElement>.ParallelWriter ActionEvents;
 			[ReadOnly]
 			public BufferLookup<RoomElementBufferElement> RoomElementBufferLookup;
 			[ReadOnly]
-			public ComponentLookup<InteractableComponent> InteractableLookup; // to check destruction
+			public ComponentLookup<PositionComponent> PositionLookup;
 			[ReadOnly]
 			public ComponentLookup<PickableComponent> PickableLookup;
 
@@ -72,6 +87,7 @@ namespace U0071
 				in PickComponent pick,
 				in PartitionComponent partition)
 			{
+				// cannot act if not in partition
 				if (partition.CurrentRoom == Entity.Null) return;
 
 				// TODO: consider picked interactable action
@@ -79,11 +95,22 @@ namespace U0071
 				// make sure target is still avaialable (not destroyed or picked)
 				if (controller.HasTarget &&
 					(!PickableLookup.HasComponent(controller.Target.Target) || !PickableLookup.IsComponentEnabled(controller.Target.Target)) &&
-					InteractableLookup.HasComponent(controller.Target.Target))
+					PositionLookup.HasComponent(controller.Target.Target))
 				{
+					// note: we could assume that the target is not moving
+					// (use cached value)
+					controller.Target.Position = PositionLookup[controller.Target.Target].Value;
+
 					if (position.IsInActionRange(controller.Target.Position))
 					{
-						// TODO
+						ActionEvents.AddNoResize(new ActionEventBufferElement
+						{
+							Action = controller.Target,
+							Source = entity,
+						});
+
+						// reset
+						controller.Target.Target = Entity.Null;
 					}
 				}
 				else
@@ -98,6 +125,10 @@ namespace U0071
 					{
 						filter &= ~ActionType.Pick;
 					}
+					else
+					{
+						filter &= ~ActionType.Store;
+					}
 
 					// look for target
 					if (Utilities.GetClosestRoomElement(RoomElementBufferLookup[partition.CurrentRoom], position.Value, entity, filter, out RoomElementBufferElement target))
@@ -109,9 +140,9 @@ namespace U0071
 						{
 							actionType = ActionType.Pick;
 						}
-						else if (Utilities.HasActionType(target.ActionType, ActionType.Use))
+						else if (Utilities.HasActionType(target.ActionType, ActionType.Store))
 						{
-							actionType = ActionType.Use;
+							actionType = ActionType.Store;
 						}
 
 						if (actionType != 0)
@@ -119,7 +150,11 @@ namespace U0071
 							if (position.IsInActionRange(target.Position))
 							{
 								// interact
-								// TODO
+								ActionEvents.AddNoResize(new ActionEventBufferElement
+								{
+									Action = new ActionTarget(target.Entity, actionType, target.Position),
+									Source = entity,
+								});
 							}
 							else
 							{
@@ -127,7 +162,6 @@ namespace U0071
 								controller.Target = new ActionTarget(target.Entity, actionType, target.Position);
 							}
 						}
-						
 					}
 				}
 			}

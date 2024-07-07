@@ -11,6 +11,7 @@ namespace U0071
 	{
 		public string Name;
 		public bool Pickable;
+		public bool Storage;
 
 		public class Baker : Baker<ItemAuthoring>
 		{
@@ -31,6 +32,10 @@ namespace U0071
 					actionType |= ActionType.Pick;
 					AddComponent(entity, new PickableComponent());
 					SetComponentEnabled<PickableComponent>(entity, false);
+				}
+				if (authoring.Storage)
+				{
+					actionType |= ActionType.Store;
 				}
 				AddComponent(entity, new InteractableComponent { Flags = actionType });
 			}
