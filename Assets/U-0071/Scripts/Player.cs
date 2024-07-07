@@ -1,3 +1,4 @@
+using NUnit.Framework;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -5,11 +6,11 @@ using UnityEngine;
 
 namespace U0071
 {
-	public struct InteractionInput
+	public struct ActionInput
 	{
 		public FixedString32Bytes Name;
-		public ActionType Type;
 		public KeyCode Key;
+		public ActionType Type;
 		public bool IsPressed;
 	}
 
@@ -17,8 +18,8 @@ namespace U0071
 	{
 		public float2 MoveInput;
 		public float2 LookInput;
-		public InteractionInput FirstInteraction;
-		public InteractionInput SecondInteraction;
+		public ActionInput PrimaryInfo;
+		public ActionInput SecondaryInfo;
 	}
 
 	public struct CameraComponent : IComponentData { }

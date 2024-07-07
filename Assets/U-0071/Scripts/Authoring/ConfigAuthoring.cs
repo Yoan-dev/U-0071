@@ -17,7 +17,7 @@ namespace U0071
 				AddComponent(entity, authoring.Config);
 
 				// we use the config entity as a singleton for events
-				AddBuffer<ActionEventBufferElement>(entity);
+				AddBuffer<PickDropEventBufferElement>(entity);
 			}
 		}
 	}

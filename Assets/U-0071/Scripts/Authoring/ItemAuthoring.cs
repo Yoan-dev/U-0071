@@ -29,10 +29,10 @@ namespace U0071
 				if (authoring.Pickable)
 				{
 					actionType |= ActionType.Pick;
-					AddComponent(entity, new PickedComponent());
-					SetComponentEnabled<PickedComponent>(entity, false);
+					AddComponent(entity, new PickableComponent());
+					SetComponentEnabled<PickableComponent>(entity, false);
 				}
-				AddComponent(entity, new InteractableComponent { Type = actionType });
+				AddComponent(entity, new InteractableComponent { Flags = actionType });
 			}
 		}
 	}

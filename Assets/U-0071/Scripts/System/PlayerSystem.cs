@@ -27,13 +27,13 @@ namespace U0071
 				y = Input.GetKey(KeyCode.W) ? 1f : Input.GetKey(KeyCode.S) ? -1f : 0f,
 			});
 
-			if (Input.GetKeyDown(controller.FirstInteraction.Key))
+			if (Input.GetKeyDown(controller.PrimaryInfo.Key))
 			{
-				controller.FirstInteraction.IsPressed = true;
+				controller.PrimaryInfo.IsPressed = true;
 			}
-			if (Input.GetKeyDown(controller.SecondInteraction.Key))
+			if (Input.GetKeyDown(controller.SecondaryInfo.Key))
 			{
-				controller.SecondInteraction.IsPressed = true;
+				controller.SecondaryInfo.IsPressed = true;
 			}
 
 			// TODO
@@ -45,7 +45,7 @@ namespace U0071
 	[UpdateBefore(typeof(MovementSystem))]
 	public partial struct PlayerControllerSystem : ISystem
 	{
-		private BufferLookup<ActionEventBufferElement> _actionEventLookup;
+		private BufferLookup<PickDropEventBufferElement> _actionEventLookup;
 		private BufferLookup<RoomElementBufferElement> _roomElementLookup;
 		private ComponentLookup<NameComponent> _nameLookup;
 
@@ -53,8 +53,9 @@ namespace U0071
 		public void OnCreate(ref SystemState state)
 		{
 			state.RequireForUpdate<PlayerController>();
+			state.RequireForUpdate<PickDropEventBufferElement>();
 
-			_actionEventLookup = state.GetBufferLookup<ActionEventBufferElement>();
+			_actionEventLookup = state.GetBufferLookup<PickDropEventBufferElement>();
 			_roomElementLookup = state.GetBufferLookup<RoomElementBufferElement>(true);
 			_nameLookup = state.GetComponentLookup<NameComponent>(true);
 		}
@@ -70,7 +71,7 @@ namespace U0071
 
 			state.Dependency = new PlayerActionJob
 			{
-				LookupEntity = SystemAPI.GetSingletonEntity<ActionEventBufferElement>(),
+				LookupEntity = SystemAPI.GetSingletonEntity<PickDropEventBufferElement>(),
 				ActionEventBufferLookup = _actionEventLookup,
 				RoomElementBufferLookup = _roomElementLookup,
 				NameLookup = _nameLookup,
@@ -91,73 +92,68 @@ namespace U0071
 		public partial struct PlayerActionJob : IJobEntity
 		{
 			public Entity LookupEntity;
-			public BufferLookup<ActionEventBufferElement> ActionEventBufferLookup;
+			public BufferLookup<PickDropEventBufferElement> ActionEventBufferLookup;
 			[ReadOnly]
 			public BufferLookup<RoomElementBufferElement> RoomElementBufferLookup;
 			[ReadOnly]
 			public ComponentLookup<NameComponent> NameLookup;
 
-			public void Execute(Entity entity, ref PlayerController controller, in PositionComponent position, in PickComponent pick, in PartitionComponent partition)
+			public void Execute(
+				Entity entity,
+				ref PlayerController playerController,
+				ref ActionController actionController,
+				in PositionComponent position,
+				in PickComponent pick,
+				in PartitionComponent partition)
 			{
 				if (partition.CurrentRoom == Entity.Null) return;
 
-				controller.FirstInteraction.Type = 0;
-				controller.SecondInteraction.Type = 0;
-				Entity firstTarget = Entity.Null;
-				Entity secondTarget = Entity.Null;
-				float2 firstPosition = float2.zero;
-				float2 secondPosition = float2.zero;
+				// reset
+				actionController.Primary.Target = Entity.Null;
+				actionController.Secondary.Target = Entity.Null;
+				playerController.PrimaryInfo.Type = 0f;
+				playerController.SecondaryInfo.Type = 0f;
 
 				// we boldly assume that all partitioned elements have an interactable and a name component
 
 				if (pick.Picked != Entity.Null)
 				{
-					secondTarget = pick.Picked;
-					secondPosition = position.Value;
-					controller.SecondInteraction.Name = NameLookup[pick.Picked].Value;
-					controller.SecondInteraction.Type = ActionType.Drop;
+					actionController.Secondary = new ActionTarget(pick.Picked, ActionType.Drop, position.Value);
+					playerController.SecondaryInfo.Name = NameLookup[pick.Picked].Value;
+					playerController.SecondaryInfo.Type = ActionType.Drop;
 				}
 
-				if (Utilities.GetClosestRoomElement(RoomElementBufferLookup[partition.CurrentRoom], position.Value, entity, 0, out RoomElementBufferElement target))
+				if (Utilities.GetClosestRoomElement(RoomElementBufferLookup[partition.CurrentRoom], position.Value, entity, 0, out RoomElementBufferElement target) &&
+					math.lengthsq(position.Value - target.Position) <= math.pow(Const.InteractionRange, 2f))
 				{
-					if (math.lengthsq(position.Value - target.Position) <= math.pow(Const.InteractionRange, 2f))
+					if (!actionController.HasSecondaryAction && Utilities.IsActionType(target.ActionType, ActionType.Pick))
 					{
-						if (controller.SecondInteraction.Type != ActionType.Drop && 
-							Utilities.IsActionType(target.ActionType, ActionType.Pick))
-						{
-							secondTarget = target.Entity;
-							secondPosition = target.Position;
-							controller.SecondInteraction.Name = NameLookup[target.Entity].Value;
-							controller.SecondInteraction.Type = ActionType.Pick;
-						}
+						actionController.Secondary = new ActionTarget(target.Entity, ActionType.Pick, target.Position);
+						playerController.SecondaryInfo.Name = NameLookup[target.Entity].Value;
+						playerController.SecondaryInfo.Type = ActionType.Pick;
 					}
 				}
 
-				// TODO: improve
-				if (controller.FirstInteraction.IsPressed && firstTarget != Entity.Null)
+				if (playerController.PrimaryInfo.IsPressed && actionController.HasPrimaryAction)
 				{
-					ActionEventBufferLookup[LookupEntity].Add(new ActionEventBufferElement
+					ActionEventBufferLookup[LookupEntity].Add(new PickDropEventBufferElement
 					{
 						Source = entity,
-						Target = firstTarget,
-						Type = controller.FirstInteraction.Type,
-						Position = firstPosition,
+						Target = actionController.Primary,
 					});
 				}
-				if (controller.SecondInteraction.IsPressed && secondTarget != Entity.Null)
+				if (playerController.SecondaryInfo.IsPressed && actionController.HasSecondaryAction)
 				{
-					ActionEventBufferLookup[LookupEntity].Add(new ActionEventBufferElement
+					ActionEventBufferLookup[LookupEntity].Add(new PickDropEventBufferElement
 					{
 						Source = entity,
-						Target = secondTarget,
-						Type = controller.SecondInteraction.Type,
-						Position = secondPosition,
+						Target = actionController.Secondary,
 					});
 				}
 
 				// consume inputs
-				controller.FirstInteraction.IsPressed = false;
-				controller.SecondInteraction.IsPressed = false;
+				playerController.PrimaryInfo.IsPressed = false;
+				playerController.SecondaryInfo.IsPressed = false;
 			}
 		}
 	}

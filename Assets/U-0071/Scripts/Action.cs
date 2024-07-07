@@ -12,14 +12,38 @@ namespace U0071
 		Drop = 1 << 1,
 	}
 
+	public struct ActionTarget
+	{
+		public float2 Position;
+		public Entity Target;
+		public ActionType Type;
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public ActionTarget(Entity target, ActionType type, float2 position)
+		{
+			Target = target;
+			Type = type;
+			Position = position;
+		}
+	}
+
+	public struct ActionController : IComponentData
+	{
+		public ActionTarget Primary;
+		public ActionTarget Secondary;
+
+		public bool HasPrimaryAction => Primary.Target != Entity.Null;
+		public bool HasSecondaryAction => Secondary.Target != Entity.Null;
+	}
+
 	public struct InteractableComponent : IComponentData
 	{
-		public ActionType Type;
+		public ActionType Flags;
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public bool IsType(ActionType inType)
 		{
-			return Utilities.IsActionType(Type, inType);
+			return Utilities.IsActionType(Flags, inType);
 		}
 	}
 
@@ -28,17 +52,15 @@ namespace U0071
 		public Entity Picked;
 	}
 
-	public struct PickedComponent : IComponentData, IEnableableComponent
+	public struct PickableComponent : IComponentData, IEnableableComponent
 	{
 		public Entity Carrier;
 	}
 
 	[InternalBufferCapacity(0)]
-	public struct ActionEventBufferElement : IBufferElementData
+	public struct PickDropEventBufferElement : IBufferElementData
 	{
-		public float2 Position;
+		public ActionTarget Target;
 		public Entity Source;
-		public Entity Target;
-		public ActionType Type;
 	}
 }

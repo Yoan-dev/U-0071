@@ -33,7 +33,7 @@ namespace U0071
 			_query = SystemAPI.QueryBuilder()
 				.WithAllRW<PartitionComponent>()
 				.WithAll<PositionComponent, InteractableComponent>()
-				.WithNone<PickedComponent>()
+				.WithNone<PickableComponent>()
 				.Build();
 
 			_updates = new NativeParallelMultiHashMap<Entity, RoomUpdateEvent>(0, Allocator.Persistent);
@@ -84,7 +84,7 @@ namespace U0071
 				{
 					Updates.Add(newRoom, new RoomUpdateEvent
 					{
-						Element = new RoomElementBufferElement(entity, position.Value, interactable.Type),
+						Element = new RoomElementBufferElement(entity, position.Value, interactable.Flags),
 						Type = RoomUpdateType.Addition,
 					});
 					Updates.Add(partition.CurrentRoom, new RoomUpdateEvent
@@ -98,7 +98,7 @@ namespace U0071
 				{
 					Updates.Add(partition.CurrentRoom, new RoomUpdateEvent
 					{
-						Element = new RoomElementBufferElement(entity, position.Value, interactable.Type),
+						Element = new RoomElementBufferElement(entity, position.Value, interactable.Flags),
 						Type = RoomUpdateType.Update,
 					});
 				}

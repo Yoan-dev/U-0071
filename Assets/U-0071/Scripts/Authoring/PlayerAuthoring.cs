@@ -14,8 +14,8 @@ namespace U0071
 
 				AddComponent(entity, new PlayerController
 				{
-					FirstInteraction = new InteractionInput { Key = KeyCode.E },
-					SecondInteraction = new InteractionInput { Key = KeyCode.F },
+					PrimaryInfo = new ActionInput { Key = KeyCode.E },
+					SecondaryInfo = new ActionInput { Key = KeyCode.F },
 				});
 				AddComponent(entity, new CameraComponent());
 			}

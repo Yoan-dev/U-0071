@@ -29,8 +29,8 @@ public class UIManager : MonoBehaviour
 			PlayerController playerController = entityManager.GetComponentData<PlayerController>(player);
 			float3 position = entityManager.GetComponentData<LocalTransform>(player).Position;
 
-			string textOne = GetInteractionText(in playerController.FirstInteraction);
-			string textTwo = GetInteractionText(in playerController.SecondInteraction);
+			string textOne = GetInteractionText(in playerController.PrimaryInfo);
+			string textTwo = GetInteractionText(in playerController.SecondaryInfo);
 
 			Interaction.gameObject.SetActive(textOne != "" || textTwo != "");
 
@@ -48,7 +48,7 @@ public class UIManager : MonoBehaviour
 	}
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	private string GetInteractionText(in InteractionInput interactionInfo)
+	private string GetInteractionText(in ActionInput interactionInfo)
 	{
 		return interactionInfo.Type != 0 ? interactionInfo.Key.ToString() + ": " + GetActionTypeName(interactionInfo.Type) + " (" + interactionInfo.Name + ")" : "";
 	}

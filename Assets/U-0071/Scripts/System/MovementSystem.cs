@@ -23,7 +23,7 @@ namespace U0071
 		}
 
 		[BurstCompile]
-		[WithNone(typeof(PickedComponent))]
+		[WithNone(typeof(PickableComponent))]
 		public partial struct MovementJob : IJobEntity
 		{
 			public float DeltaTime;
@@ -62,7 +62,7 @@ namespace U0071
 		}
 
 		[BurstCompile]
-		[WithNone(typeof(PickedComponent))]
+		[WithNone(typeof(PickableComponent))]
 		public partial struct TransformUpdateJob : IJobEntity
 		{
 			public void Execute(ref LocalTransform transform, in PositionComponent position)
@@ -78,7 +78,7 @@ namespace U0071
 			[ReadOnly]
 			public ComponentLookup<PositionComponent> PositionLookup;
 
-			public void Execute(ref LocalTransform transform, in PickedComponent picked)
+			public void Execute(ref LocalTransform transform, in PickableComponent picked)
 			{
 				// we assume Carrier entity is not Null
 				float2 position = PositionLookup[picked.Carrier].Value;
