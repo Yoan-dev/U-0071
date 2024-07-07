@@ -2,6 +2,8 @@ using System.Runtime.CompilerServices;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
+using static UnityEngine.GraphicsBuffer;
+using UnityEngine.UIElements;
 
 namespace U0071
 {
@@ -30,6 +32,12 @@ namespace U0071
 		{
 			Value += value;
 			MovedFlag = MovedFlag || !value.Equals(float2.zero);
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public bool IsInActionRange(float2 targetPosition)
+		{
+			return math.lengthsq(Value - targetPosition) <= math.pow(Const.ActionRange, 2f);
 		}
 	}
 }

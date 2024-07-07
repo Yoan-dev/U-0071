@@ -10,6 +10,8 @@ namespace U0071
 	{
 		Pick = 1 << 0,
 		Drop = 1 << 1,
+		Use = 1 << 2,
+		All = Pick | Use,
 	}
 
 	public struct ActionTarget
@@ -18,6 +20,8 @@ namespace U0071
 		public Entity Target;
 		public ActionType Type;
 
+		public bool Has => Target != Entity.Null;
+
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public ActionTarget(Entity target, ActionType type, float2 position)
 		{
@@ -25,15 +29,12 @@ namespace U0071
 			Type = type;
 			Position = position;
 		}
-	}
 
-	public struct ActionController : IComponentData
-	{
-		public ActionTarget Primary;
-		public ActionTarget Secondary;
-
-		public bool HasPrimaryAction => Primary.Target != Entity.Null;
-		public bool HasSecondaryAction => Secondary.Target != Entity.Null;
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public bool HasType(ActionType inType)
+		{
+			return Utilities.HasActionType(Type, inType);
+		}
 	}
 
 	public struct InteractableComponent : IComponentData
@@ -41,9 +42,9 @@ namespace U0071
 		public ActionType Flags;
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public bool IsType(ActionType inType)
+		public bool HasType(ActionType inType)
 		{
-			return Utilities.IsActionType(Flags, inType);
+			return Utilities.HasActionType(Flags, inType);
 		}
 	}
 
@@ -60,7 +61,7 @@ namespace U0071
 	[InternalBufferCapacity(0)]
 	public struct PickDropEventBufferElement : IBufferElementData
 	{
-		public ActionTarget Target;
+		public ActionTarget Action;
 		public Entity Source;
 	}
 }

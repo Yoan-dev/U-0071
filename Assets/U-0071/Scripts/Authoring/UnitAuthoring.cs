@@ -3,7 +3,6 @@ using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Rendering;
 using UnityEngine;
-using UnityEngine.UIElements;
 
 namespace U0071
 {
@@ -26,7 +25,6 @@ namespace U0071
 				AddComponent(entity, new PositionComponent { Value = new float2(position.x, position.z) });
 				AddComponent(entity, new MovementComponent { Speed = authoring.Speed });
 				AddComponent(entity, new PartitionComponent());
-				AddComponent(entity, new ActionController());
 				AddComponent(entity, new InteractableComponent());
 				AddComponent(entity, new PickComponent());
 				SetComponentEnabled<PickComponent>(entity, false);

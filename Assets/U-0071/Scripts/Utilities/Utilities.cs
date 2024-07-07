@@ -16,7 +16,7 @@ namespace U0071
 			{
 				while (enumerator.MoveNext())
 				{
-					if (enumerator.Current.Entity != self && IsActionType(enumerator.Current.ActionType, filter))
+					if (enumerator.Current.Entity != self && HasActionType(enumerator.Current.ActionType, filter))
 					{
 						float magn = math.lengthsq(position - enumerator.Current.Position);
 						if (magn < minMagn)
@@ -34,6 +34,12 @@ namespace U0071
 		public static bool IsActionType(ActionType type, ActionType check)
 		{
 			return (type & check) == check;
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static bool HasActionType(ActionType type, ActionType check)
+		{
+			return (type & check) != 0;
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]

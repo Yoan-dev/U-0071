@@ -1,4 +1,3 @@
-using NUnit.Framework;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -18,8 +17,13 @@ namespace U0071
 	{
 		public float2 MoveInput;
 		public float2 LookInput;
+		public ActionTarget Primary;
+		public ActionTarget Secondary;
 		public ActionInput PrimaryInfo;
 		public ActionInput SecondaryInfo;
+
+		public bool HasPrimaryAction => Primary.Has;
+		public bool HasSecondaryAction => Secondary.Has;
 	}
 
 	public struct CameraComponent : IComponentData { }

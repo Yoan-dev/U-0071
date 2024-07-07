@@ -40,6 +40,12 @@ namespace U0071
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public bool IsActionType(ActionType inType)
+		{
+			return Utilities.HasActionType(ActionType, inType);
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static void RemoveElement(ref DynamicBuffer<RoomElementBufferElement> elements, in RoomElementBufferElement element)
 		{
 			// reverse search because moving entities have more chance to be at the back
