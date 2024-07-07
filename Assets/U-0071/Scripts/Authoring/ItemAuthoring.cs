@@ -30,7 +30,11 @@ namespace U0071
 
 				AddComponent(entity, new DepthSorted_Tag());
 				AddComponent(entity, new NameComponent { Value = new FixedString32Bytes(authoring.Name) });
-				AddComponent(entity, new PositionComponent { Value = new float2(position.x, position.z) });
+				AddComponent(entity, new PositionComponent
+				{
+					Value = new float2(position.x, position.z),
+					YOffset = authoring.Pickable ? Const.ItemYOffset : Const.DeviceYOffset,
+				});
 				AddComponent(entity, new PartitionComponent());
 
 				if (authoring.Animated)

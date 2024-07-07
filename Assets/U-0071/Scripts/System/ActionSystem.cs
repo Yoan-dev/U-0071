@@ -2,6 +2,8 @@ using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
+using UnityEngine.UIElements;
+using static UnityEngine.Rendering.DebugUI;
 
 namespace U0071
 {
@@ -120,7 +122,10 @@ namespace U0071
 							PickLookup.SetComponentEnabled(actionEvent.Source, false);
 							PickableLookup.GetRefRW(actionEvent.Target).ValueRW.Carrier = Entity.Null;
 							PickableLookup.SetComponentEnabled(actionEvent.Target, false);
-							PositionLookup.GetRefRW(actionEvent.Target).ValueRW.Value = actionEvent.Action.Position;
+
+							ref PositionComponent position = ref PositionLookup.GetRefRW(actionEvent.Target).ValueRW;
+							position.Value = actionEvent.Action.Position;
+							position.YOffset = Const.ItemYOffset;
 
 							Entity room = Partition.GetRoom(actionEvent.Position);
 							if (room != Entity.Null)

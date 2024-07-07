@@ -9,13 +9,58 @@ namespace U0071
 	[UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
 	public partial struct MovementSystem : ISystem
 	{
+		private ComponentLookup<PickComponent> _pickLookup;
+
+		[BurstCompile]
+		public void OnCreate(ref SystemState state)
+		{
+			_pickLookup = SystemAPI.GetComponentLookup<PickComponent>(true);
+		}
+
 		[BurstCompile]
 		public void OnUpdate(ref SystemState state)
 		{
+			_pickLookup.Update(ref state);
+
 			state.Dependency = new MovementJob
 			{
 				DeltaTime = SystemAPI.Time.DeltaTime,
 			}.ScheduleParallel(state.Dependency);
+
+			state.Dependency = new PickPositionJob().ScheduleParallel(state.Dependency);
+
+			state.Dependency = new PickablePositionJob
+			{
+				PickLookup = _pickLookup,
+			}.ScheduleParallel(state.Dependency);
+
+		}
+
+		[BurstCompile]
+		[WithAll(typeof(PickComponent))]
+		public partial struct PickPositionJob : IJobEntity
+		{
+			public void Execute(ref PickComponent pick, in PositionComponent position, in Orientation orientation)
+			{
+				pick.Position = new float2(position.x + Const.CarriedOffset.x * orientation.Value, position.y + Const.CarriedOffset.y);
+			}
+		}
+
+		[BurstCompile]
+		[WithAll(typeof(PickableComponent))]
+		public partial struct PickablePositionJob : IJobEntity
+		{
+			[NativeDisableParallelForRestriction]
+			[ReadOnly]
+			public ComponentLookup<PickComponent> PickLookup;
+
+			public void Execute(ref PositionComponent position, in PickableComponent picked)
+			{
+				// we assume Carrier entity is not Null
+				PickComponent pick = PickLookup[picked.Carrier];
+				position.Value = pick.Position;
+				position.YOffset = Const.CarriedItemYOffset;
+			}
 		}
 
 		[BurstCompile]
@@ -39,49 +84,18 @@ namespace U0071
 	[UpdateAfter(typeof(MovementSystem))]
 	public partial struct TransformSystem : ISystem
 	{
-		private ComponentLookup<PositionComponent> _positionLookup;
-
-		[BurstCompile]
-		public void OnCreate(ref SystemState state)
-		{
-			_positionLookup = SystemAPI.GetComponentLookup<PositionComponent>(true);
-		}
-
 		[BurstCompile]
 		public void OnUpdate(ref SystemState state)
 		{
-			_positionLookup.Update(ref state);
-
-			state.Dependency = new PickedPositionJob
-			{
-				PositionLookup = _positionLookup,
-			}.ScheduleParallel(state.Dependency);
-
 			state.Dependency = new TransformUpdateJob().ScheduleParallel(state.Dependency);
 		}
 
 		[BurstCompile]
-		[WithNone(typeof(PickableComponent))]
 		public partial struct TransformUpdateJob : IJobEntity
 		{
 			public void Execute(ref LocalTransform transform, in PositionComponent position)
 			{
-				transform.Position = new float3(position.x, transform.Position.y, position.y);
-			}
-		}
-
-		[BurstCompile]
-		public partial struct PickedPositionJob : IJobEntity
-		{
-			[NativeDisableParallelForRestriction]
-			[ReadOnly]
-			public ComponentLookup<PositionComponent> PositionLookup;
-
-			public void Execute(ref LocalTransform transform, in PickableComponent picked)
-			{
-				// we assume Carrier entity is not Null
-				float2 position = PositionLookup[picked.Carrier].Value;
-				transform.Position = new float3(position.x, transform.Position.y, position.y);
+				transform.Position = new float3(position.x, position.YOffset, position.y);
 			}
 		}
 	}

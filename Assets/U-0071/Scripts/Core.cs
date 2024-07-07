@@ -13,6 +13,7 @@ namespace U0071
 	public struct PositionComponent : IComponentData
 	{
 		public float2 Value;
+		public float YOffset; // for sorting
 		public bool MovedFlag;
 
 		public float x => Value.x;

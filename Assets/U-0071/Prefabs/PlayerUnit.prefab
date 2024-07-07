@@ -29,7 +29,7 @@ Transform:
   m_GameObject: {fileID: 4271635748625732498}
   serializedVersion: 2
   m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
-  m_LocalPosition: {x: 0, y: 0.3, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 2, y: 2, z: 2}
   m_ConstrainProportionsScale: 1
   m_Children: []
@@ -99,6 +99,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Name: U-0071
   Speed: 5
+  InteractableRange: 0
   ShirtColor: {r: 0.60784316, g: 0.6784314, b: 0.7176471, a: 1}
   SkinColor: {r: 0.9333334, g: 0.76470596, b: 0.6039216, a: 1}
   ShortHairColor: {r: 0.56078434, g: 0.3372549, b: 0.23137257, a: 1}
