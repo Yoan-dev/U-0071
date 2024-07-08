@@ -15,6 +15,7 @@ namespace U0071
 		public bool Pickable;
 		public bool Storage;
 		public float Range = 0.5f;
+		public int Cost;
 
 		[Header("Animation")]
 		public bool Animated;
@@ -61,6 +62,7 @@ namespace U0071
 				{
 					Flags = actionType,
 					Range = authoring.Range,
+					Cost = authoring.Cost,
 				});
 			}
 		}

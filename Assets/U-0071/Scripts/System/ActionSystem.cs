@@ -9,12 +9,15 @@ namespace U0071
 	[UpdateBefore(typeof(MovementSystem))]
 	public partial struct ActionSystem : ISystem
 	{
+		// TODO: accessible native list/queue instead of collector thingy
+
 		private BufferLookup<ActionEventBufferElement> _actionEventLookup;
 		private BufferLookup<RoomElementBufferElement> _roomElementLookup;
 		private ComponentLookup<PickComponent> _pickLookup;
 		private ComponentLookup<PickableComponent> _pickableLookup;
 		private ComponentLookup<PositionComponent> _positionLookup;
 		private ComponentLookup<PartitionComponent> _partitionLookup;
+		private ComponentLookup<CreditsComponent> _creditsLookup;
 		private ComponentLookup<InteractableComponent> _interactableLookup;
 
 		[BurstCompile]
@@ -29,6 +32,7 @@ namespace U0071
 			_pickableLookup = state.GetComponentLookup<PickableComponent>();
 			_positionLookup = state.GetComponentLookup<PositionComponent>();
 			_partitionLookup = state.GetComponentLookup<PartitionComponent>();
+			_creditsLookup = state.GetComponentLookup<CreditsComponent>();
 			_interactableLookup = state.GetComponentLookup<InteractableComponent>(true);
 		}
 
@@ -43,6 +47,7 @@ namespace U0071
 			_pickableLookup.Update(ref state);
 			_positionLookup.Update(ref state);
 			_partitionLookup.Update(ref state);
+			_creditsLookup.Update(ref state);
 			_interactableLookup.Update(ref state);
 
 			// TODO/TBD: split action event types depending on dependencies (parallel processing)
@@ -58,6 +63,7 @@ namespace U0071
 				PickableLookup = _pickableLookup,
 				PositionLookup = _positionLookup,
 				PartitionLookup = _partitionLookup,
+				CreditsLookup = _creditsLookup,
 				InteractableLookup = _interactableLookup,
 			}.Schedule(state.Dependency);
 		}
@@ -73,6 +79,7 @@ namespace U0071
 			public ComponentLookup<PickableComponent> PickableLookup;
 			public ComponentLookup<PositionComponent> PositionLookup;
 			public ComponentLookup<PartitionComponent> PartitionLookup;
+			public ComponentLookup<CreditsComponent> CreditsLookup;
 			[ReadOnly]
 			public ComponentLookup<InteractableComponent> InteractableLookup;
 			[ReadOnly]
@@ -87,7 +94,14 @@ namespace U0071
 					{
 						ActionEventBufferElement actionEvent = enumerator.Current;
 
-						if (actionEvent.Type == ActionType.Grind)
+						// could be changed depending on action
+						int cost = actionEvent.Action.Cost;
+
+						if (actionEvent.Type == ActionType.Buy)
+						{
+							// TODO
+						}
+						else if (actionEvent.Type == ActionType.Grind)
 						{
 							ref PickComponent pick = ref PickLookup.GetRefRW(actionEvent.Source).ValueRW;
 							Ecb.DestroyEntity(pick.Picked);
@@ -125,6 +139,12 @@ namespace U0071
 							ref PositionComponent position = ref PositionLookup.GetRefRW(actionEvent.Target).ValueRW;
 							position.Value = actionEvent.Action.Position;
 							position.BaseYOffset = Const.ItemYOffset;
+						}
+
+						if (cost != 0f)
+						{
+							// can be negative (task reward)
+							CreditsLookup.GetRefRW(actionEvent.Source).ValueRW.Value -= cost;
 						}
 					}
 				}

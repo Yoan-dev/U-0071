@@ -100,6 +100,7 @@ MonoBehaviour:
   Pickable: 0
   Storage: 1
   Range: 1.25
+  Cost: -5
   Animated: 1
   Animation:
     StartIndex: 0

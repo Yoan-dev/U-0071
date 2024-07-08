@@ -103,7 +103,8 @@ namespace U0071
 				ref Orientation orientation,
 				in PositionComponent position,
 				in PickComponent pick,
-				in PartitionComponent partition)
+				in PartitionComponent partition,
+				in CreditsComponent credits)
 			{
 				// reset
 				controller.PrimaryTarget.Target = Entity.Null;
@@ -135,7 +136,8 @@ namespace U0071
 					}
 				}
 
-				if (controller.PrimaryInfo.IsPressed && controller.HasPrimaryAction)
+				if (controller.PrimaryInfo.IsPressed && controller.HasPrimaryAction &&
+					(controller.PrimaryTarget.Cost == 0 || controller.PrimaryTarget.Cost <= credits.Value))
 				{
 					ActionEventBufferLookup[LookupEntity].Add(new ActionEventBufferElement
 					{
@@ -144,7 +146,9 @@ namespace U0071
 					});
 					orientation.Update(controller.PrimaryTarget.Position.x - position.x);
 				}
-				else if (controller.SecondaryInfo.IsPressed && controller.HasSecondaryAction)
+				else if (
+					controller.SecondaryInfo.IsPressed && controller.HasSecondaryAction && 
+					(controller.SecondaryTarget.Cost == 0 || controller.SecondaryTarget.Cost <= credits.Value))
 				{
 					ActionEventBufferLookup[LookupEntity].Add(new ActionEventBufferElement
 					{

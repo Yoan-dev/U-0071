@@ -12,6 +12,7 @@ namespace U0071
 		public string Name;
 		public float Speed;
 		public float InteractableRange;
+		public int Credits;
 		public Color ShirtColor;
 		public Color SkinColor;
 		public Color ShortHairColor;
@@ -37,6 +38,7 @@ namespace U0071
 				AddComponent(entity, AnimationController.GetDefault());
 				AddComponent(entity, new PartitionComponent());
 				AddComponent(entity, new InteractableComponent { Range = authoring.InteractableRange });
+				AddComponent(entity, new CreditsComponent { Value = authoring.Credits });
 				AddComponent(entity, new PickComponent());
 				SetComponentEnabled<PickComponent>(entity, false);
 

@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
@@ -23,7 +24,7 @@ namespace U0071
 
 			_query = SystemAPI.QueryBuilder()
 				.WithAllRW<AIController, Orientation>()
-				.WithAll<PositionComponent, PartitionComponent>()
+				.WithAll<PositionComponent, PartitionComponent, CreditsComponent>()
 				.WithPresent<PickComponent>()
 				.Build();
 
@@ -86,7 +87,8 @@ namespace U0071
 				ref Orientation orientation,
 				in PositionComponent position,
 				in PickComponent pick,
-				in PartitionComponent partition)
+				in PartitionComponent partition,
+				in CreditsComponent credits)
 			{
 				// cannot act if not in partition
 				if (partition.CurrentRoom == Entity.Null) return;
@@ -137,13 +139,12 @@ namespace U0071
 					if (Utilities.GetClosestRoomElement(RoomElementBufferLookup[partition.CurrentRoom], position.Value, entity, filter, out RoomElementBufferElement target))
 					{
 						// consider which action to do in priority
-						// TBD: improve
 						ActionType actionType = 0;
-						if (Utilities.HasActionType(target.ActionFlags, ActionType.Pick))
+						if (CanExecuteAction(ActionType.Pick, filter, in target, in credits))
 						{
 							actionType = ActionType.Pick;
 						}
-						else if (Utilities.HasActionType(target.ActionFlags, ActionType.Grind))
+						else if (CanExecuteAction(ActionType.Grind, filter, in target, in credits))
 						{
 							actionType = ActionType.Grind;
 						}
@@ -169,6 +170,15 @@ namespace U0071
 						}
 					}
 				}
+			}
+
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
+			private bool CanExecuteAction(ActionType type, ActionType filter, in RoomElementBufferElement target, in CreditsComponent credits)
+			{
+				return
+					Utilities.HasActionType(filter, type) && 
+					Utilities.HasActionType(target.ActionFlags, type) && 
+					(target.Cost == 0 || target.Cost <= credits.Value);
 			}
 		}
 
