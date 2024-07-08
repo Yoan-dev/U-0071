@@ -26,13 +26,13 @@ namespace U0071
 				y = Input.GetKey(KeyCode.W) ? 1f : Input.GetKey(KeyCode.S) ? -1f : 0f,
 			});
 
-			if (Input.GetKeyDown(controller.PrimaryInfo.Key))
+			if (Input.GetKeyDown(controller.PrimaryAction.Key))
 			{
-				controller.PrimaryInfo.IsPressed = true;
+				controller.PrimaryAction.IsPressed = true;
 			}
-			if (Input.GetKeyDown(controller.SecondaryInfo.Key))
+			if (Input.GetKeyDown(controller.SecondaryAction.Key))
 			{
-				controller.SecondaryInfo.IsPressed = true;
+				controller.SecondaryAction.IsPressed = true;
 			}
 
 			// TODO
@@ -107,36 +107,37 @@ namespace U0071
 				in CreditsComponent credits)
 			{
 				// reset
-				controller.PrimaryTarget.Target = Entity.Null;
-				controller.SecondaryTarget.Target = Entity.Null;
-				controller.PrimaryInfo.Type = 0;
-				controller.SecondaryInfo.Type = 0;
+				controller.PrimaryAction.Reset();
+				controller.SecondaryAction.Reset();
 
 				// cannot act if not in partition
 				if (partition.CurrentRoom == Entity.Null) return;
 
 				// we boldly assume that all partitioned elements have an interactable and a name component
 
+				// carry item actions
 				if (pick.Picked != Entity.Null)
 				{
-					controller.SetSecondaryAction(new ActionData(pick.Picked, ActionType.Drop, position.Value + new float2(Const.DropItemOffset.x * orientation.Value, Const.DropItemOffset.y), 0f, 0), in NameLookup, ActionType.Drop);
+					controller.SetSecondaryAction(new ActionData(pick.Picked, ActionType.Drop, position.Value + new float2(Const.DropItemOffset.x * orientation.Value, Const.DropItemOffset.y), 0f, 0), in NameLookup, pick.Picked);
 				}
 
+				// close room items actions
 				if (Utilities.GetClosestRoomElement(RoomElementBufferLookup[partition.CurrentRoom], position.Value, entity, ActionType.All, out RoomElementBufferElement target) &&
 					position.IsInRange(target.Position, target.Range))
 				{
 					// TODO: check !controller.HasPrimaryAction for subsequent actions
 					if (pick.Picked != Entity.Null && target.HasActionType(ActionType.Grind))
 					{
-						controller.SetPrimaryAction(in target, in NameLookup, ActionType.Grind);
+						controller.SetPrimaryAction(target.ToActionData(ActionType.Grind), in NameLookup, pick.Picked);
 					}
 					else if (!controller.HasSecondaryAction && target.HasActionType(ActionType.Pick))
 					{
-						controller.SetSecondaryAction(in target, in NameLookup, ActionType.Pick);
+						controller.SetSecondaryAction(target.ToActionData(ActionType.Pick), in NameLookup, pick.Picked);
 					}
 				}
 
-				if (controller.PrimaryInfo.IsPressed && controller.HasPrimaryAction &&
+				// queue action if needed/able
+				if (controller.PrimaryAction.IsPressed && controller.HasPrimaryAction &&
 					(controller.PrimaryTarget.Cost == 0 || controller.PrimaryTarget.Cost <= credits.Value))
 				{
 					ActionEventBufferLookup[LookupEntity].Add(new ActionEventBufferElement
@@ -147,7 +148,7 @@ namespace U0071
 					orientation.Update(controller.PrimaryTarget.Position.x - position.x);
 				}
 				else if (
-					controller.SecondaryInfo.IsPressed && controller.HasSecondaryAction && 
+					controller.SecondaryAction.IsPressed && controller.HasSecondaryAction && 
 					(controller.SecondaryTarget.Cost == 0 || controller.SecondaryTarget.Cost <= credits.Value))
 				{
 					ActionEventBufferLookup[LookupEntity].Add(new ActionEventBufferElement
@@ -159,8 +160,8 @@ namespace U0071
 				}
 
 				// consume inputs
-				controller.PrimaryInfo.IsPressed = false;
-				controller.SecondaryInfo.IsPressed = false;
+				controller.PrimaryAction.IsPressed = false;
+				controller.SecondaryAction.IsPressed = false;
 			}
 		}
 	}

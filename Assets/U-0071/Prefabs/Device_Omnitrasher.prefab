@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 4980161819497224902}
   - component: {fileID: 6409239047060852075}
   m_Layer: 0
-  m_Name: Device_Grinder
+  m_Name: Device_Omnitrasher
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -96,7 +96,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dccb9266239c8d64c9bcf20db0937c0f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Name: Grinder
+  Name: Omnitrasher
   Pickable: 0
   Storage: 1
   Range: 1.25

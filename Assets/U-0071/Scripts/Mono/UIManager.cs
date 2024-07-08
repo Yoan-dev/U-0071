@@ -29,8 +29,8 @@ public class UIManager : MonoBehaviour
 			PlayerController playerController = entityManager.GetComponentData<PlayerController>(player);
 			float3 position = entityManager.GetComponentData<LocalTransform>(player).Position;
 
-			string textOne = GetInteractionText(in playerController.PrimaryInfo);
-			string textTwo = GetInteractionText(in playerController.SecondaryInfo);
+			string textOne = GetInteractionText(in playerController.PrimaryAction);
+			string textTwo = GetInteractionText(in playerController.SecondaryAction);
 
 			Interaction.gameObject.SetActive(textOne != "" || textTwo != "");
 
@@ -48,9 +48,13 @@ public class UIManager : MonoBehaviour
 	}
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	private string GetInteractionText(in ActionInfo interactionInfo)
+	private string GetInteractionText(in ActionInfo info)
 	{
-		return interactionInfo.Type != 0 ? interactionInfo.Key.ToString() + ": " + GetActionTypeName(interactionInfo.Type) + " (" + interactionInfo.Name + ")" : "";
+		return info.Data.Target != Entity.Null ? 
+			info.Key.ToString() + ": " + 
+			GetActionTypeName(info.Type) + 
+			(info.SecondaryName.Length > 0 ? " " + info.SecondaryName : "") +
+			(info.Name.Length > 0 ? " (" + info.Name + ")" : "") : "";
 	}
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -58,7 +62,7 @@ public class UIManager : MonoBehaviour
 	{
 		return type switch
 		{
-			ActionType.Grind => "Grind",
+			ActionType.Grind => "Trash",
 			ActionType.Pick => "Pick",
 			ActionType.Drop => "Drop",
 			_ => "none",

@@ -8,54 +8,57 @@ namespace U0071
 {
 	public struct ActionInfo
 	{
+		public ActionData Data;
 		public FixedString32Bytes Name;
+		public FixedString32Bytes SecondaryName;
 		public KeyCode Key;
 		public ActionType Type;
 		public bool IsPressed;
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void Reset()
+		{
+			Data.Target = Entity.Null;
+			Type = 0;
+		}
 	}
 
 	public struct PlayerController : IComponentData
 	{
 		public float2 MoveInput;
 		public float2 LookInput;
-		public ActionData PrimaryTarget;
-		public ActionData SecondaryTarget;
-		public ActionInfo PrimaryInfo;
-		public ActionInfo SecondaryInfo;
+		public ActionInfo PrimaryAction;
+		public ActionInfo SecondaryAction;
 
 		public bool HasPrimaryAction => PrimaryTarget.Has;
 		public bool HasSecondaryAction => SecondaryTarget.Has;
+		public ActionData PrimaryTarget => PrimaryAction.Data;
+		public ActionData SecondaryTarget => SecondaryAction.Data;
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void SetPrimaryAction(in RoomElementBufferElement target, in ComponentLookup<NameComponent> nameLookup, ActionType type)
+		public void SetPrimaryAction(in ActionData data, in ComponentLookup<NameComponent> nameLookup, Entity usedItem)
 		{
-			SetAction(ref PrimaryTarget, ref PrimaryInfo, target.ToActionData(type), in nameLookup, type);
+			SetAction(ref PrimaryAction, in data, in nameLookup, usedItem);
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void SetSecondaryAction(in RoomElementBufferElement target, in ComponentLookup<NameComponent> nameLookup, ActionType type)
+		public void SetSecondaryAction(in ActionData data, in ComponentLookup<NameComponent> nameLookup, Entity usedItem)
 		{
-			SetAction(ref SecondaryTarget, ref SecondaryInfo, target.ToActionData(type), in nameLookup, type);
+			SetAction(ref SecondaryAction, in data, in nameLookup, usedItem);
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void SetPrimaryAction(in ActionData data, in ComponentLookup<NameComponent> nameLookup, ActionType type)
+		private void SetAction(ref ActionInfo action, in ActionData data, in ComponentLookup<NameComponent> nameLookup, Entity usedItem)
 		{
-			SetAction(ref PrimaryTarget, ref PrimaryInfo, in data, in nameLookup, type);
-		}
-
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void SetSecondaryAction(in ActionData data, in ComponentLookup<NameComponent> nameLookup, ActionType type)
-		{
-			SetAction(ref SecondaryTarget, ref SecondaryInfo, in data, in nameLookup, type);
-		}
-
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void SetAction(ref ActionData action, ref ActionInfo info, in ActionData data, in ComponentLookup<NameComponent> nameLookup, ActionType type)
-		{
-			action = data;
-			info.Name = nameLookup[data.Target].Value;
-			info.Type = type;
+			action.Data = data;
+			action.Type = data.Type;
+			action.Name = 
+				data.Type != ActionType.Pick && data.Type != ActionType.Drop ? nameLookup[data.Target].Value :
+				new FixedString32Bytes();
+			action.SecondaryName =
+				data.Type == ActionType.Pick ? nameLookup[data.Target].Value :
+				usedItem != Entity.Null ? nameLookup[usedItem].Value :
+				new FixedString32Bytes();
 		}
 	}
 
