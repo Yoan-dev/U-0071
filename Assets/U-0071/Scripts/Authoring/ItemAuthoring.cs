@@ -103,6 +103,10 @@ namespace U0071
 				if (authoring.Destination != null)
 				{
 					actionType |= ActionType.Store;
+					AddComponent(entity, new StorageComponent
+					{
+						Destination = GetEntity(authoring.Destination, TransformUsageFlags.Dynamic),
+					});
 				}
 
 				// companion flags

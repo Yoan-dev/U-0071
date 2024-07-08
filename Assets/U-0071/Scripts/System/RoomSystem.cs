@@ -82,7 +82,7 @@ namespace U0071
 			[WriteOnly]
 			public NativeParallelMultiHashMap<Entity, RoomUpdateEvent>.ParallelWriter Updates;
 
-			public void Execute(Entity entity, ref PartitionComponent partition, ref PositionComponent position, in InteractableComponent interactable)
+			public void Execute(Entity entity, ref PartitionComponent partition, ref PositionComponent position, ref InteractableComponent interactable)
 			{
 				// TODO: static entities should be initiated once on start and get filtered from this job
 				// (except on interactable changed)
@@ -115,6 +115,10 @@ namespace U0071
 				}
 				else if (position.MovedFlag || interactable.Changed)
 				{
+					// consume
+					position.MovedFlag = false;
+					interactable.Changed = false;
+
 					Updates.Add(partition.CurrentRoom, new RoomUpdateEvent
 					{
 						Element = new RoomElementBufferElement(entity, position.Value, in interactable),

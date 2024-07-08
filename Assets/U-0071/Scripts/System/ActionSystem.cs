@@ -40,6 +40,7 @@ namespace U0071
 		private ComponentLookup<CreditsComponent> _creditsLookup;
 		private ComponentLookup<SpawnerComponent> _spawnerLookup;
 		private ComponentLookup<InteractableComponent> _interactableLookup;
+		private ComponentLookup<StorageComponent> _storageLookup;
 
 		public NativeQueue<ActionEvent>.ParallelWriter EventQueueWriter => _eventQueue.AsParallelWriter();
 
@@ -58,6 +59,7 @@ namespace U0071
 			_creditsLookup = state.GetComponentLookup<CreditsComponent>();
 			_spawnerLookup = state.GetComponentLookup<SpawnerComponent>();
 			_interactableLookup = state.GetComponentLookup<InteractableComponent>();
+			_storageLookup = state.GetComponentLookup<StorageComponent>(true);
 		}
 
 		[BurstCompile]
@@ -79,6 +81,7 @@ namespace U0071
 			_creditsLookup.Update(ref state);
 			_spawnerLookup.Update(ref state);
 			_interactableLookup.Update(ref state);
+			_storageLookup.Update(ref state);
 
 			// TODO: have generic events (destroyed, modifyCredits etc) written when processing actions and processed afterwards in // (avoid Lookup-fest)
 			// TBD: use Ecb instead of Lookup-fest ?
@@ -102,6 +105,7 @@ namespace U0071
 				CreditsLookup = _creditsLookup,
 				SpawnerLookup = _spawnerLookup,
 				InteractableLookup = _interactableLookup,
+				StorageLookup = _storageLookup,
 			}.Schedule(state.Dependency);
 		}
 
@@ -141,6 +145,8 @@ namespace U0071
 			public ComponentLookup<SpawnerComponent> SpawnerLookup;
 			public ComponentLookup<InteractableComponent> InteractableLookup;
 			[ReadOnly]
+			public ComponentLookup<StorageComponent> StorageLookup;
+			[ReadOnly]
 			public RoomPartition Partition;
 
 			public void Execute()
@@ -155,7 +161,31 @@ namespace U0071
 						// could be changed depending on action
 						int cost = actionEvent.Action.Cost;
 
-						if (actionEvent.Type == ActionType.Collect)
+						if (actionEvent.Type == ActionType.Trash || actionEvent.Type == ActionType.Store)
+						{
+							// destroy used item
+							ref PickComponent pick = ref PickLookup.GetRefRW(actionEvent.Source).ValueRW;
+							Ecb.DestroyEntity(pick.Picked);
+							pick.Picked = Entity.Null;
+							PickLookup.SetComponentEnabled(actionEvent.Source, false);
+						}
+
+						if (actionEvent.Type == ActionType.Store)
+						{
+							Entity destination = StorageLookup[actionEvent.Target].Destination;
+
+							// TODO: increase variable capacity (if !refFlag ?)
+							ref SpawnerComponent spawner = ref SpawnerLookup.GetRefRW(destination).ValueRW;
+							if (spawner.Capacity == 0)
+							{
+								// add action type
+								ref InteractableComponent interactable = ref InteractableLookup.GetRefRW(destination).ValueRW;
+								interactable.Flags |= ActionType.Collect;
+								interactable.Changed = true;
+							}
+							spawner.Capacity++;
+						}
+						else if (actionEvent.Type == ActionType.Collect)
 						{
 							ref SpawnerComponent spawner = ref SpawnerLookup.GetRefRW(actionEvent.Target).ValueRW;
 							if (spawner.VarianceCapacity > 0)
@@ -183,13 +213,6 @@ namespace U0071
 									interactable.Changed = true;
 								}
 							}
-						}
-						else if (actionEvent.Type == ActionType.Trash)
-						{
-							ref PickComponent pick = ref PickLookup.GetRefRW(actionEvent.Source).ValueRW;
-							Ecb.DestroyEntity(pick.Picked);
-							pick.Picked = Entity.Null;
-							PickLookup.SetComponentEnabled(actionEvent.Source, false);
 						}
 						else if (actionEvent.Type == ActionType.Pick)
 						{

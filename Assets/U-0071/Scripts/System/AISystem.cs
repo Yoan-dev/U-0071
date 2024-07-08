@@ -123,6 +123,7 @@ namespace U0071
 				}
 				else
 				{
+					filter &= ~ActionType.Store;
 					filter &= ~ActionType.Trash;
 				}
 
@@ -131,17 +132,21 @@ namespace U0071
 				{
 					// consider which action to do in priority
 					ActionType actionType = 0;
-					if (CanExecuteAction(ActionType.Collect, filter, in target))
+					if (CanExecuteAction(ActionType.Store, filter, in target))
 					{
-						actionType = ActionType.Collect;
+						actionType = ActionType.Store;
+					}
+					else if (CanExecuteAction(ActionType.Trash, filter, in target))
+					{
+						actionType = ActionType.Trash;
 					}
 					else if (CanExecuteAction(ActionType.Pick, filter, in target))
 					{
 						actionType = ActionType.Pick;
 					}
-					else if (CanExecuteAction(ActionType.Trash, filter, in target))
+					else if (CanExecuteAction(ActionType.Collect, filter, in target))
 					{
-						actionType = ActionType.Trash;
+						actionType = ActionType.Collect;
 					}
 
 					// queue action or track target

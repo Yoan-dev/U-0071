@@ -142,11 +142,15 @@ namespace U0071
 						if (target.Entity != entity && Utilities.HasActionType(target.ActionFlags, filter) && position.IsInRange(target.Position, target.Range))
 						{
 							// primary
-							if (target.HasActionType(ActionType.Collect))
+							if (!controller.HasPrimaryAction && target.HasActionType(ActionType.Collect))
 							{
 								controller.SetPrimaryAction(target.ToActionData(ActionType.Collect), in NameLookup, Entity.Null);
 							}
-							else if (!controller.HasPrimaryAction && pick.Picked != Entity.Null && target.HasActionType(ActionType.Trash))
+							else if (!controller.HasPrimaryAction && target.HasActionType(ActionType.Store) && pick.Picked != Entity.Null)
+							{
+								controller.SetPrimaryAction(target.ToActionData(ActionType.Store), in NameLookup, Entity.Null);
+							}
+							else if (!controller.HasPrimaryAction && target.HasActionType(ActionType.Trash) && pick.Picked != Entity.Null)
 							{
 								controller.SetPrimaryAction(target.ToActionData(ActionType.Trash), in NameLookup, pick.Picked);
 							}
