@@ -12,7 +12,7 @@ namespace U0071
 			{
 				Entity entity = GetEntity(TransformUsageFlags.Dynamic);
 
-				AddComponent(entity, new AIController());
+				AddComponent(entity, new AITag());
 			}
 		}
 	}

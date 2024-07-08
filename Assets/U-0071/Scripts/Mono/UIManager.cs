@@ -32,11 +32,11 @@ public class UIManager : MonoBehaviour
 			string textOne = GetInteractionText(in playerController.PrimaryAction);
 			string textTwo = GetInteractionText(in playerController.SecondaryAction);
 
-			Interaction.gameObject.SetActive(textOne != "" || textTwo != "");
+			Interaction.gameObject.SetActive(playerController.ActionTimer > 0f || textOne != "" || textTwo != "");
 
 			if (Interaction.gameObject.activeSelf)
 			{
-				Interaction.text = textOne + (textOne != "" ? "\n" : "") + textTwo;
+				Interaction.text = playerController.ActionTimer > 0f ? playerController.ActionTimer.ToString("0.00") : textOne + (textOne != "" ? "\n" : "") + textTwo;
 				Interaction.transform.SetLocalPositionAndRotation(position + new float3(0f, 0f, interactionHeightOffset), Interaction.transform.rotation);
 			}
 		}

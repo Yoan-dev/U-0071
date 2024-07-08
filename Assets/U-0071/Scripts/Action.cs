@@ -21,17 +21,19 @@ namespace U0071
 		public Entity Target;
 		public ActionType Type;
 		public float Range;
+		public float Time;
 		public int Cost;
 
 		public bool Has => Target != Entity.Null;
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public ActionData(Entity target, ActionType type, float2 position, float range, int cost)
+		public ActionData(Entity target, ActionType type, float2 position, float range, float time, int cost)
 		{
 			Target = target;
 			Type = type;
 			Position = position;
 			Range = range;
+			Time = time;
 			Cost = cost;
 		}
 
@@ -48,10 +50,36 @@ namespace U0071
 		public float2 Offset;
 	}
 
+	public struct ActionController : IComponentData
+	{
+		public ActionData Action;
+		public float Timer;
+		public bool IsResolving;
+
+		public bool HasTarget => Action.Has;
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void Start()
+		{
+			Timer = 0f;
+			IsResolving = true;
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public void Stop()
+		{
+			Action.Target = Entity.Null;
+			IsResolving = false;
+		}
+	}
+
+	public struct IsActing : IComponentData, IEnableableComponent { }
+
 	public struct InteractableComponent : IComponentData
 	{
 		public ActionType Flags;
 		public float Range;
+		public float Time;
 		public int Cost;
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -71,22 +99,5 @@ namespace U0071
 	public struct PickableComponent : IComponentData, IEnableableComponent
 	{
 		public Entity Carrier;
-	}
-
-	public struct ActionEvent
-	{
-		public ActionData Action;
-		public Entity Source;
-
-		public Entity Target => Action.Target;
-		public ActionType Type => Action.Type;
-		public float2 Position => Action.Position;
-		
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public ActionEvent(Entity source, in ActionData action)
-		{
-			Source = source;
-			Action = action;
-		}
 	}
 }

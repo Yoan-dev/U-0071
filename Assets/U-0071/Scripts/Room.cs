@@ -42,12 +42,13 @@ namespace U0071
 
 		public ActionType ActionFlags => Interactable.Flags;
 		public float Range => Interactable.Range;
+		public float Time => Interactable.Time;
 		public int Cost => Interactable.Cost;
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public ActionData ToActionData(ActionType selectedActionType)
 		{
-			return new ActionData(Entity, selectedActionType, Position, Range, Cost);
+			return new ActionData(Entity, selectedActionType, Position, Range, Time, Cost);
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]

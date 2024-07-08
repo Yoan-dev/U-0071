@@ -37,6 +37,9 @@ namespace U0071
 				AddComponent(entity, new MovementComponent { Speed = authoring.Speed });
 				AddComponent(entity, AnimationController.GetDefault());
 				AddComponent(entity, new PartitionComponent());
+				AddComponent(entity, new ActionController());
+				AddComponent(entity, new IsActing());
+				SetComponentEnabled<IsActing>(entity, false);
 				AddComponent(entity, new InteractableComponent { Range = authoring.InteractableRange });
 				AddComponent(entity, new CreditsComponent { Value = authoring.Credits });
 				AddComponent(entity, new PickComponent());

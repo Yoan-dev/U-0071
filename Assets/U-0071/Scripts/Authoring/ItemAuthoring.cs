@@ -15,6 +15,7 @@ namespace U0071
 		public bool Pickable;
 		public bool Storage;
 		public float Range = 0.5f;
+		public float Time;
 		public int Cost;
 
 		[Header("Spawner")]
@@ -77,6 +78,7 @@ namespace U0071
 				{
 					Flags = actionType,
 					Range = authoring.Range,
+					Time = authoring.Time,
 					Cost = authoring.Cost,
 				});
 

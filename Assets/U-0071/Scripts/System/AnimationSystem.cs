@@ -33,9 +33,16 @@ namespace U0071
 		{
 			public Config Config;
 
-			public void Execute(ref AnimationController controller, in MovementComponent movement)
+			public void Execute(ref AnimationController controller, in MovementComponent movement, in ActionController actionController)
 			{
-				if (!movement.Input.Equals(float2.zero))
+				if (actionController.IsResolving)
+				{
+					if (!controller.IsPlaying(in Config.CharacterInteract))
+					{
+						controller.StartAnimation(in Config.CharacterInteract);
+					}
+				}
+				else if (!movement.Input.Equals(float2.zero))
 				{
 					if (!controller.IsPlaying(in Config.CharacterWalk))
 					{

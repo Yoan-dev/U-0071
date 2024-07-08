@@ -61,6 +61,6 @@ MonoBehaviour:
       Looping: 1
     CharacterInteract:
       StartIndex: 10
-      Duration: 6
+      Duration: 4
       FrameTime: 0.15
       Looping: 1

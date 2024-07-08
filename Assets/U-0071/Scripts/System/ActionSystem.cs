@@ -1,10 +1,32 @@
+using System.Runtime.CompilerServices;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
+using Unity.Mathematics;
+using UnityEditor.Timeline.Actions;
+using static UnityEngine.EventSystems.EventTrigger;
+using static UnityEngine.GraphicsBuffer;
 
 namespace U0071
 {
+	public struct ActionEvent
+	{
+		public ActionData Action;
+		public Entity Source;
+
+		public Entity Target => Action.Target;
+		public ActionType Type => Action.Type;
+		public float2 Position => Action.Position;
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public ActionEvent(Entity source, in ActionData action)
+		{
+			Source = source;
+			Action = action;
+		}
+	}
+
 	[UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
 	[UpdateBefore(typeof(MovementSystem))]
 	public partial struct ActionSystem : ISystem
@@ -57,6 +79,12 @@ namespace U0071
 
 			// TODO: have generic events (destroyed, modifyCredits etc) written when processing actions and processed afterwards in // (avoid Lookup-fest)
 
+			state.Dependency = new ActionUpdateJob
+			{
+				DeltaTime = SystemAPI.Time.DeltaTime,
+				Events = _eventQueue.AsParallelWriter(),
+			}.ScheduleParallel(state.Dependency);
+
 			state.Dependency = new ActionEventsJob
 			{
 				Ecb = ecbs.CreateCommandBuffer(state.WorldUnmanaged),
@@ -70,6 +98,28 @@ namespace U0071
 				CreditsLookup = _creditsLookup,
 				SpawnerLookup = _spawnerLookup,
 			}.Schedule(state.Dependency);
+		}
+
+		[BurstCompile]
+		public partial struct ActionUpdateJob : IJobEntity
+		{
+			[WriteOnly]
+			public NativeQueue<ActionEvent>.ParallelWriter Events;
+			public float DeltaTime;
+
+			public void Execute(Entity entity, ref ActionController controller, in CreditsComponent credits, EnabledRefRW<IsActing> isActing)
+			{
+				controller.Timer += DeltaTime;
+				if (controller.Timer >= controller.Action.Time)
+				{
+					if (controller.Action.Cost <= 0f || controller.Action.Cost <= credits.Value)
+					{
+						Events.Enqueue(new ActionEvent(entity, controller.Action));
+					}
+					controller.Stop();
+					isActing.ValueRW = false;
+				}
+			}
 		}
 
 		[BurstCompile]

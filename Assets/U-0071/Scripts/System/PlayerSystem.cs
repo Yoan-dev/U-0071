@@ -44,9 +44,8 @@ namespace U0071
 
 	[UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
 	[UpdateBefore(typeof(MovementSystem))]
-	public partial struct PlayerControllerSystem : ISystem, ISystemStartStop
+	public partial struct PlayerControllerSystem : ISystem
 	{
-		private NativeQueue<ActionEvent>.ParallelWriter _actionEventWriter; // from ActionSystem
 		private BufferLookup<RoomElementBufferElement> _roomElementLookup;
 		private ComponentLookup<NameComponent> _nameLookup;
 
@@ -60,37 +59,27 @@ namespace U0071
 			_nameLookup = state.GetComponentLookup<NameComponent>(true);
 		}
 
-		public void OnStartRunning(ref SystemState state)
-		{
-			_actionEventWriter = Utilities.GetSystem<ActionSystem>(ref state).EventQueueWriter;
-		}
-
-		public void OnStopRunning(ref SystemState state)
-		{
-		}
-
 		[BurstCompile]
 		public void OnUpdate(ref SystemState state)
 		{
 			_roomElementLookup.Update(ref state);
 			_nameLookup.Update(ref state);
 
-			state.Dependency = new PlayerMovementJob().Schedule(state.Dependency);
-
 			state.Dependency = new PlayerActionJob
 			{
-				ActionEventWriter = _actionEventWriter,
 				RoomElementBufferLookup = _roomElementLookup,
 				NameLookup = _nameLookup,
 			}.Schedule(state.Dependency);
+
+			state.Dependency = new PlayerMovementJob().Schedule(state.Dependency);
 		}
 
 		[BurstCompile]
 		public partial struct PlayerMovementJob : IJobEntity
 		{
-			public void Execute(ref MovementComponent movement, in PlayerController controller)
+			public void Execute(ref MovementComponent movement, in PlayerController controller, in ActionController actionController)
 			{
-				movement.Input = controller.MoveInput;
+				movement.Input = actionController.IsResolving ? float2.zero : controller.MoveInput;
 			}
 		}
 
@@ -98,8 +87,6 @@ namespace U0071
 		[WithOptions(EntityQueryOptions.IgnoreComponentEnabledState)]
 		public partial struct PlayerActionJob : IJobEntity
 		{
-			[WriteOnly]
-			public NativeQueue<ActionEvent>.ParallelWriter ActionEventWriter;
 			[ReadOnly]
 			public BufferLookup<RoomElementBufferElement> RoomElementBufferLookup;
 			[ReadOnly]
@@ -108,25 +95,33 @@ namespace U0071
 			public void Execute(
 				Entity entity,
 				ref PlayerController controller,
+				ref ActionController actionController,
 				ref Orientation orientation,
 				in PositionComponent position,
 				in PickComponent pick,
 				in PartitionComponent partition,
-				in CreditsComponent credits)
+				in CreditsComponent credits,
+				EnabledRefRW<IsActing> isActing)
 			{
 				// reset
 				controller.PrimaryAction.Reset();
 				controller.SecondaryAction.Reset();
+				controller.ActionTimer = 0f;
+
+				if (actionController.IsResolving)
+				{
+					// already acting
+					controller.ActionTimer = actionController.Action.Time - actionController.Timer;
+					return;
+				}
 
 				// cannot act if not in partition
 				if (partition.CurrentRoom == Entity.Null) return;
 
-				// we boldly assume that all partitioned elements have an interactable and a name component
-
 				// carry item actions
 				if (pick.Picked != Entity.Null)
 				{
-					controller.SetSecondaryAction(new ActionData(pick.Picked, ActionType.Drop, position.Value + new float2(Const.DropOffsetX * orientation.Value, Const.DropOffsetY), 0f, 0), in NameLookup, pick.Picked);
+					controller.SetSecondaryAction(new ActionData(pick.Picked, ActionType.Drop, position.Value + new float2(Const.DropOffsetX * orientation.Value, Const.DropOffsetY), 0f, 0f, 0), in NameLookup, pick.Picked);
 				}
 
 				// retrieve relevant action types
@@ -165,18 +160,22 @@ namespace U0071
 					}
 				}
 
-				// queue action if needed/able
+				// start interacting if needed/able
 				if (controller.PrimaryAction.IsPressed && controller.HasPrimaryAction &&
 					(controller.PrimaryAction.Data.Cost <= 0 || controller.PrimaryAction.Data.Cost <= credits.Value))
 				{
-					ActionEventWriter.Enqueue(new ActionEvent(entity, in controller.PrimaryAction.Data));
+					isActing.ValueRW = true;
+					actionController.Action = controller.PrimaryAction.Data;
+					actionController.Start();
 					orientation.Update(controller.PrimaryAction.Data.Position.x - position.x);
 				}
 				else if (
 					controller.SecondaryAction.IsPressed && controller.HasSecondaryAction && 
 					(controller.SecondaryAction.Data.Cost <= 0 || controller.SecondaryAction.Data.Cost <= credits.Value))
 				{
-					ActionEventWriter.Enqueue(new ActionEvent(entity, in controller.SecondaryAction.Data));
+					isActing.ValueRW = true;
+					actionController.Action = controller.SecondaryAction.Data;
+					actionController.Start();
 					orientation.Update(controller.SecondaryAction.Data.Position.x - position.x);
 
 				}

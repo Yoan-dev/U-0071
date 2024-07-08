@@ -12,15 +12,15 @@ namespace U0071
 		public FixedString32Bytes Name;
 		public FixedString32Bytes SecondaryName;
 		public KeyCode Key;
-		public ActionType Type;
-		public int Cost;
 		public bool IsPressed;
+
+		public int Cost => Data.Cost;
+		public ActionType Type => Data.Type;
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public void Reset()
 		{
 			Data.Target = Entity.Null;
-			Type = 0;
 		}
 	}
 
@@ -30,6 +30,7 @@ namespace U0071
 		public float2 LookInput;
 		public ActionInfo PrimaryAction;
 		public ActionInfo SecondaryAction;
+		public float ActionTimer;
 
 		public bool HasPrimaryAction => PrimaryAction.Data.Has;
 		public bool HasSecondaryAction => SecondaryAction.Data.Has;
@@ -50,7 +51,6 @@ namespace U0071
 		private void SetAction(ref ActionInfo action, in ActionData data, in ComponentLookup<NameComponent> nameLookup, Entity usedItem)
 		{
 			action.Data = data;
-			action.Type = data.Type;
 			action.Name = 
 				data.Type != ActionType.Pick && data.Type != ActionType.Drop ? nameLookup[data.Target].Value :
 				new FixedString32Bytes();
@@ -58,7 +58,6 @@ namespace U0071
 				data.Type == ActionType.Pick ? nameLookup[data.Target].Value :
 				usedItem != Entity.Null ? nameLookup[usedItem].Value :
 				new FixedString32Bytes();
-			action.Cost = data.Cost;
 		}
 	}
 
