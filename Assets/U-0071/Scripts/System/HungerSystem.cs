@@ -53,6 +53,7 @@ namespace U0071
 				{
 					movement.Input = float2.zero;
 					controller.Stop();
+					Ecb.SetComponentEnabled<IsActing>(chunkIndex, entity, false);
 					Ecb.SetComponentEnabled<IsDeadTag>(chunkIndex, entity, true);
 					Ecb.AddComponent(chunkIndex, entity, new PickableComponent
 					{

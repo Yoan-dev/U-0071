@@ -10,7 +10,10 @@ using UnityEngine;
 public class UIManager : MonoBehaviour
 {
 	public TMP_Text Interaction;
-	public float interactionHeightOffset;
+	public TMP_Text PopTextPrefab;
+	public float HeightOffset = 1.2f;
+
+	private int _lastCreditsValue;
 
 	public void Update()
 	{
@@ -37,8 +40,17 @@ public class UIManager : MonoBehaviour
 			if (Interaction.gameObject.activeSelf)
 			{
 				Interaction.text = playerController.ActionTimer > 0f ? playerController.ActionTimer.ToString("0.00") : textOne + (textOne != "" ? "\n" : "") + textTwo;
-				Interaction.transform.SetLocalPositionAndRotation(position + new float3(0f, 0f, interactionHeightOffset), Interaction.transform.rotation);
+				Interaction.transform.SetLocalPositionAndRotation(position + new float3(0f, 0f, HeightOffset), Interaction.transform.rotation);
 			}
+
+			int newCredits = entityManager.GetComponentData<CreditsComponent>(player).Value;
+			int difference = newCredits - _lastCreditsValue;
+			if (difference != 0)
+			{
+				TMP_Text pop = Instantiate(PopTextPrefab, position + new float3(0f, 0f, HeightOffset), Interaction.transform.rotation, transform);
+				pop.text = (difference > 0 ? "+" : "") + difference + "c";
+			}
+			_lastCreditsValue = newCredits;
 		}
 		else
 		{
