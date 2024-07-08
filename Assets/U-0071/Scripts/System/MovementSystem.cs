@@ -54,11 +54,11 @@ namespace U0071
 			[ReadOnly]
 			public ComponentLookup<PickComponent> PickLookup;
 
-			public void Execute(ref PositionComponent position, in PickableComponent picked)
+			public void Execute(ref PositionComponent position, in PickableComponent pickable)
 			{
 				// we assume Carrier entity is not Null
-				PickComponent pick = PickLookup[picked.Carrier];
-				position.Value = pick.Position;
+				PickComponent pick = PickLookup[pickable.Carrier];
+				position.Value = new float2(pick.Position.x, pick.Position.y + pickable.CarriedZOffset);
 				position.CurrentYOffset = pick.YOffset + Const.CarriedYOffset;
 			}
 		}

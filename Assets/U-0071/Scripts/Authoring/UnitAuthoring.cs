@@ -12,6 +12,7 @@ namespace U0071
 		public string Name;
 		public float Speed;
 		public float InteractableRange;
+		public float Hunger;
 		public int Credits;
 		public Color ShirtColor;
 		public Color SkinColor;
@@ -44,6 +45,9 @@ namespace U0071
 				AddComponent(entity, new CreditsComponent { Value = authoring.Credits });
 				AddComponent(entity, new PickComponent());
 				SetComponentEnabled<PickComponent>(entity, false);
+				AddComponent(entity, new HungerComponent { Value = authoring.Hunger });
+				AddComponent(entity, new IsDeadTag());
+				SetComponentEnabled<IsDeadTag>(entity, false);
 
 				// render
 				AddComponent(entity, new TextureArrayIndex { Value = 0f });

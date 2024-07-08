@@ -16,8 +16,14 @@ namespace U0071
 
 		public const float CarriedOffsetX = 0.225f;
 		public const float CarriedOffsetY = -0.175f;
+		public const float CorpseCarriedOffsetZ = 0.3f;
 		public const float DropOffsetX = 0.35f;
 		public const float DropOffsetY = -0.3f;
+
+		public const float EatingHungerGain = 5f;
+		public const float MaxHunger = 10f;
+		public const float HungerDepleteRate = 0.1f;
+		public const float DeathSkinToneOffset = 0.15f;
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static float GetActionTime(ActionType type, float baseTime)

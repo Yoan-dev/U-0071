@@ -49,7 +49,7 @@ namespace U0071
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public bool HasType(ActionType inType)
 		{
-			return Type.HasFlag(inType);
+			return Utilities.HasActionType(Type, inType);
 		}
 	}
 
@@ -90,7 +90,7 @@ namespace U0071
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public bool HasType(ActionType inType)
 		{
-			return Utilities.HasAnyActionType(Flags, inType);
+			return Utilities.HasActionType(Flags, inType);
 		}
 	}
 
@@ -106,5 +106,6 @@ namespace U0071
 	public struct PickableComponent : IComponentData, IEnableableComponent
 	{
 		public Entity Carrier;
+		public float CarriedZOffset;
 	}
 }

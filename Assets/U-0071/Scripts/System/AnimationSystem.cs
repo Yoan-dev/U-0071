@@ -29,6 +29,7 @@ namespace U0071
 
 		[BurstCompile]
 		[WithNone(typeof(SimpleAnimationTag))]
+		[WithNone(typeof(IsDeadTag))]
 		public partial struct CharacterAnimationJob : IJobEntity
 		{
 			public Config Config;
@@ -64,7 +65,7 @@ namespace U0071
 			public void Execute(ref AnimationController controller, ref TextureArrayIndex index)
 			{
 				controller.Timer += DeltaTime;
-				if (controller.Timer > controller.Animation.FrameTime && (controller.Animation.Looping || controller.Frame < controller.Animation.Duration))
+				if (controller.Timer > controller.Animation.FrameTime && (controller.Animation.Looping || controller.Frame < controller.Animation.Duration - 1))
 				{
 					controller.Timer -= controller.Animation.FrameTime;
 					controller.Frame = (controller.Frame + 1) % controller.Animation.Duration;

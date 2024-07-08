@@ -70,7 +70,7 @@ namespace U0071
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public bool HasActionType(ActionType inType)
 		{
-			return ActionFlags.HasFlag(inType);
+			return Utilities.HasActionType(ActionFlags, inType);
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]

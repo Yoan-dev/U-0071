@@ -12,5 +12,6 @@ namespace U0071
 		public Animation CharacterIdle;
 		public Animation CharacterWalk;
 		public Animation CharacterInteract;
+		public Animation CharacterDie;
 	}
 }

@@ -98,6 +98,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4429754326571891830, guid: 2df412b2951ef7a43895bd5d117d1f47,
         type: 3}
+      propertyPath: Name
+      value: Food Processor
+      objectReference: {fileID: 0}
+    - target: {fileID: 4429754326571891830, guid: 2df412b2951ef7a43895bd5d117d1f47,
+        type: 3}
       propertyPath: Time
       value: 2
       objectReference: {fileID: 0}

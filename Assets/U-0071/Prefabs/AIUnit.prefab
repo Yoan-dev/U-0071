@@ -99,7 +99,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Name: U-0000
   Speed: 3
-  InteractableRange: 0
+  InteractableRange: 0.5
+  Hunger: 10
+  Credits: 0
   ShirtColor: {r: 0.60784316, g: 0.6784314, b: 0.7176471, a: 1}
   SkinColor: {r: 0.9333334, g: 0.76470596, b: 0.6039216, a: 1}
   ShortHairColor: {r: 0.56078434, g: 0.3372549, b: 0.23137257, a: 1}

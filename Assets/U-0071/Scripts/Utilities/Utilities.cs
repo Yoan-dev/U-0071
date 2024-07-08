@@ -23,7 +23,7 @@ namespace U0071
 				while (enumerator.MoveNext())
 				{
 					if (enumerator.Current.Entity != self && 
-						HasAnyActionType(enumerator.Current.ActionFlags, filter) && 
+						HasActionType(enumerator.Current.ActionFlags, filter) && 
 						CheckStoreActionEligibility(enumerator.Current.ActionFlags, refFilter) &&
 						(enumerator.Current.Cost <= 0f || enumerator.Current.Cost <= credits))
 					{
@@ -46,7 +46,7 @@ namespace U0071
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static bool HasAnyActionType(ActionType type, ActionType check)
+		public static bool HasActionType(ActionType type, ActionType check)
 		{
 			return (type & check) != 0;
 		}
@@ -55,12 +55,12 @@ namespace U0071
 		public static bool CheckStoreActionEligibility(ActionType flags, ActionType filter)
 		{
 			// TODO: find a fancier way
-			if (HasAnyActionType(flags, ActionType.Store))
+			if (HasActionType(flags, ActionType.Store))
 			{
 				return
-					flags.HasFlag(ActionType.RefProcess) && filter.HasFlag(ActionType.RefProcess) ||
-					flags.HasFlag(ActionType.RefEat) && filter.HasFlag(ActionType.RefEat) ||
-					flags.HasFlag(ActionType.RefTrash) && filter.HasFlag(ActionType.RefTrash);
+					HasActionType(flags, ActionType.RefProcess) && HasActionType(filter, ActionType.RefProcess) ||
+					HasActionType(flags, ActionType.RefEat) && HasActionType(filter, ActionType.RefEat) ||
+					HasActionType(flags, ActionType.RefTrash) && HasActionType(filter, ActionType.RefTrash);
 			}
 			return true;
 		}

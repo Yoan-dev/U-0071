@@ -37,6 +37,7 @@ namespace U0071
 		private ComponentLookup<CreditsComponent> _creditsLookup;
 		private ComponentLookup<SpawnerComponent> _spawnerLookup;
 		private ComponentLookup<InteractableComponent> _interactableLookup;
+		private ComponentLookup<HungerComponent> _hungerLookup;
 		private ComponentLookup<StorageComponent> _storageLookup;
 
 		public NativeQueue<ActionEvent>.ParallelWriter EventQueueWriter => _eventQueue.AsParallelWriter();
@@ -56,6 +57,7 @@ namespace U0071
 			_creditsLookup = state.GetComponentLookup<CreditsComponent>();
 			_spawnerLookup = state.GetComponentLookup<SpawnerComponent>();
 			_interactableLookup = state.GetComponentLookup<InteractableComponent>();
+			_hungerLookup = state.GetComponentLookup<HungerComponent>();
 			_storageLookup = state.GetComponentLookup<StorageComponent>(true);
 		}
 
@@ -78,6 +80,7 @@ namespace U0071
 			_creditsLookup.Update(ref state);
 			_spawnerLookup.Update(ref state);
 			_interactableLookup.Update(ref state);
+			_hungerLookup.Update(ref state);
 			_storageLookup.Update(ref state);
 
 			// TODO: have generic events (destroyed, modifyCredits etc) written when processing actions and processed afterwards in // (avoid Lookup-fest)
@@ -102,6 +105,7 @@ namespace U0071
 				CreditsLookup = _creditsLookup,
 				SpawnerLookup = _spawnerLookup,
 				InteractableLookup = _interactableLookup,
+				HungerLookup = _hungerLookup,
 				StorageLookup = _storageLookup,
 			}.Schedule(state.Dependency);
 		}
@@ -141,6 +145,7 @@ namespace U0071
 			public ComponentLookup<CreditsComponent> CreditsLookup;
 			public ComponentLookup<SpawnerComponent> SpawnerLookup;
 			public ComponentLookup<InteractableComponent> InteractableLookup;
+			public ComponentLookup<HungerComponent> HungerLookup;
 			[ReadOnly]
 			public ComponentLookup<StorageComponent> StorageLookup;
 			[ReadOnly]
@@ -169,7 +174,11 @@ namespace U0071
 							PickLookup.SetComponentEnabled(actionEvent.Source, false);
 						}
 
-						if (actionEvent.Type == ActionType.Store)
+						if (actionEvent.Type == ActionType.Eat)
+						{
+							HungerLookup.GetRefRW(actionEvent.Source).ValueRW.Value += Const.EatingHungerGain;
+						}
+						else if (actionEvent.Type == ActionType.Store)
 						{
 							StorageComponent storage = StorageLookup[actionEvent.Target];
 

@@ -64,3 +64,8 @@ MonoBehaviour:
       Duration: 4
       FrameTime: 0.15
       Looping: 1
+    CharacterDie:
+      StartIndex: 14
+      Duration: 6
+      FrameTime: 0.15
+      Looping: 0

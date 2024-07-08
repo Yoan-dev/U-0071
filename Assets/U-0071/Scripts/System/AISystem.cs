@@ -27,6 +27,7 @@ namespace U0071
 				.WithAll<AITag, PositionComponent, PartitionComponent, CreditsComponent>()
 				.WithPresent<PickComponent>()
 				.WithPresentRW<IsActing>()
+				.WithNone<IsDeadTag>()
 				.Build();
 
 			_roomElementLookup = state.GetBufferLookup<RoomElementBufferElement>(true);
@@ -120,7 +121,7 @@ namespace U0071
 				if (pick.Picked != Entity.Null)
 				{
 					// consider picked interactable action
-					if (Utilities.HasAnyActionType(pick.Flags, ActionType.Eat))
+					if (Utilities.HasActionType(pick.Flags, ActionType.Eat))
 					{
 						// start interacting
 						isActing.ValueRW = true;
@@ -131,8 +132,8 @@ namespace U0071
 					}
 
 					filter &= ~ActionType.Pick;
-					if (pick.Flags.HasFlag(ActionType.RefTrash)) filter |= ActionType.Trash;
-					if (pick.Flags.HasFlag(ActionType.Process))
+					if (Utilities.HasActionType(pick.Flags, ActionType.RefTrash)) filter |= ActionType.Trash;
+					if (Utilities.HasActionType(pick.Flags, ActionType.Process))
 					{
 						filter |= ActionType.Store;
 						refFilter |= ActionType.RefProcess;
@@ -186,12 +187,13 @@ namespace U0071
 			private bool CanExecuteAction(ActionType type, ActionType filter, in RoomElementBufferElement target)
 			{
 				// note: credits vs cost already checked during query
-				return Utilities.HasAnyActionType(filter, type) && Utilities.HasAnyActionType(target.ActionFlags, type);
+				return Utilities.HasActionType(filter, type) && Utilities.HasActionType(target.ActionFlags, type);
 			}
 		}
 
 		[BurstCompile]
 		[WithAll(typeof(AITag))]
+		[WithNone(typeof(IsDeadTag))]
 		public partial struct AIMovementJob : IJobEntity
 		{
 			public void Execute(ref MovementComponent movement, in PositionComponent position, in ActionController controller)

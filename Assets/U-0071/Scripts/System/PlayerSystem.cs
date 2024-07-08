@@ -75,6 +75,7 @@ namespace U0071
 		}
 
 		[BurstCompile]
+		[WithNone(typeof(IsDeadTag))]
 		public partial struct PlayerMovementJob : IJobEntity
 		{
 			public void Execute(ref MovementComponent movement, in PlayerController controller, in ActionController actionController)
@@ -101,12 +102,18 @@ namespace U0071
 				in PickComponent pick,
 				in PartitionComponent partition,
 				in CreditsComponent credits,
-				EnabledRefRW<IsActing> isActing)
+				EnabledRefRW<IsActing> isActing,
+				EnabledRefRW<IsDeadTag> isDead)
 			{
 				// reset
 				controller.PrimaryAction.Reset();
 				controller.SecondaryAction.Reset();
 				controller.ActionTimer = 0f;
+				
+				if (isDead.ValueRW)
+				{
+					return;
+				}
 
 				if (actionController.IsResolving)
 				{
@@ -121,7 +128,7 @@ namespace U0071
 				// carry item actions
 				if (pick.Picked != Entity.Null)
 				{
-					if (Utilities.HasAnyActionType(pick.Flags, ActionType.Eat))
+					if (Utilities.HasActionType(pick.Flags, ActionType.Eat))
 					{
 						controller.SetPrimaryAction(new ActionData(pick.Picked, ActionType.Eat, position.Value, 0f, pick.Time, 0), in NameLookup, pick.Picked);
 					}
@@ -143,7 +150,7 @@ namespace U0071
 					while (enumerator.MoveNext())
 					{
 						RoomElementBufferElement target = enumerator.Current;
-						if (target.Entity != entity && Utilities.HasAnyActionType(target.ActionFlags, filter) && position.IsInRange(target.Position, target.Range))
+						if (target.Entity != entity && Utilities.HasActionType(target.ActionFlags, filter) && position.IsInRange(target.Position, target.Range))
 						{
 							// primary
 							if (!controller.HasPrimaryAction && target.HasActionType(ActionType.Collect))
@@ -152,7 +159,7 @@ namespace U0071
 							}
 							else if (!controller.HasPrimaryAction && target.HasActionType(ActionType.Store) && pick.Picked != Entity.Null)
 							{
-								controller.SetPrimaryAction(target.ToActionData(ActionType.Store), in NameLookup, Entity.Null);
+								controller.SetPrimaryAction(target.ToActionData(ActionType.Store), in NameLookup, pick.Picked);
 							}
 							else if (!controller.HasPrimaryAction && target.HasActionType(ActionType.Trash) && pick.Picked != Entity.Null)
 							{
@@ -162,7 +169,7 @@ namespace U0071
 							// secondary
 							if (!controller.HasSecondaryAction && target.HasActionType(ActionType.Pick))
 							{
-								controller.SetSecondaryAction(target.ToActionData(ActionType.Pick), in NameLookup, pick.Picked);
+								controller.SetSecondaryAction(target.ToActionData(ActionType.Pick), in NameLookup, Entity.Null);
 							}
 						}
 					}
