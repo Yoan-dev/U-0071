@@ -11,25 +11,28 @@ namespace U0071
 		Pick = 1 << 0,
 		Drop = 1 << 1,
 		Grind = 1 << 2,
-		All = Pick | Grind,
+		Buy = 1 << 3,
+		All = Pick | Grind | Buy,
 	}
 
-	public struct ActionTarget
+	public struct ActionData
 	{
 		public float2 Position;
 		public Entity Target;
 		public ActionType Type;
 		public float Range;
+		public int Cost;
 
 		public bool Has => Target != Entity.Null;
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public ActionTarget(Entity target, ActionType type, float2 position, float range)
+		public ActionData(Entity target, ActionType type, float2 position, float range, int cost)
 		{
 			Target = target;
 			Type = type;
 			Position = position;
 			Range = range;
+			Cost = cost;
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -41,8 +44,9 @@ namespace U0071
 
 	public struct InteractableComponent : IComponentData
 	{
-		public float Range;
 		public ActionType Flags;
+		public float Range;
+		public int Cost;
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public bool HasType(ActionType inType)
@@ -66,7 +70,7 @@ namespace U0071
 	[InternalBufferCapacity(0)]
 	public struct ActionEventBufferElement : IBufferElementData
 	{
-		public ActionTarget Action;
+		public ActionData Action;
 		public Entity Source;
 
 		public Entity Target => Action.Target;

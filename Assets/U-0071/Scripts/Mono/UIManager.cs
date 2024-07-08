@@ -48,7 +48,7 @@ public class UIManager : MonoBehaviour
 	}
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	private string GetInteractionText(in ActionInput interactionInfo)
+	private string GetInteractionText(in ActionInfo interactionInfo)
 	{
 		return interactionInfo.Type != 0 ? interactionInfo.Key.ToString() + ": " + GetActionTypeName(interactionInfo.Type) + " (" + interactionInfo.Name + ")" : "";
 	}

@@ -106,8 +106,8 @@ namespace U0071
 				in PartitionComponent partition)
 			{
 				// reset
-				controller.Primary.Target = Entity.Null;
-				controller.Secondary.Target = Entity.Null;
+				controller.PrimaryTarget.Target = Entity.Null;
+				controller.SecondaryTarget.Target = Entity.Null;
 				controller.PrimaryInfo.Type = 0;
 				controller.SecondaryInfo.Type = 0;
 
@@ -118,9 +118,7 @@ namespace U0071
 
 				if (pick.Picked != Entity.Null)
 				{
-					controller.Secondary = new ActionTarget(pick.Picked, ActionType.Drop, position.Value + new float2(Const.DropItemOffset.x * orientation.Value, Const.DropItemOffset.y), 0f);
-					controller.SecondaryInfo.Name = NameLookup[pick.Picked].Value;
-					controller.SecondaryInfo.Type = ActionType.Drop;
+					controller.SetSecondaryAction(new ActionData(pick.Picked, ActionType.Drop, position.Value + new float2(Const.DropItemOffset.x * orientation.Value, Const.DropItemOffset.y), 0f, 0), in NameLookup, ActionType.Drop);
 				}
 
 				if (Utilities.GetClosestRoomElement(RoomElementBufferLookup[partition.CurrentRoom], position.Value, entity, ActionType.All, out RoomElementBufferElement target) &&
@@ -129,15 +127,11 @@ namespace U0071
 					// TODO: check !controller.HasPrimaryAction for subsequent actions
 					if (pick.Picked != Entity.Null && target.HasActionType(ActionType.Grind))
 					{
-						controller.Primary = new ActionTarget(target.Entity, ActionType.Grind, target.Position, target.Range);
-						controller.PrimaryInfo.Name = NameLookup[target.Entity].Value;
-						controller.PrimaryInfo.Type = ActionType.Grind;
+						controller.SetPrimaryAction(in target, in NameLookup, ActionType.Grind);
 					}
 					else if (!controller.HasSecondaryAction && target.HasActionType(ActionType.Pick))
 					{
-						controller.Secondary = new ActionTarget(target.Entity, ActionType.Pick, target.Position, target.Range);
-						controller.SecondaryInfo.Name = NameLookup[target.Entity].Value;
-						controller.SecondaryInfo.Type = ActionType.Pick;
+						controller.SetSecondaryAction(in target, in NameLookup, ActionType.Pick);
 					}
 				}
 
@@ -146,18 +140,18 @@ namespace U0071
 					ActionEventBufferLookup[LookupEntity].Add(new ActionEventBufferElement
 					{
 						Source = entity,
-						Action = controller.Primary,
+						Action = controller.PrimaryTarget,
 					});
-					orientation.Update(controller.Primary.Position.x - position.x);
+					orientation.Update(controller.PrimaryTarget.Position.x - position.x);
 				}
 				else if (controller.SecondaryInfo.IsPressed && controller.HasSecondaryAction)
 				{
 					ActionEventBufferLookup[LookupEntity].Add(new ActionEventBufferElement
 					{
 						Source = entity,
-						Action = controller.Secondary,
+						Action = controller.SecondaryTarget,
 					});
-					orientation.Update(controller.Secondary.Position.x - position.x);
+					orientation.Update(controller.SecondaryTarget.Position.x - position.x);
 				}
 
 				// consume inputs

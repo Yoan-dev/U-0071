@@ -5,7 +5,7 @@ namespace U0071
 {
 	public struct AIController : IComponentData
 	{
-		public ActionTarget Target;
+		public ActionData Target;
 
 		public bool HasTarget => Target.Has;
 		

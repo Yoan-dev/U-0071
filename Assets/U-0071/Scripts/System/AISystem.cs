@@ -139,11 +139,11 @@ namespace U0071
 						// consider which action to do in priority
 						// TBD: improve
 						ActionType actionType = 0;
-						if (Utilities.HasActionType(target.ActionType, ActionType.Pick))
+						if (Utilities.HasActionType(target.ActionFlags, ActionType.Pick))
 						{
 							actionType = ActionType.Pick;
 						}
-						else if (Utilities.HasActionType(target.ActionType, ActionType.Grind))
+						else if (Utilities.HasActionType(target.ActionFlags, ActionType.Grind))
 						{
 							actionType = ActionType.Grind;
 						}
@@ -155,7 +155,7 @@ namespace U0071
 								// interact
 								ActionEvents.AddNoResize(new ActionEventBufferElement
 								{
-									Action = new ActionTarget(target.Entity, actionType, target.Position, target.Range),
+									Action = target.ToActionData(actionType),
 									Source = entity,
 								});
 
@@ -164,7 +164,7 @@ namespace U0071
 							else
 							{
 								// track
-								controller.Target = new ActionTarget(target.Entity, actionType, target.Position, target.Range);
+								controller.Target = target.ToActionData(actionType);
 							}
 						}
 					}

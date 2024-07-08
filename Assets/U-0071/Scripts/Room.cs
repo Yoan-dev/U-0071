@@ -36,18 +36,33 @@ namespace U0071
 	[InternalBufferCapacity(32)]
 	public struct RoomElementBufferElement : IBufferElementData
 	{
-		public float2 Position;
 		public Entity Entity;
-		public ActionType ActionType;
-		public float Range;
+		public float2 Position;
+		public InteractableComponent Interactable; // cached
+
+		public ActionType ActionFlags => Interactable.Flags;
+		public float Range => Interactable.Range;
+		public int Cost => Interactable.Cost;
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public RoomElementBufferElement(Entity entity, float2 position, ActionType actionType, float range)
+		public ActionData ToActionData(ActionType selectedActionType)
+		{
+			return new ActionData
+			{
+				Target = Entity,
+				Position = Position,
+				Cost = Cost,
+				Range = Range,
+				Type = selectedActionType,
+			};
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public RoomElementBufferElement(Entity entity, float2 position, in InteractableComponent interactable)
 		{
 			Entity = entity;
 			Position = position;
-			ActionType = actionType;
-			Range = range;
+			Interactable = interactable;
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -55,14 +70,13 @@ namespace U0071
 		{
 			Entity = entity;
 			Position = float2.zero;
-			ActionType = 0;
-			Range = 0f;
+			Interactable = new InteractableComponent();
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public bool HasActionType(ActionType inType)
 		{
-			return Utilities.HasActionType(ActionType, inType);
+			return Utilities.HasActionType(ActionFlags, inType);
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]

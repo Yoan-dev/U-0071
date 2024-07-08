@@ -17,7 +17,7 @@ namespace U0071
 			{
 				while (enumerator.MoveNext())
 				{
-					if (enumerator.Current.Entity != self && HasActionType(enumerator.Current.ActionType, filter))
+					if (enumerator.Current.Entity != self && HasActionType(enumerator.Current.ActionFlags, filter))
 					{
 						float magn = math.lengthsq(position - enumerator.Current.Position);
 						if (magn < minMagn)
