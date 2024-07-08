@@ -12,7 +12,7 @@ namespace U0071
 	public partial struct AIControllerSystem : ISystem
 	{
 		private BufferLookup<RoomElementBufferElement> _roomElementLookup;
-		private ComponentLookup<PositionComponent> _positionLookup;
+		private ComponentLookup<InteractableComponent> _interactableLookup;
 		private ComponentLookup<PickableComponent> _pickableLookup;
 		private EntityQuery _query;
 		private float _timer;
@@ -30,7 +30,7 @@ namespace U0071
 				.Build();
 
 			_roomElementLookup = state.GetBufferLookup<RoomElementBufferElement>(true);
-			_positionLookup = state.GetComponentLookup<PositionComponent>(true);
+			_interactableLookup = state.GetComponentLookup<InteractableComponent>(true);
 			_pickableLookup = state.GetComponentLookup<PickableComponent>(true);
 		}
 
@@ -44,13 +44,13 @@ namespace U0071
 				_timer -= Const.AITick;
 
 				_roomElementLookup.Update(ref state);
-				_positionLookup.Update(ref state);
+				_interactableLookup.Update(ref state);
 				_pickableLookup.Update(ref state);
 
 				state.Dependency = new AIActionJob
 				{
 					RoomElementBufferLookup = _roomElementLookup,
-					PositionLookup = _positionLookup,
+					InteractableLookup = _interactableLookup,
 					PickableLookup = _pickableLookup,
 				}.ScheduleParallel(_query, state.Dependency);
 
@@ -65,9 +65,9 @@ namespace U0071
 			[ReadOnly]
 			public BufferLookup<RoomElementBufferElement> RoomElementBufferLookup;
 			[ReadOnly]
-			public ComponentLookup<PositionComponent> PositionLookup;
-			[ReadOnly]
 			public ComponentLookup<PickableComponent> PickableLookup;
+			[ReadOnly]
+			public ComponentLookup<InteractableComponent> InteractableLookup;
 
 			public void Execute(
 				Entity entity,
@@ -79,78 +79,82 @@ namespace U0071
 				in CreditsComponent credits,
 				EnabledRefRW<IsActing> isActing)
 			{
-				// evaluate if action target is still relevant (ex: spawner capacity 0)
-				// TODO
-
 				// cannot act if not in partition or already acting
 				if (partition.CurrentRoom == Entity.Null || controller.IsResolving) return;
 
-				// TODO: consider picked interactable action
-
-				// make sure target is still avaialable (not destroyed or picked)
-				if (controller.HasTarget &&
-					(!PickableLookup.HasComponent(controller.Action.Target) || !PickableLookup.IsComponentEnabled(controller.Action.Target)) &&
-					PositionLookup.HasComponent(controller.Action.Target))
+				// evaluate current target
+				if (controller.HasTarget)
 				{
-					// note: we could assume that the target is not moving
-					// (use cached value)
-					controller.Action.Position = PositionLookup[controller.Action.Target].Value;
-
-					if (position.IsInRange(controller.Action.Position, controller.Action.Range))
+					if (!InteractableLookup.TryGetComponent(controller.Action.Target, out InteractableComponent interactable) ||
+						interactable.HasType(ActionType.Pick) && PickableLookup.IsComponentEnabled(controller.Action.Target) ||
+						!interactable.HasType(controller.Action.Type))
+					{
+						// target has been destroyed / picked / exhausted
+						controller.Action.Target = Entity.Null;
+					}
+					else if (position.IsInRange(controller.Action.Position, controller.Action.Range))
 					{
 						// start interacting
 						isActing.ValueRW = true;
 						controller.Start();
 						orientation.Update(controller.Action.Position.x - position.Value.x);
 					}
+
+					// interacting or going to target
+					if (controller.Action.Target != Entity.Null)
+					{
+						return;
+					}
+				}
+
+				// TODO: consider picked interactable action
+
+				// look for new target
+
+				// reset if picked / destroyed
+				controller.Action.Target = Entity.Null;
+
+				// retrieve relevant action types
+				ActionType filter = ActionType.AllActions;
+
+				if (pick.Picked != Entity.Null)
+				{
+					filter &= ~ActionType.Pick;
 				}
 				else
 				{
-					// reset if picked / destroyed
-					controller.Action.Target = Entity.Null;
+					filter &= ~ActionType.Trash;
+				}
 
-					// retrieve relevant action types
-					ActionType filter = ActionType.AllActions;
-
-					if (pick.Picked != Entity.Null)
+				// look for target
+				if (Utilities.GetClosestRoomElement(RoomElementBufferLookup[partition.CurrentRoom], position.Value, entity, filter, credits.Value, out RoomElementBufferElement target))
+				{
+					// consider which action to do in priority
+					ActionType actionType = 0;
+					if (CanExecuteAction(ActionType.Collect, filter, in target))
 					{
-						filter &= ~ActionType.Pick;
+						actionType = ActionType.Collect;
 					}
-					else
+					else if (CanExecuteAction(ActionType.Pick, filter, in target))
 					{
-						filter &= ~ActionType.Trash;
+						actionType = ActionType.Pick;
+					}
+					else if (CanExecuteAction(ActionType.Trash, filter, in target))
+					{
+						actionType = ActionType.Trash;
 					}
 
-					// look for target
-					if (Utilities.GetClosestRoomElement(RoomElementBufferLookup[partition.CurrentRoom], position.Value, entity, filter, credits.Value, out RoomElementBufferElement target))
+					// queue action or track target
+					if (actionType != 0)
 					{
-						// consider which action to do in priority
-						ActionType actionType = 0;
-						if (CanExecuteAction(ActionType.Collect, filter, in target))
-						{
-							actionType = ActionType.Collect;
-						}
-						else if (CanExecuteAction(ActionType.Pick, filter, in target))
-						{
-							actionType = ActionType.Pick;
-						}
-						else if (CanExecuteAction(ActionType.Trash, filter, in target))
-						{
-							actionType = ActionType.Trash;
-						}
+						controller.Action = target.ToActionData(actionType);
 
-						// queue action or track target
-						if (actionType != 0)
+						if (position.IsInRange(target.Position, target.Range))
 						{
-							controller.Action = target.ToActionData(actionType);
-
-							if (position.IsInRange(target.Position, target.Range))
-							{
-								// start interacting
-								isActing.ValueRW = true;
-								controller.Start();
-								orientation.Update(controller.Action.Position.x - position.Value.x);
-							}
+							// start interacting
+							isActing.ValueRW = true;
+							controller.Start();
+							orientation.Update(controller.Action.Position.x - position.Value.x);
 						}
 					}
 				}
