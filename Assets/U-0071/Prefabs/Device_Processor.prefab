@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 4575550971128346084}
   - component: {fileID: 4429754326571891830}
   m_Layer: 0
-  m_Name: Device_Collector_Potato
+  m_Name: Device_Processor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -62,7 +62,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: a2c2d94ace259444681d8dd8c695f755, type: 2}
+  - {fileID: 2100000, guid: 4c54bcf3e49e49d40a0bdc4d1f0a6d18, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -96,8 +96,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dccb9266239c8d64c9bcf20db0937c0f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Name: Potato Collector
+  Name: Processor
   Pickable: 0
+  Eatable: 0
   Trasher: 0
   Range: 1
   Time: 0.5
@@ -110,7 +111,7 @@ MonoBehaviour:
   GrowStageCount: 0
   Destination: {fileID: 0}
   RefTrash: 0
-  RefProcess: 1
+  RefProcess: 0
   RefEat: 0
   Animated: 1
   Animation:

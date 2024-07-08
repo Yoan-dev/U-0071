@@ -14,7 +14,7 @@ namespace U0071
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static bool GetClosestRoomElement(in DynamicBuffer<RoomElementBufferElement> elements, float2 position, Entity self, ActionType filter, int credits, out RoomElementBufferElement element)
+		public static bool GetClosestRoomElement(in DynamicBuffer<RoomElementBufferElement> elements, float2 position, Entity self, ActionType filter, ActionType refFilter, int credits, out RoomElementBufferElement element)
 		{
 			element = new RoomElementBufferElement();
 			float minMagn = float.MaxValue;
@@ -24,6 +24,7 @@ namespace U0071
 				{
 					if (enumerator.Current.Entity != self && 
 						HasActionType(enumerator.Current.ActionFlags, filter) && 
+						CheckStoreActionEligibility(enumerator.Current.ActionFlags, refFilter) &&
 						(enumerator.Current.Cost <= 0f || enumerator.Current.Cost <= credits))
 					{
 						float magn = math.lengthsq(position - enumerator.Current.Position);
@@ -48,6 +49,20 @@ namespace U0071
 		public static bool HasActionType(ActionType type, ActionType check)
 		{
 			return (type & check) != 0;
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static bool CheckStoreActionEligibility(ActionType flags, ActionType filter)
+		{
+			// TODO: find a fancier way
+			if (HasActionType(flags, ActionType.Store))
+			{
+				return
+					HasActionType(flags, ActionType.RefProcess) && HasActionType(filter, ActionType.RefProcess) ||
+					HasActionType(flags, ActionType.RefEat) && HasActionType(filter, ActionType.RefEat) ||
+					HasActionType(flags, ActionType.RefTrash) && HasActionType(filter, ActionType.RefTrash);
+			}
+			return true;
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]

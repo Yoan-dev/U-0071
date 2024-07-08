@@ -119,6 +119,7 @@ namespace U0071
 		public float2 Position;
 		public Entity Picked;
 		public float YOffset;
+		public ActionType Flags;
 	}
 
 	public struct PickableComponent : IComponentData, IEnableableComponent

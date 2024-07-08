@@ -98,6 +98,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Name: Potato
   Pickable: 1
+  Processable: 1
+  Eatable: 0
   Trasher: 0
   Range: 0.4
   Time: 0
@@ -110,7 +112,7 @@ MonoBehaviour:
   GrowStageCount: 0
   Destination: {fileID: 0}
   RefTrash: 0
-  RefProcess: 1
+  RefProcess: 0
   RefEat: 0
   Animated: 0
   Animation:

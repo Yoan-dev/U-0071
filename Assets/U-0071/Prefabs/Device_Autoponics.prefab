@@ -98,6 +98,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Name: Autoponics
   Pickable: 0
+  Processable: 0
+  Eatable: 0
   Trasher: 0
   Range: 1
   Time: 0.5
@@ -110,7 +112,7 @@ MonoBehaviour:
   GrowStageCount: 5
   Destination: {fileID: 0}
   RefTrash: 0
-  RefProcess: 1
+  RefProcess: 0
   RefEat: 0
   Animated: 0
   Animation:

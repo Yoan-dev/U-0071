@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 4575550971128346084}
   - component: {fileID: 4429754326571891830}
   m_Layer: 0
-  m_Name: Device_Distributor_Chunk
+  m_Name: Device_Distributor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -96,22 +96,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dccb9266239c8d64c9bcf20db0937c0f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Name: Chunk Distributor
+  Name: Distributor
   Pickable: 0
-  Processable: 0
   Eatable: 0
   Trasher: 0
   Range: 1
   Time: 0.5
-  Cost: 3
-  Prefab: {fileID: 1708813368808323750, guid: ab8654ecdbda0f4449fabfa526c2600e, type: 3}
+  Cost: 0
+  Prefab: {fileID: 0}
   VariantPrefab: {fileID: 0}
-  Offset: 0.75
+  Offset: 0.5
   StartingCapacity: 0
   GrowTime: -1
   GrowStageCount: 0
   Destination: {fileID: 0}
-  RefTrash: 1
+  RefTrash: 0
   RefProcess: 0
   RefEat: 0
   Animated: 1

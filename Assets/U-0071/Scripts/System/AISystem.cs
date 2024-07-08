@@ -115,11 +115,18 @@ namespace U0071
 				controller.Action.Target = Entity.Null;
 
 				// retrieve relevant action types
-				ActionType filter = ActionType.AllActions;
+				ActionType filter = ActionType.Pick | ActionType.Collect | ActionType.Eat;
+				ActionType refFilter = 0;
 
 				if (pick.Picked != Entity.Null)
 				{
 					filter &= ~ActionType.Pick;
+					if (pick.Flags.HasFlag(ActionType.RefTrash)) filter |= ActionType.Trash;
+					if (pick.Flags.HasFlag(ActionType.Process))
+					{
+						filter |= ActionType.Store;
+						refFilter |= ActionType.RefProcess;
+					}
 				}
 				else
 				{
@@ -128,7 +135,7 @@ namespace U0071
 				}
 
 				// look for target
-				if (Utilities.GetClosestRoomElement(RoomElementBufferLookup[partition.CurrentRoom], position.Value, entity, filter, credits.Value, out RoomElementBufferElement target))
+				if (Utilities.GetClosestRoomElement(RoomElementBufferLookup[partition.CurrentRoom], position.Value, entity, filter, refFilter, credits.Value, out RoomElementBufferElement target))
 				{
 					// consider which action to do in priority
 					ActionType actionType = 0;

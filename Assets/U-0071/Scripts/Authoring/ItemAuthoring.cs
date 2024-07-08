@@ -13,6 +13,8 @@ namespace U0071
 
 		[Header("Interactable")]
 		public bool Pickable;
+		public bool Processable;
+		public bool Eatable;
 		public bool Trasher;
 		public float Range = 0.5f;
 		public float Time;
@@ -71,6 +73,14 @@ namespace U0071
 					actionType |= ActionType.Pick;
 					AddComponent(entity, new PickableComponent());
 					SetComponentEnabled<PickableComponent>(entity, false);
+				}
+				if (authoring.Eatable)
+				{
+					actionType |= ActionType.Eat;
+				}
+				if (authoring.Processable)
+				{
+					actionType |= ActionType.Process;
 				}
 				if (authoring.Trasher)
 				{

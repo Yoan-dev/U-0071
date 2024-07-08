@@ -98,6 +98,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Name: Omnitrasher
   Pickable: 0
+  Processable: 0
+  Eatable: 0
   Trasher: 1
   Range: 1.25
   Time: 1
@@ -107,6 +109,7 @@ MonoBehaviour:
   Offset: 0
   StartingCapacity: 0
   GrowTime: -1
+  GrowStageCount: 0
   Destination: {fileID: 0}
   RefTrash: 0
   RefProcess: 0

@@ -167,6 +167,7 @@ namespace U0071
 							ref PickComponent pick = ref PickLookup.GetRefRW(actionEvent.Source).ValueRW;
 							Ecb.DestroyEntity(pick.Picked);
 							pick.Picked = Entity.Null;
+							pick.Flags = 0;
 							PickLookup.SetComponentEnabled(actionEvent.Source, false);
 						}
 
@@ -222,8 +223,11 @@ namespace U0071
 								continue;
 							}
 
-							PickLookup.GetRefRW(actionEvent.Source).ValueRW.Picked = actionEvent.Target;
+							ref PickComponent pick = ref PickLookup.GetRefRW(actionEvent.Source).ValueRW;
+							pick.Picked = actionEvent.Target;
+							pick.Flags = InteractableLookup[actionEvent.Target].Flags;
 							PickLookup.SetComponentEnabled(actionEvent.Source, true);
+
 							PickableLookup.GetRefRW(actionEvent.Target).ValueRW.Carrier = actionEvent.Source;
 							PickableLookup.SetComponentEnabled(actionEvent.Target, true);
 
