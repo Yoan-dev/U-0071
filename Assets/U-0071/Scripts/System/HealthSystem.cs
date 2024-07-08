@@ -6,7 +6,7 @@ namespace U0071
 {
 	[UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
 	[UpdateAfter(typeof(ActionSystem))]
-	public partial struct DeviceHunger : ISystem
+	public partial struct HealthSystem : ISystem
 	{
 		[BurstCompile]
 		public void OnCreate(ref SystemState state)
@@ -23,6 +23,11 @@ namespace U0071
 			{
 				Ecb = ecbs.CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter(),
 				Config = SystemAPI.GetSingleton<Config>(),
+				DeltaTime = SystemAPI.Time.DeltaTime,
+			}.ScheduleParallel(state.Dependency);
+
+			state.Dependency = new PushedJob
+			{
 				DeltaTime = SystemAPI.Time.DeltaTime,
 			}.ScheduleParallel(state.Dependency);
 		}
@@ -64,6 +69,7 @@ namespace U0071
 					animation.StartAnimation(in Config.CharacterDie);
 					interactable.Flags |= ActionType.Pick;
 					interactable.Flags |= ActionType.RefTrash;
+					interactable.Flags &= ~ActionType.Push;
 					if (credits.Value > 0)
 					{
 						interactable.Flags |= ActionType.Search;
@@ -75,6 +81,31 @@ namespace U0071
 					longHair.Value += deathColorOffset;
 					beard.Value += deathColorOffset;
 					skin.Value += deathColorOffset;
+				}
+			}
+		}
+
+		[BurstCompile]
+		[WithNone(typeof(IsDeadTag))]
+		public partial struct PushedJob : IJobEntity
+		{
+			public float DeltaTime;
+
+			public void Execute(ref PushedComponent pushed, ref PositionComponent position, EnabledRefRW<PushedComponent> pushedRef)
+			{
+				// TODO: if time
+				//if (!animation.IsPlaying(Config.CharacterPushed))
+				//{
+				//	animation.StartAnimation(Config.CharacterPushed);
+				//}
+
+				position.Value += pushed.Direction * Const.PushedSpeed * DeltaTime;
+				position.MovedFlag = true;
+
+				pushed.Timer -= DeltaTime;
+				if (pushed.Timer <= 0f)
+				{
+					pushedRef.ValueRW = false;
 				}
 			}
 		}

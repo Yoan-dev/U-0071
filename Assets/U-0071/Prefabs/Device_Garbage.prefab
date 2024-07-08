@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 4575550971128346084}
   - component: {fileID: 4429754326571891830}
   m_Layer: 0
-  m_Name: Garbage
+  m_Name: Device_Garbage
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

@@ -42,13 +42,20 @@ namespace U0071
 				AddComponent(entity, new ActionController());
 				AddComponent(entity, new IsActing());
 				SetComponentEnabled<IsActing>(entity, false);
-				AddComponent(entity, new InteractableComponent { Range = authoring.InteractableRange, Time = authoring.InteractableTime });
+				AddComponent(entity, new InteractableComponent
+				{
+					Range = authoring.InteractableRange,
+					Time = authoring.InteractableTime,
+					Flags = ActionType.Push,
+				});
 				AddComponent(entity, new CreditsComponent { Value = authoring.Credits });
 				AddComponent(entity, new PickComponent());
 				SetComponentEnabled<PickComponent>(entity, false);
 				AddComponent(entity, new HungerComponent { Value = authoring.Hunger });
 				AddComponent(entity, new IsDeadTag());
 				SetComponentEnabled<IsDeadTag>(entity, false);
+				AddComponent(entity, new PushedComponent());
+				SetComponentEnabled<PushedComponent>(entity, false);
 
 				// render
 				AddComponent(entity, new TextureArrayIndex { Value = 0f });

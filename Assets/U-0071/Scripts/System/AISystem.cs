@@ -26,8 +26,8 @@ namespace U0071
 			_query = SystemAPI.QueryBuilder()
 				.WithAllRW<ActionController, Orientation>()
 				.WithAll<AITag, PositionComponent, PartitionComponent, CreditsComponent>()
-				.WithPresent<PickComponent>()
-				.WithPresentRW<IsActing, IsDeadTag>()
+				.WithPresent<PickComponent, IsDeadTag, PushedComponent>()
+				.WithPresentRW<IsActing>()
 				.Build();
 
 			_roomElementLookup = state.GetBufferLookup<RoomElementBufferElement>(true);
@@ -78,10 +78,11 @@ namespace U0071
 				in PickComponent pick,
 				in PartitionComponent partition,
 				in CreditsComponent credits,
-				EnabledRefRW<IsActing> isActing,
-				EnabledRefRW<IsDeadTag> isDead)
+				EnabledRefRO<IsDeadTag> isDead,
+				EnabledRefRO<PushedComponent> pushed,
+				EnabledRefRW<IsActing> isActing)
 			{
-				if (isDead.ValueRW)
+				if (isDead.ValueRO || pushed.ValueRO)
 				{
 					if (pick.Picked != Entity.Null)
 					{
@@ -210,6 +211,7 @@ namespace U0071
 		[BurstCompile]
 		[WithAll(typeof(AITag))]
 		[WithNone(typeof(IsDeadTag))]
+		[WithNone(typeof(PushedComponent))]
 		public partial struct AIMovementJob : IJobEntity
 		{
 			public void Execute(ref MovementComponent movement, in PositionComponent position, in ActionController controller)

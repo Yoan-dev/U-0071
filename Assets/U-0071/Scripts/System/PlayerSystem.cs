@@ -3,7 +3,6 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
-using static UnityEngine.GraphicsBuffer;
 
 namespace U0071
 {
@@ -76,6 +75,7 @@ namespace U0071
 
 		[BurstCompile]
 		[WithNone(typeof(IsDeadTag))]
+		[WithNone(typeof(PushedComponent))]
 		public partial struct PlayerMovementJob : IJobEntity
 		{
 			public void Execute(ref MovementComponent movement, in PlayerController controller, in ActionController actionController)
@@ -102,15 +102,16 @@ namespace U0071
 				in PickComponent pick,
 				in PartitionComponent partition,
 				in CreditsComponent credits,
-				EnabledRefRW<IsActing> isActing,
-				EnabledRefRW<IsDeadTag> isDead)
+				EnabledRefRO<IsDeadTag> isDead,
+				EnabledRefRO<PushedComponent> pushed,
+				EnabledRefRW<IsActing> isActing)
 			{
 				// reset
 				controller.PrimaryAction.Reset();
 				controller.SecondaryAction.Reset();
 				controller.ActionTimer = 0f;
 				
-				if (isDead.ValueRW)
+				if (isDead.ValueRO || pushed.ValueRO)
 				{
 					if (pick.Picked != Entity.Null)
 					{
@@ -175,6 +176,10 @@ namespace U0071
 							else if (target.HasActionType(ActionType.Search))
 							{
 								controller.SetPrimaryAction(target.ToActionData(ActionType.Search), in NameLookup, Entity.Null);
+							}
+							else if (target.HasActionType(ActionType.Push))
+							{
+								controller.SetPrimaryAction(target.ToActionData(ActionType.Push), in NameLookup, Entity.Null);
 							}
 
 							// secondary

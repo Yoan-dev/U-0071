@@ -38,6 +38,7 @@ namespace U0071
 		private ComponentLookup<SpawnerComponent> _spawnerLookup;
 		private ComponentLookup<InteractableComponent> _interactableLookup;
 		private ComponentLookup<HungerComponent> _hungerLookup;
+		private ComponentLookup<PushedComponent> _pushedLookup;
 		private ComponentLookup<StorageComponent> _storageLookup;
 
 		public NativeQueue<ActionEvent>.ParallelWriter EventQueueWriter => _eventQueue.AsParallelWriter();
@@ -58,6 +59,7 @@ namespace U0071
 			_spawnerLookup = state.GetComponentLookup<SpawnerComponent>();
 			_interactableLookup = state.GetComponentLookup<InteractableComponent>();
 			_hungerLookup = state.GetComponentLookup<HungerComponent>();
+			_pushedLookup = state.GetComponentLookup<PushedComponent>();
 			_storageLookup = state.GetComponentLookup<StorageComponent>(true);
 		}
 
@@ -82,6 +84,7 @@ namespace U0071
 			_interactableLookup.Update(ref state);
 			_hungerLookup.Update(ref state);
 			_storageLookup.Update(ref state);
+			_pushedLookup.Update(ref state);
 
 			// TODO: have generic events (destroyed, modifyCredits etc) written when processing actions and processed afterwards in // (avoid Lookup-fest)
 			// TBD: use Ecb instead of Lookup-fest ?
@@ -107,6 +110,7 @@ namespace U0071
 				InteractableLookup = _interactableLookup,
 				HungerLookup = _hungerLookup,
 				StorageLookup = _storageLookup,
+				PushedLookup = _pushedLookup,
 			}.Schedule(state.Dependency);
 		}
 
@@ -149,6 +153,7 @@ namespace U0071
 			public ComponentLookup<SpawnerComponent> SpawnerLookup;
 			public ComponentLookup<InteractableComponent> InteractableLookup;
 			public ComponentLookup<HungerComponent> HungerLookup;
+			public ComponentLookup<PushedComponent> PushedLookup;
 			[ReadOnly]
 			public ComponentLookup<StorageComponent> StorageLookup;
 			[ReadOnly]
@@ -177,7 +182,14 @@ namespace U0071
 							PickLookup.SetComponentEnabled(actionEvent.Source, false);
 						}
 
-						if (actionEvent.Type == ActionType.Search)
+						if (actionEvent.Type == ActionType.Push)
+						{
+							ref PushedComponent pushed = ref PushedLookup.GetRefRW(actionEvent.Target).ValueRW;
+							pushed.Direction = math.normalizesafe(actionEvent.Position - PositionLookup[actionEvent.Source].Value);
+							pushed.Timer = Const.PushedTimer;
+							PushedLookup.SetComponentEnabled(actionEvent.Target, true);
+						}
+						else if (actionEvent.Type == ActionType.Search)
 						{
 							ref CreditsComponent credits = ref CreditsLookup.GetRefRW(actionEvent.Target).ValueRW;
 							int gain = math.min(math.max(0, credits.Value), Const.LootCreditsCount);
