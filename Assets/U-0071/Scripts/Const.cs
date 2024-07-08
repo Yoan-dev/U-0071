@@ -1,4 +1,5 @@
 using System.Runtime.CompilerServices;
+using Unity.Mathematics;
 
 namespace U0071
 {
@@ -36,6 +37,12 @@ namespace U0071
 				ActionType.Drop => 0f,
 				_ => baseTime,
 			};
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static float2 GetDropOffset(float orientation)
+		{
+			return new float2(Const.DropOffsetX * orientation, Const.DropOffsetY);
 		}
 	}
 }

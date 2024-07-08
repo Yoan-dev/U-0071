@@ -119,6 +119,9 @@ namespace U0071
 
 			public void Execute(Entity entity, ref ActionController controller, in CreditsComponent credits, EnabledRefRW<IsActing> isActing)
 			{
+				// do not filter isDeadTag to be able to drop carried item on death
+				// (isActing will filter the job after)
+
 				controller.Timer += DeltaTime;
 				if (controller.Timer >= controller.Action.Time)
 				{

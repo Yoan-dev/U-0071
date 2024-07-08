@@ -26,8 +26,7 @@ namespace U0071
 				.WithAllRW<ActionController, Orientation>()
 				.WithAll<AITag, PositionComponent, PartitionComponent, CreditsComponent>()
 				.WithPresent<PickComponent>()
-				.WithPresentRW<IsActing>()
-				.WithNone<IsDeadTag>()
+				.WithPresentRW<IsActing, IsDeadTag>()
 				.Build();
 
 			_roomElementLookup = state.GetBufferLookup<RoomElementBufferElement>(true);
@@ -78,8 +77,19 @@ namespace U0071
 				in PickComponent pick,
 				in PartitionComponent partition,
 				in CreditsComponent credits,
-				EnabledRefRW<IsActing> isActing)
+				EnabledRefRW<IsActing> isActing,
+				EnabledRefRW<IsDeadTag> isDead)
 			{
+				if (isDead.ValueRW)
+				{
+					if (pick.Picked != Entity.Null)
+					{
+						controller.Action = new ActionData(pick.Picked, ActionType.Drop, position.Value + Const.GetDropOffset(orientation.Value), 0f, 0f, 0);
+						controller.Start();
+					}
+					return;
+				}
+
 				// cannot act if not in partition or already acting
 				if (partition.CurrentRoom == Entity.Null || controller.IsResolving) return;
 

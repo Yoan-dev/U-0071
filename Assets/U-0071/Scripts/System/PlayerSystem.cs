@@ -112,6 +112,12 @@ namespace U0071
 				
 				if (isDead.ValueRW)
 				{
+					if (pick.Picked != Entity.Null)
+					{
+						actionController.Action = new ActionData(pick.Picked, ActionType.Drop, position.Value + Const.GetDropOffset(orientation.Value), 0f, 0f, 0);
+						actionController.Start();
+						isActing.ValueRW = true;
+					}
 					return;
 				}
 
@@ -132,7 +138,7 @@ namespace U0071
 					{
 						controller.SetPrimaryAction(new ActionData(pick.Picked, ActionType.Eat, position.Value, 0f, pick.Time, 0), in NameLookup, pick.Picked);
 					}
-					controller.SetSecondaryAction(new ActionData(pick.Picked, ActionType.Drop, position.Value + new float2(Const.DropOffsetX * orientation.Value, Const.DropOffsetY), 0f, 0f, 0), in NameLookup, pick.Picked);
+					controller.SetSecondaryAction(new ActionData(pick.Picked, ActionType.Drop, position.Value + Const.GetDropOffset(orientation.Value), 0f, 0f, 0), in NameLookup, pick.Picked);
 				}
 
 				// retrieve relevant action types

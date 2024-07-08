@@ -61,6 +61,7 @@ namespace U0071
 					Ecb.SetComponentEnabled<PickableComponent>(chunkIndex, entity, false);
 					animation.StartAnimation(in Config.CharacterDie);
 					interactable.Flags |= ActionType.Pick;
+					interactable.Flags |= ActionType.RefTrash;
 					interactable.Changed = true;
 
 					float4 deathColorOffset = new float4(Const.DeathSkinToneOffset, Const.DeathSkinToneOffset, Const.DeathSkinToneOffset, 0f);
