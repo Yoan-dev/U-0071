@@ -42,9 +42,9 @@ namespace U0071
 
 	[UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
 	[UpdateBefore(typeof(MovementSystem))]
-	public partial struct PlayerControllerSystem : ISystem
+	public partial struct PlayerControllerSystem : ISystem, ISystemStartStop
 	{
-		private BufferLookup<ActionEventBufferElement> _actionEventLookup;
+		private NativeQueue<ActionEventBufferElement>.ParallelWriter _actionEventWriter; // from ActionSystem
 		private BufferLookup<RoomElementBufferElement> _roomElementLookup;
 		private ComponentLookup<NameComponent> _nameLookup;
 
@@ -54,15 +54,22 @@ namespace U0071
 			state.RequireForUpdate<PlayerController>();
 			state.RequireForUpdate<ActionEventBufferElement>();
 
-			_actionEventLookup = state.GetBufferLookup<ActionEventBufferElement>();
 			_roomElementLookup = state.GetBufferLookup<RoomElementBufferElement>(true);
 			_nameLookup = state.GetComponentLookup<NameComponent>(true);
+		}
+
+		public void OnStartRunning(ref SystemState state)
+		{
+			_actionEventWriter = Utilities.GetSystem<ActionSystem>(ref state).EventQueueWriter;
+		}
+
+		public void OnStopRunning(ref SystemState state)
+		{
 		}
 
 		[BurstCompile]
 		public void OnUpdate(ref SystemState state)
 		{
-			_actionEventLookup.Update(ref state);
 			_roomElementLookup.Update(ref state);
 			_nameLookup.Update(ref state);
 
@@ -70,8 +77,7 @@ namespace U0071
 
 			state.Dependency = new PlayerActionJob
 			{
-				LookupEntity = SystemAPI.GetSingletonEntity<ActionEventBufferElement>(),
-				ActionEventBufferLookup = _actionEventLookup,
+				ActionEventWriter = _actionEventWriter,
 				RoomElementBufferLookup = _roomElementLookup,
 				NameLookup = _nameLookup,
 			}.Schedule(state.Dependency);
@@ -90,8 +96,8 @@ namespace U0071
 		[WithOptions(EntityQueryOptions.IgnoreComponentEnabledState)]
 		public partial struct PlayerActionJob : IJobEntity
 		{
-			public Entity LookupEntity;
-			public BufferLookup<ActionEventBufferElement> ActionEventBufferLookup;
+			[WriteOnly]
+			public NativeQueue<ActionEventBufferElement>.ParallelWriter ActionEventWriter;
 			[ReadOnly]
 			public BufferLookup<RoomElementBufferElement> RoomElementBufferLookup;
 			[ReadOnly]
@@ -118,7 +124,7 @@ namespace U0071
 				// carry item actions
 				if (pick.Picked != Entity.Null)
 				{
-					controller.SetSecondaryAction(new ActionData(pick.Picked, ActionType.Drop, position.Value + new float2(Const.DropItemOffset.x * orientation.Value, Const.DropItemOffset.y), 0f, 0), in NameLookup, pick.Picked);
+					controller.SetSecondaryAction(new ActionData(pick.Picked, ActionType.Drop, position.Value + new float2(Const.DropOffsetX * orientation.Value, Const.DropOffsetY), 0f, 0), in NameLookup, pick.Picked);
 				}
 
 				// close room items actions
@@ -138,25 +144,18 @@ namespace U0071
 
 				// queue action if needed/able
 				if (controller.PrimaryAction.IsPressed && controller.HasPrimaryAction &&
-					(controller.PrimaryTarget.Cost == 0 || controller.PrimaryTarget.Cost <= credits.Value))
+					(controller.PrimaryAction.Data.Cost == 0 || controller.PrimaryAction.Data.Cost <= credits.Value))
 				{
-					ActionEventBufferLookup[LookupEntity].Add(new ActionEventBufferElement
-					{
-						Source = entity,
-						Action = controller.PrimaryTarget,
-					});
-					orientation.Update(controller.PrimaryTarget.Position.x - position.x);
+					ActionEventWriter.Enqueue(new ActionEventBufferElement(entity, in controller.PrimaryAction.Data));
+					orientation.Update(controller.PrimaryAction.Data.Position.x - position.x);
 				}
 				else if (
 					controller.SecondaryAction.IsPressed && controller.HasSecondaryAction && 
-					(controller.SecondaryTarget.Cost == 0 || controller.SecondaryTarget.Cost <= credits.Value))
+					(controller.SecondaryAction.Data.Cost == 0 || controller.SecondaryAction.Data.Cost <= credits.Value))
 				{
-					ActionEventBufferLookup[LookupEntity].Add(new ActionEventBufferElement
-					{
-						Source = entity,
-						Action = controller.SecondaryTarget,
-					});
-					orientation.Update(controller.SecondaryTarget.Position.x - position.x);
+					ActionEventWriter.Enqueue(new ActionEventBufferElement(entity, in controller.SecondaryAction.Data));
+					orientation.Update(controller.SecondaryAction.Data.Position.x - position.x);
+
 				}
 
 				// consume inputs

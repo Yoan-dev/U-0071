@@ -42,7 +42,7 @@ namespace U0071
 		{
 			public void Execute(ref PickComponent pick, in PositionComponent position, in Orientation orientation)
 			{
-				pick.Position = new float2(position.x + Const.CarriedOffset.x * orientation.Value, position.y + Const.CarriedOffset.y);
+				pick.Position = new float2(position.x + Const.CarriedOffsetX * orientation.Value, position.y + Const.CarriedOffsetY);
 				pick.YOffset = position.CurrentYOffset;
 			}
 		}

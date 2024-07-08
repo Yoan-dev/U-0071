@@ -9,9 +9,7 @@ namespace U0071
 	[UpdateBefore(typeof(MovementSystem))]
 	public partial struct ActionSystem : ISystem
 	{
-		// TODO: accessible native list/queue instead of collector thingy
-
-		private BufferLookup<ActionEventBufferElement> _actionEventLookup;
+		private NativeQueue<ActionEventBufferElement> _eventQueue;
 		private BufferLookup<RoomElementBufferElement> _roomElementLookup;
 		private ComponentLookup<PickComponent> _pickLookup;
 		private ComponentLookup<PickableComponent> _pickableLookup;
@@ -20,13 +18,16 @@ namespace U0071
 		private ComponentLookup<CreditsComponent> _creditsLookup;
 		private ComponentLookup<InteractableComponent> _interactableLookup;
 
+		public NativeQueue<ActionEventBufferElement>.ParallelWriter EventQueueWriter => _eventQueue.AsParallelWriter();
+
 		[BurstCompile]
 		public void OnCreate(ref SystemState state)
 		{
 			state.RequireForUpdate<ActionEventBufferElement>();
 			state.RequireForUpdate<RoomPartition>();
 
-			_actionEventLookup = state.GetBufferLookup<ActionEventBufferElement>();
+			_eventQueue = new NativeQueue<ActionEventBufferElement>(Allocator.Persistent);
+
 			_roomElementLookup = state.GetBufferLookup<RoomElementBufferElement>();
 			_pickLookup = state.GetComponentLookup<PickComponent>();
 			_pickableLookup = state.GetComponentLookup<PickableComponent>();
@@ -37,11 +38,16 @@ namespace U0071
 		}
 
 		[BurstCompile]
+		public void OnDestroy(ref SystemState state)
+		{
+			_eventQueue.Dispose();
+		}
+
+		[BurstCompile]
 		public void OnUpdate(ref SystemState state)
 		{
 			var ecbs = SystemAPI.GetSingleton<EndFixedStepSimulationEntityCommandBufferSystem.Singleton>();
 
-			_actionEventLookup.Update(ref state);
 			_roomElementLookup.Update(ref state);
 			_pickLookup.Update(ref state);
 			_pickableLookup.Update(ref state);
@@ -50,14 +56,13 @@ namespace U0071
 			_creditsLookup.Update(ref state);
 			_interactableLookup.Update(ref state);
 
-			// TODO/TBD: split action event types depending on dependencies (parallel processing)
+			// TODO: have generic events (destroyed, modifyCredits etc) written when processing actions and processed afterwards in // (avoid Lookup-fest)
 
 			state.Dependency = new ActionEventsJob
 			{
 				Ecb = ecbs.CreateCommandBuffer(state.WorldUnmanaged),
-				LookupEntity = SystemAPI.GetSingletonEntity<ActionEventBufferElement>(),
 				Partition = SystemAPI.GetSingleton<RoomPartition>(),
-				ActionLookup = _actionEventLookup,
+				Events = _eventQueue,
 				RoomElementLookup = _roomElementLookup,
 				PickLookup = _pickLookup,
 				PickableLookup = _pickableLookup,
@@ -72,8 +77,7 @@ namespace U0071
 		public partial struct ActionEventsJob : IJob
 		{
 			public EntityCommandBuffer Ecb;
-			public Entity LookupEntity;
-			public BufferLookup<ActionEventBufferElement> ActionLookup;
+			public NativeQueue<ActionEventBufferElement> Events;
 			public BufferLookup<RoomElementBufferElement> RoomElementLookup;
 			public ComponentLookup<PickComponent> PickLookup;
 			public ComponentLookup<PickableComponent> PickableLookup;
@@ -87,8 +91,8 @@ namespace U0071
 
 			public void Execute()
 			{
-				DynamicBuffer<ActionEventBufferElement> actions = ActionLookup[LookupEntity];
-				using (var enumerator = actions.GetEnumerator())
+				NativeArray<ActionEventBufferElement> events = Events.ToArray(Allocator.Temp);
+				using (var enumerator = events.GetEnumerator())
 				{
 					while (enumerator.MoveNext())
 					{
@@ -148,7 +152,8 @@ namespace U0071
 						}
 					}
 				}
-				actions.Clear();
+				events.Dispose();
+				Events.Clear();
 			}
 		}
 	}

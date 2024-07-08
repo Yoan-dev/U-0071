@@ -8,6 +8,12 @@ namespace U0071
 	public static class Utilities
 	{
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static T GetSystem<T>(ref SystemState state) where T : unmanaged, ISystem
+		{
+			return state.WorldUnmanaged.GetUnsafeSystemRef<T>(World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<T>());
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static bool GetClosestRoomElement(in DynamicBuffer<RoomElementBufferElement> elements, float2 position, Entity self, ActionType filter, out RoomElementBufferElement element)
 		{
 			element = new RoomElementBufferElement();

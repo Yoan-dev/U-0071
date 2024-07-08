@@ -76,5 +76,12 @@ namespace U0071
 		public Entity Target => Action.Target;
 		public ActionType Type => Action.Type;
 		public float2 Position => Action.Position;
+		
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public ActionEventBufferElement(Entity source, in ActionData action)
+		{
+			Source = source;
+			Action = action;
+		}
 	}
 }

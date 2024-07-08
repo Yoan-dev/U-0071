@@ -30,10 +30,8 @@ namespace U0071
 		public ActionInfo PrimaryAction;
 		public ActionInfo SecondaryAction;
 
-		public bool HasPrimaryAction => PrimaryTarget.Has;
-		public bool HasSecondaryAction => SecondaryTarget.Has;
-		public ActionData PrimaryTarget => PrimaryAction.Data;
-		public ActionData SecondaryTarget => SecondaryAction.Data;
+		public bool HasPrimaryAction => PrimaryAction.Data.Has;
+		public bool HasSecondaryAction => SecondaryAction.Data.Has;
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public void SetPrimaryAction(in ActionData data, in ComponentLookup<NameComponent> nameLookup, Entity usedItem)

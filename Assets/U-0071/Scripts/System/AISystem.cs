@@ -8,9 +8,9 @@ namespace U0071
 {
 	[UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
 	[UpdateBefore(typeof(MovementSystem))]
-	public partial struct AIControllerSystem : ISystem
+	public partial struct AIControllerSystem : ISystem, ISystemStartStop
 	{
-		public EventCollector<ActionEventBufferElement> _actionEventCollector;
+		private NativeQueue<ActionEventBufferElement>.ParallelWriter _actionEventWriter; // from ActionSystem
 		private BufferLookup<RoomElementBufferElement> _roomElementLookup;
 		private ComponentLookup<PositionComponent> _positionLookup;
 		private ComponentLookup<PickableComponent> _pickableLookup;
@@ -28,16 +28,18 @@ namespace U0071
 				.WithPresent<PickComponent>()
 				.Build();
 
-			_actionEventCollector = new EventCollector<ActionEventBufferElement>(SystemAPI.GetBufferLookup<ActionEventBufferElement>());
 			_roomElementLookup = state.GetBufferLookup<RoomElementBufferElement>(true);
 			_positionLookup = state.GetComponentLookup<PositionComponent>(true);
 			_pickableLookup = state.GetComponentLookup<PickableComponent>(true);
 		}
 
-		[BurstCompile]
-		public void OnDestroy(ref SystemState state)
+		public void OnStartRunning(ref SystemState state)
 		{
-			_actionEventCollector.Dispose();
+			_actionEventWriter = Utilities.GetSystem<ActionSystem>(ref state).EventQueueWriter;
+		}
+
+		public void OnStopRunning(ref SystemState state)
+		{
 		}
 
 		[BurstCompile]
@@ -49,21 +51,18 @@ namespace U0071
 			{
 				_timer -= Const.AITick;
 
-				_actionEventCollector.Update(ref state, _query.CalculateEntityCount());
 				_roomElementLookup.Update(ref state);
 				_positionLookup.Update(ref state);
 				_pickableLookup.Update(ref state);
 
 				state.Dependency = new AIActionJob
 				{
-					ActionEvents = _actionEventCollector.Writer,
+					ActionEventWriter = _actionEventWriter,
 					RoomElementBufferLookup = _roomElementLookup,
 					PositionLookup = _positionLookup,
 					PickableLookup = _pickableLookup,
 				}.ScheduleParallel(_query, state.Dependency);
 
-				state.Dependency = _actionEventCollector.WriteEventsToBuffer(state.Dependency);
-			
 				state.Dependency = new AIMovementJob().ScheduleParallel(state.Dependency);
 			}
 		}
@@ -73,7 +72,7 @@ namespace U0071
 		public partial struct AIActionJob : IJobEntity
 		{
 			[WriteOnly]
-			public NativeList<ActionEventBufferElement>.ParallelWriter ActionEvents;
+			public NativeQueue<ActionEventBufferElement>.ParallelWriter ActionEventWriter;
 			[ReadOnly]
 			public BufferLookup<RoomElementBufferElement> RoomElementBufferLookup;
 			[ReadOnly]
@@ -106,11 +105,7 @@ namespace U0071
 
 					if (position.IsInRange(controller.Target.Position, controller.Target.Range))
 					{
-						ActionEvents.AddNoResize(new ActionEventBufferElement
-						{
-							Action = controller.Target,
-							Source = entity,
-						});
+						ActionEventWriter.Enqueue(new ActionEventBufferElement(entity, in controller.Target));
 
 						orientation.Update(controller.Target.Position.x - position.Value.x);
 
@@ -154,12 +149,7 @@ namespace U0071
 							if (position.IsInRange(target.Position, target.Range))
 							{
 								// interact
-								ActionEvents.AddNoResize(new ActionEventBufferElement
-								{
-									Action = target.ToActionData(actionType),
-									Source = entity,
-								});
-
+								ActionEventWriter.Enqueue(new ActionEventBufferElement(entity, target.ToActionData(actionType)));
 								orientation.Update(target.Position.x - position.Value.x);
 							}
 							else

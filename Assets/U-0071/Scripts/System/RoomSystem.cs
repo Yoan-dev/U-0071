@@ -94,8 +94,8 @@ namespace U0071
 					// update Y offset (for sorting) depending on position ratio in the room
 					float2 roomRatio = newRoom.GetRoomRatio(position.Value);
 					position.CurrentYOffset = position.BaseYOffset +
-						roomRatio.x * Const.YOffsetRatio.x +
-						roomRatio.y * Const.YOffsetRatio.y;
+						roomRatio.x * Const.YOffsetRatioX +
+						roomRatio.y * Const.YOffsetRatioY;
 				}
 
 				if (newRoom.Entity != partition.CurrentRoom)
