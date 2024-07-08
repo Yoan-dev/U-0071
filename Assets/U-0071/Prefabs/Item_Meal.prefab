@@ -102,7 +102,7 @@ MonoBehaviour:
   Eatable: 1
   Trasher: 0
   Range: 0.4
-  Time: 0
+  Time: 1
   Cost: 0
   Prefab: {fileID: 0}
   VariantPrefab: {fileID: 0}
@@ -110,7 +110,9 @@ MonoBehaviour:
   StartingCapacity: 0
   GrowTime: -1
   GrowStageCount: 0
+  AutoSpawner: 0
   Destination: {fileID: 0}
+  SecondaryDestination: {fileID: 0}
   RefTrash: 0
   RefProcess: 0
   RefEat: 0

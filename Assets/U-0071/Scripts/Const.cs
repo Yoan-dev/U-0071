@@ -1,3 +1,5 @@
+using System.Runtime.CompilerServices;
+
 namespace U0071
 {
 	public static class Const
@@ -16,5 +18,18 @@ namespace U0071
 		public const float CarriedOffsetY = -0.175f;
 		public const float DropOffsetX = 0.35f;
 		public const float DropOffsetY = -0.3f;
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static float GetActionTime(ActionType type, float baseTime)
+		{
+			// not very fancy but otherwise would need an 
+			//  interaction timeper item per action type
+			return type switch
+			{
+				ActionType.Pick => 0f,
+				ActionType.Drop => 0f,
+				_ => baseTime,
+			};
+		}
 	}
 }

@@ -98,16 +98,15 @@ namespace U0071
 						isActing.ValueRW = true;
 						controller.Start();
 						orientation.Update(controller.Action.Position.x - position.Value.x);
+						return;
 					}
 
-					// interacting or going to target
+					// going to target
 					if (controller.Action.Target != Entity.Null)
 					{
 						return;
 					}
 				}
-
-				// TODO: consider picked interactable action
 
 				// look for new target
 
@@ -120,6 +119,17 @@ namespace U0071
 
 				if (pick.Picked != Entity.Null)
 				{
+					// consider picked interactable action
+					if (Utilities.HasActionType(pick.Flags, ActionType.Eat))
+					{
+						// start interacting
+						isActing.ValueRW = true;
+						controller.Action = new ActionData(pick.Picked, ActionType.Eat, position.Value, 0f, pick.Time, 0);
+						controller.Start();
+						orientation.Update(controller.Action.Position.x - position.Value.x);
+						return;
+					}
+
 					filter &= ~ActionType.Pick;
 					if (pick.Flags.HasFlag(ActionType.RefTrash)) filter |= ActionType.Trash;
 					if (pick.Flags.HasFlag(ActionType.Process))
@@ -139,10 +149,6 @@ namespace U0071
 				{
 					// consider which action to do in priority
 					ActionType actionType = 0;
-					if (CanExecuteAction(ActionType.Eat, filter, in target))
-					{
-						actionType = ActionType.Eat;
-					}
 					if (CanExecuteAction(ActionType.Store, filter, in target))
 					{
 						actionType = ActionType.Store;

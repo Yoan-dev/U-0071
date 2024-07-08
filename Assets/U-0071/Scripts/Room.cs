@@ -48,7 +48,7 @@ namespace U0071
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public ActionData ToActionData(ActionType selectedActionType)
 		{
-			return new ActionData(Entity, selectedActionType, Position, Range, Time, Cost);
+			return new ActionData(Entity, selectedActionType, Position, Range, Const.GetActionTime(selectedActionType, Time), Cost);
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -70,7 +70,7 @@ namespace U0071
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public bool HasActionType(ActionType inType)
 		{
-			return Utilities.HasActionType(ActionFlags, inType);
+			return ActionFlags.HasFlag(inType);
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]

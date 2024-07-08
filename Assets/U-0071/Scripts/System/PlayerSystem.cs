@@ -3,6 +3,7 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
+using static UnityEngine.GraphicsBuffer;
 
 namespace U0071
 {
@@ -120,6 +121,10 @@ namespace U0071
 				// carry item actions
 				if (pick.Picked != Entity.Null)
 				{
+					if (Utilities.HasActionType(pick.Flags, ActionType.Eat))
+					{
+						controller.SetPrimaryAction(new ActionData(pick.Picked, ActionType.Eat, position.Value, 0f, pick.Time, 0), in NameLookup, pick.Picked);
+					}
 					controller.SetSecondaryAction(new ActionData(pick.Picked, ActionType.Drop, position.Value + new float2(Const.DropOffsetX * orientation.Value, Const.DropOffsetY), 0f, 0f, 0), in NameLookup, pick.Picked);
 				}
 
