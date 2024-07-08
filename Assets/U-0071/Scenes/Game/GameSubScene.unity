@@ -740,6 +740,11 @@ PrefabInstance:
       propertyPath: SecondaryDestination
       value: 
       objectReference: {fileID: 545930230}
+    - target: {fileID: 4547428609641256812, guid: 752a32b52c800cb4b9316093a68f57f0,
+        type: 3}
+      propertyPath: StartingCapacity
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

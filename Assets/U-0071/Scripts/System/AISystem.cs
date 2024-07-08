@@ -120,7 +120,7 @@ namespace U0071
 				if (pick.Picked != Entity.Null)
 				{
 					// consider picked interactable action
-					if (Utilities.HasActionType(pick.Flags, ActionType.Eat))
+					if (Utilities.HasAnyActionType(pick.Flags, ActionType.Eat))
 					{
 						// start interacting
 						isActing.ValueRW = true;
@@ -186,7 +186,7 @@ namespace U0071
 			private bool CanExecuteAction(ActionType type, ActionType filter, in RoomElementBufferElement target)
 			{
 				// note: credits vs cost already checked during query
-				return Utilities.HasActionType(filter, type) && Utilities.HasActionType(target.ActionFlags, type);
+				return Utilities.HasAnyActionType(filter, type) && Utilities.HasAnyActionType(target.ActionFlags, type);
 			}
 		}
 

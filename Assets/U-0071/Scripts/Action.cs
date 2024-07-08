@@ -49,7 +49,7 @@ namespace U0071
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public bool HasType(ActionType inType)
 		{
-			return Utilities.HasActionType(Type, inType);
+			return Type.HasFlag(inType);
 		}
 	}
 
@@ -90,7 +90,7 @@ namespace U0071
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public bool HasType(ActionType inType)
 		{
-			return Utilities.HasActionType(Flags, inType);
+			return Utilities.HasAnyActionType(Flags, inType);
 		}
 	}
 

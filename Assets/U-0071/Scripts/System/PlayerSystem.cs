@@ -121,7 +121,7 @@ namespace U0071
 				// carry item actions
 				if (pick.Picked != Entity.Null)
 				{
-					if (Utilities.HasActionType(pick.Flags, ActionType.Eat))
+					if (Utilities.HasAnyActionType(pick.Flags, ActionType.Eat))
 					{
 						controller.SetPrimaryAction(new ActionData(pick.Picked, ActionType.Eat, position.Value, 0f, pick.Time, 0), in NameLookup, pick.Picked);
 					}
@@ -143,7 +143,7 @@ namespace U0071
 					while (enumerator.MoveNext())
 					{
 						RoomElementBufferElement target = enumerator.Current;
-						if (target.Entity != entity && Utilities.HasActionType(target.ActionFlags, filter) && position.IsInRange(target.Position, target.Range))
+						if (target.Entity != entity && Utilities.HasAnyActionType(target.ActionFlags, filter) && position.IsInRange(target.Position, target.Range))
 						{
 							// primary
 							if (!controller.HasPrimaryAction && target.HasActionType(ActionType.Collect))
