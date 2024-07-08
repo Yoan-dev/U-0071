@@ -12,6 +12,7 @@ namespace U0071
 		public string Name;
 		public float Speed;
 		public float InteractableRange;
+		public float InteractableTime;
 		public float Hunger;
 		public int Credits;
 		public Color ShirtColor;
@@ -41,7 +42,7 @@ namespace U0071
 				AddComponent(entity, new ActionController());
 				AddComponent(entity, new IsActing());
 				SetComponentEnabled<IsActing>(entity, false);
-				AddComponent(entity, new InteractableComponent { Range = authoring.InteractableRange });
+				AddComponent(entity, new InteractableComponent { Range = authoring.InteractableRange, Time = authoring.InteractableTime });
 				AddComponent(entity, new CreditsComponent { Value = authoring.Credits });
 				AddComponent(entity, new PickComponent());
 				SetComponentEnabled<PickComponent>(entity, false);

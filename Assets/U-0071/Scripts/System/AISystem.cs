@@ -3,6 +3,7 @@ using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
+using UnityEditor.Searcher;
 
 namespace U0071
 {
@@ -86,6 +87,7 @@ namespace U0071
 					{
 						controller.Action = new ActionData(pick.Picked, ActionType.Drop, position.Value + Const.GetDropOffset(orientation.Value), 0f, 0f, 0);
 						controller.Start();
+						isActing.ValueRW = true;
 					}
 					return;
 				}
@@ -125,7 +127,7 @@ namespace U0071
 				controller.Action.Target = Entity.Null;
 
 				// retrieve relevant action types
-				ActionType filter = ActionType.Pick | ActionType.Collect;
+				ActionType filter = ActionType.Pick | ActionType.Collect | ActionType.Search;
 				ActionType refFilter = 0;
 
 				if (pick.Picked != Entity.Null)
@@ -167,6 +169,10 @@ namespace U0071
 					else if (CanExecuteAction(ActionType.Trash, filter, in target))
 					{
 						actionType = ActionType.Trash;
+					}
+					else if (CanExecuteAction(ActionType.Search, filter, in target))
+					{
+						actionType = ActionType.Search;
 					}
 					else if (CanExecuteAction(ActionType.Pick, filter, in target))
 					{

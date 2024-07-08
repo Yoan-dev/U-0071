@@ -46,7 +46,8 @@ namespace U0071
 				ref SkinColor skin,
 				ref ShortHairColor shortHair,
 				ref LongHairColor longHair,
-				ref BeardColor beard)
+				ref BeardColor beard,
+				in CreditsComponent credits)
 			{
 				hunger.Value -= DeltaTime * Const.HungerDepleteRate;
 				if (hunger.Value <= 0f)
@@ -63,6 +64,10 @@ namespace U0071
 					animation.StartAnimation(in Config.CharacterDie);
 					interactable.Flags |= ActionType.Pick;
 					interactable.Flags |= ActionType.RefTrash;
+					if (credits.Value > 0)
+					{
+						interactable.Flags |= ActionType.Search;
+					}
 					interactable.Changed = true;
 
 					float4 deathColorOffset = new float4(Const.DeathSkinToneOffset, Const.DeathSkinToneOffset, Const.DeathSkinToneOffset, 0f);

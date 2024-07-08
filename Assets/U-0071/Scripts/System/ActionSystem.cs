@@ -177,7 +177,22 @@ namespace U0071
 							PickLookup.SetComponentEnabled(actionEvent.Source, false);
 						}
 
-						if (actionEvent.Type == ActionType.Eat)
+						if (actionEvent.Type == ActionType.Search)
+						{
+							ref CreditsComponent credits = ref CreditsLookup.GetRefRW(actionEvent.Target).ValueRW;
+							int gain = math.min(math.max(0, credits.Value), Const.LootCreditsCount);
+							cost -= gain;
+							credits.Value -= gain;
+
+							if (credits.Value <= 0f)
+							{
+								// remove action type
+								ref InteractableComponent interactable = ref InteractableLookup.GetRefRW(actionEvent.Target).ValueRW;
+								interactable.Flags &= ~ActionType.Search;
+								interactable.Changed = true;
+							}
+						}
+						else if (actionEvent.Type == ActionType.Eat)
 						{
 							HungerLookup.GetRefRW(actionEvent.Source).ValueRW.Value += Const.EatingHungerGain;
 						}

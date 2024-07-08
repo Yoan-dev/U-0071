@@ -100,6 +100,7 @@ MonoBehaviour:
   Name: U-0000
   Speed: 3
   InteractableRange: 0.5
+  InteractableTime: 1
   Hunger: 10
   Credits: 0
   ShirtColor: {r: 0.60784316, g: 0.6784314, b: 0.7176471, a: 1}

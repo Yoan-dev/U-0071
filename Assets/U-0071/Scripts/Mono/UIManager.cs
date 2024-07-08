@@ -81,6 +81,7 @@ public class UIManager : MonoBehaviour
 			ActionType.Pick => "Pick",
 			ActionType.Store => "Store",
 			ActionType.Drop => "Drop",
+			ActionType.Search => "Loot",
 			_ => "none",
 		};
 	}

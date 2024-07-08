@@ -21,6 +21,7 @@ namespace U0071
 		public const float DropOffsetX = 0.35f;
 		public const float DropOffsetY = -0.3f;
 
+		public const int LootCreditsCount = 10;
 		public const float EatingHungerGain = 5f;
 		public const float MaxHunger = 10f;
 		public const float HungerDepleteRate = 0.1f;

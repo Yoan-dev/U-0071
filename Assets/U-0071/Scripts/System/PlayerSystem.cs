@@ -172,6 +172,10 @@ namespace U0071
 							{
 								controller.SetPrimaryAction(target.ToActionData(ActionType.Trash), in NameLookup, pick.Picked);
 							}
+							else if (target.HasActionType(ActionType.Search))
+							{
+								controller.SetPrimaryAction(target.ToActionData(ActionType.Search), in NameLookup, Entity.Null);
+							}
 
 							// secondary
 							if (!controller.HasSecondaryAction && target.HasActionType(ActionType.Pick))

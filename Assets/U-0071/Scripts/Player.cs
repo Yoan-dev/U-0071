@@ -52,10 +52,10 @@ namespace U0071
 		{
 			action.Data = data;
 			action.Name = 
-				data.Type != ActionType.Pick && data.Type != ActionType.Drop && data.Type != ActionType.Eat ? nameLookup[data.Target].Value :
+				data.Type != ActionType.Pick && data.Type != ActionType.Drop && data.Type != ActionType.Eat && data.Type != ActionType.Search ? nameLookup[data.Target].Value :
 				new FixedString32Bytes();
 			action.SecondaryName =
-				data.Type == ActionType.Pick ? nameLookup[data.Target].Value :
+				data.Type == ActionType.Pick || data.Type == ActionType.Search ? nameLookup[data.Target].Value :
 				usedItem != Entity.Null ? nameLookup[usedItem].Value :
 				new FixedString32Bytes();
 		}

@@ -16,12 +16,13 @@ namespace U0071
 		Store = 1 << 4,
 		Process = 1 << 5,
 		Eat = 1 << 6,
-		AllActions = Pick | Trash | Collect | Store | Process | Eat,
+		Search = 1 << 7,
+		AllActions = Pick | Trash | Collect | Store | Process | Eat | Search,
 		
 		// companion-flags (ex: Collect + RefEat => buy meal)
-		RefTrash = 1 << 7,
-		RefProcess = 1 << 8,
-		RefEat = 1 << 9,
+		RefTrash = 1 << 8,
+		RefProcess = 1 << 9,
+		RefEat = 1 << 10,
 	}
 
 	public struct ActionData
