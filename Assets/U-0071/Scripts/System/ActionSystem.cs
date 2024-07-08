@@ -4,9 +4,6 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
-using UnityEditor.Timeline.Actions;
-using static UnityEngine.EventSystems.EventTrigger;
-using static UnityEngine.GraphicsBuffer;
 
 namespace U0071
 {
@@ -161,7 +158,7 @@ namespace U0071
 						// could be changed depending on action
 						int cost = actionEvent.Action.Cost;
 
-						if (actionEvent.Type == ActionType.Trash || actionEvent.Type == ActionType.Store)
+						if (actionEvent.Type == ActionType.Trash || actionEvent.Type == ActionType.Store || actionEvent.Type == ActionType.Eat)
 						{
 							// destroy used item
 							ref PickComponent pick = ref PickLookup.GetRefRW(actionEvent.Source).ValueRW;
@@ -173,32 +170,28 @@ namespace U0071
 
 						if (actionEvent.Type == ActionType.Store)
 						{
-							Entity destination = StorageLookup[actionEvent.Target].Destination;
+							StorageComponent storage = StorageLookup[actionEvent.Target];
 
 							// TODO: increase variable capacity (if !refFlag ?)
-							ref SpawnerComponent spawner = ref SpawnerLookup.GetRefRW(destination).ValueRW;
-							if (spawner.Capacity == 0)
+							IncreaseCapacity(storage.Destination);
+							if (storage.SecondaryDestination != Entity.Null)
 							{
-								// add action type
-								ref InteractableComponent interactable = ref InteractableLookup.GetRefRW(destination).ValueRW;
-								interactable.Flags |= ActionType.Collect;
-								interactable.Changed = true;
+								IncreaseCapacity(storage.SecondaryDestination);
 							}
-							spawner.Capacity++;
 						}
 						else if (actionEvent.Type == ActionType.Collect)
 						{
 							ref SpawnerComponent spawner = ref SpawnerLookup.GetRefRW(actionEvent.Target).ValueRW;
-							if (spawner.VarianceCapacity > 0)
+							if (spawner.VariantCapacity > 0)
 							{
-								spawner.VarianceCapacity--;
+								spawner.VariantCapacity--;
 								Ecb.SetComponent(Ecb.Instantiate(spawner.VariantPrefab), new PositionComponent
 								{
 									Value = actionEvent.Action.Position + spawner.Offset,
 									BaseYOffset = Const.PickableYOffset,
 								});
 							}
-							else if (spawner.Capacity > 0) // someone else might have use it in the frame
+							else if (spawner.Capacity > 0)
 							{
 								spawner.Capacity--;
 								Ecb.SetComponent(Ecb.Instantiate(spawner.Prefab), new PositionComponent
@@ -206,13 +199,13 @@ namespace U0071
 									Value = actionEvent.Action.Position + spawner.Offset,
 									BaseYOffset = Const.PickableYOffset,
 								});
-								if (spawner.Capacity == 0)
-								{
-									// remove action type
-									ref InteractableComponent interactable = ref InteractableLookup.GetRefRW(actionEvent.Target).ValueRW;
-									interactable.Flags &= ~ActionType.Collect;
-									interactable.Changed = true;
-								}
+							}
+							if (spawner.Capacity == 0 && spawner.VariantCapacity == 0)
+							{
+								// remove action type
+								ref InteractableComponent interactable = ref InteractableLookup.GetRefRW(actionEvent.Target).ValueRW;
+								interactable.Flags &= ~ActionType.Collect;
+								interactable.Changed = true;
 							}
 						}
 						else if (actionEvent.Type == ActionType.Pick)
@@ -260,6 +253,23 @@ namespace U0071
 				}
 				events.Dispose();
 				Events.Clear();
+			}
+
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
+			private void IncreaseCapacity(Entity entity)
+			{
+				ref SpawnerComponent spawner = ref SpawnerLookup.GetRefRW(entity).ValueRW;
+				if (spawner.Capacity == 0)
+				{
+					// add action type
+					ref InteractableComponent interactable = ref InteractableLookup.GetRefRW(entity).ValueRW;
+					if (!interactable.Immutable)
+					{
+						interactable.Flags |= ActionType.Collect;
+						interactable.Changed = true;
+					}
+				}
+				spawner.Capacity++;
 			}
 		}
 	}

@@ -3,8 +3,6 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
-using static UnityEditor.Rendering.FilterWindow;
-using static UnityEngine.GraphicsBuffer;
 
 namespace U0071
 {
@@ -43,6 +41,7 @@ namespace U0071
 	}
 
 	[UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
+	[UpdateAfter(typeof(RoomSystem))]
 	[UpdateBefore(typeof(MovementSystem))]
 	public partial struct PlayerControllerSystem : ISystem
 	{

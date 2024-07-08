@@ -53,27 +53,6 @@ namespace U0071
 		}
 	}
 
-	public struct SpawnerComponent : IComponentData
-	{
-		public Entity Prefab;
-		public Entity VariantPrefab;
-		public float2 Offset;
-		public int Capacity;
-		public int VarianceCapacity;
-	}
-
-	public struct GrowComponent : IComponentData
-	{
-		public float Time;
-		public float Timer;
-		public int StageCount;
-	}
-
-	public struct StorageComponent : IComponentData
-	{
-		public Entity Destination;
-	}
-
 	public struct ActionController : IComponentData
 	{
 		public ActionData Action;
@@ -106,6 +85,7 @@ namespace U0071
 		public float Time;
 		public int Cost;
 		public bool Changed;
+		public bool Immutable;
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public bool HasType(ActionType inType)

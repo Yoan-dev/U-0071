@@ -64,7 +64,7 @@ public class UIManager : MonoBehaviour
 		return type switch
 		{
 			ActionType.Collect => cost > 0f ? "Buy" : "Take",
-			ActionType.Trash => "Trash",
+			ActionType.Trash => "Destroy",
 			ActionType.Pick => "Pick",
 			ActionType.Drop => "Drop",
 			_ => "none",

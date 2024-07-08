@@ -27,9 +27,11 @@ namespace U0071
 		public int StartingCapacity;
 		public float GrowTime = -1f;
 		public int GrowStageCount;
+		public bool AutoSpawner;
 
 		[Header("Storage")]
 		public GameObject Destination;
+		public GameObject SecondaryDestination;
 
 		[Header("Companion Flags")]
 		public bool RefTrash;
@@ -88,7 +90,7 @@ namespace U0071
 				}
 				if (authoring.Prefab != null)
 				{
-					if (authoring.StartingCapacity > 0)
+					if (authoring.StartingCapacity > 0 && !authoring.AutoSpawner)
 					{
 						// collectable on start
 						actionType |= ActionType.Collect;
@@ -100,7 +102,11 @@ namespace U0071
 						Offset = authoring.Offset * authoring.GetFacingDirection(),
 						Capacity = authoring.StartingCapacity,
 					});
-					if (authoring.GrowTime > 0f)
+					if (authoring.AutoSpawner)
+					{
+						AddComponent(entity, new AutoSpawnTag());
+					}
+					else if (authoring.GrowTime > 0f)
 					{
 						AddComponent(entity, new GrowComponent
 						{
@@ -116,6 +122,7 @@ namespace U0071
 					AddComponent(entity, new StorageComponent
 					{
 						Destination = GetEntity(authoring.Destination, TransformUsageFlags.Dynamic),
+						SecondaryDestination = authoring.SecondaryDestination != null ? GetEntity(authoring.SecondaryDestination, TransformUsageFlags.Dynamic) : Entity.Null,
 					});
 				}
 
@@ -131,6 +138,7 @@ namespace U0071
 					Range = authoring.Range,
 					Time = authoring.Time,
 					Cost = authoring.Cost,
+					Immutable = authoring.AutoSpawner,
 				});
 
 				if (authoring.Animated)

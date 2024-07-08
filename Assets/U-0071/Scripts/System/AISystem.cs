@@ -3,11 +3,11 @@ using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
-using static UnityEngine.GraphicsBuffer;
 
 namespace U0071
 {
 	[UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
+	[UpdateAfter(typeof(RoomSystem))]
 	[UpdateBefore(typeof(MovementSystem))]
 	public partial struct AIControllerSystem : ISystem
 	{
@@ -115,7 +115,7 @@ namespace U0071
 				controller.Action.Target = Entity.Null;
 
 				// retrieve relevant action types
-				ActionType filter = ActionType.Pick | ActionType.Collect | ActionType.Eat;
+				ActionType filter = ActionType.Pick | ActionType.Collect;
 				ActionType refFilter = 0;
 
 				if (pick.Picked != Entity.Null)
@@ -139,6 +139,10 @@ namespace U0071
 				{
 					// consider which action to do in priority
 					ActionType actionType = 0;
+					if (CanExecuteAction(ActionType.Eat, filter, in target))
+					{
+						actionType = ActionType.Eat;
+					}
 					if (CanExecuteAction(ActionType.Store, filter, in target))
 					{
 						actionType = ActionType.Store;
