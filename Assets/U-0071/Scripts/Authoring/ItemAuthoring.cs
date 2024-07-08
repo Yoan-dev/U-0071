@@ -13,14 +13,26 @@ namespace U0071
 
 		[Header("Interactable")]
 		public bool Pickable;
-		public bool Storage;
+		public bool Trasher;
 		public float Range = 0.5f;
 		public float Time;
 		public int Cost;
 
 		[Header("Spawner")]
 		public GameObject Prefab;
+		public GameObject VariantPrefab;
 		public float Offset;
+		public int StartingCapacity;
+		public float GrowTime = -1f;
+		public int GrowStageCount;
+
+		[Header("Storage")]
+		public GameObject Destination;
+
+		[Header("Companion Flags")]
+		public bool RefTrash;
+		public bool RefProcess;
+		public bool RefEat;
 
 		[Header("Animation")]
 		public bool Animated;
@@ -48,7 +60,7 @@ namespace U0071
 				AddComponent(entity, new PositionComponent
 				{
 					Value = new float2(position.x, position.z),
-					BaseYOffset = authoring.Pickable ? Const.ItemYOffset : Const.DeviceYOffset,
+					BaseYOffset = authoring.Pickable ? Const.PickableYOffset : Const.DeviceYOffset,
 				});
 				AddComponent(entity, new PartitionComponent());
 
@@ -60,19 +72,44 @@ namespace U0071
 					AddComponent(entity, new PickableComponent());
 					SetComponentEnabled<PickableComponent>(entity, false);
 				}
-				if (authoring.Storage)
+				if (authoring.Trasher)
 				{
 					actionType |= ActionType.Trash;
 				}
 				if (authoring.Prefab != null)
 				{
-					actionType |= ActionType.Buy; // TBD: other types of spawner
+					if (authoring.StartingCapacity > 0)
+					{
+						// collectable on start
+						actionType |= ActionType.Collect;
+					}
 					AddComponent(entity, new SpawnerComponent
 					{
-						Prefab = authoring.gameObject != null ? GetEntity(authoring.Prefab, TransformUsageFlags.Dynamic) : Entity.Null,
+						Prefab = authoring.Prefab != null ? GetEntity(authoring.Prefab, TransformUsageFlags.Dynamic) : Entity.Null,
+						VariantPrefab = authoring.VariantPrefab != null ? GetEntity(authoring.VariantPrefab, TransformUsageFlags.Dynamic) : Entity.Null,
 						Offset = authoring.Offset * authoring.GetFacingDirection(),
+						Capacity = authoring.StartingCapacity,
 					});
+					if (authoring.GrowTime > 0f)
+					{
+						AddComponent(entity, new GrowComponent
+						{
+							Time = authoring.GrowTime,
+							StageCount = authoring.GrowStageCount,
+						});
+						AddComponent(entity, new TextureArrayIndex());
+					}
 				}
+				if (authoring.Destination != null)
+				{
+					actionType |= ActionType.Store;
+				}
+
+				// companion flags
+				if (authoring.RefTrash) actionType |= ActionType.RefTrash;
+				if (authoring.RefProcess) actionType |= ActionType.RefProcess;
+				if (authoring.RefEat) actionType |= ActionType.RefEat;
+
 
 				AddComponent(entity, new InteractableComponent
 				{

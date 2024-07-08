@@ -52,18 +52,18 @@ public class UIManager : MonoBehaviour
 	{
 		return info.Data.Target != Entity.Null ? 
 			info.Key.ToString() + ": " + 
-			GetActionTypeName(info.Type) + 
+			GetActionTypeName(info.Type, info.Cost) + 
 			(info.SecondaryName.Length > 0 ? " " + info.SecondaryName : "") +
 			(info.Cost > 0f ? " (-" + info.Cost + "c)" : "") +
 			(info.Name.Length > 0 ? " (" + info.Name + ")" : "") : "";
 	}
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	private string GetActionTypeName(ActionType type)
+	private string GetActionTypeName(ActionType type, int cost)
 	{
 		return type switch
 		{
-			ActionType.Buy => "Buy",
+			ActionType.Collect => cost > 0f ? "Buy" : "Harvest",
 			ActionType.Trash => "Trash",
 			ActionType.Pick => "Pick",
 			ActionType.Drop => "Drop",

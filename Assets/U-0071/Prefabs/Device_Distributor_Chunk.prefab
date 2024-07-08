@@ -98,12 +98,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Name: Chunk Distributor
   Pickable: 0
-  Storage: 0
+  Trasher: 0
   Range: 1
   Time: 0.5
   Cost: 3
   Prefab: {fileID: 1708813368808323750, guid: ab8654ecdbda0f4449fabfa526c2600e, type: 3}
+  VariantPrefab: {fileID: 0}
   Offset: 0.75
+  StartingCapacity: 0
+  GrowTime: -1
+  GrowStageCount: 0
+  Destination: {fileID: 0}
+  RefTrash: 1
+  RefProcess: 0
+  RefEat: 0
   Animated: 1
   Animation:
     StartIndex: 0

@@ -79,6 +79,9 @@ namespace U0071
 				in CreditsComponent credits,
 				EnabledRefRW<IsActing> isActing)
 			{
+				// evaluate if action target is still relevant (ex: spawner capacity 0)
+				// TODO
+
 				// cannot act if not in partition or already acting
 				if (partition.CurrentRoom == Entity.Null || controller.IsResolving) return;
 
@@ -107,7 +110,7 @@ namespace U0071
 					controller.Action.Target = Entity.Null;
 
 					// retrieve relevant action types
-					ActionType filter = ActionType.All;
+					ActionType filter = ActionType.AllActions;
 
 					if (pick.Picked != Entity.Null)
 					{
@@ -123,9 +126,9 @@ namespace U0071
 					{
 						// consider which action to do in priority
 						ActionType actionType = 0;
-						if (CanExecuteAction(ActionType.Buy, filter, in target))
+						if (CanExecuteAction(ActionType.Collect, filter, in target))
 						{
-							actionType = ActionType.Buy;
+							actionType = ActionType.Collect;
 						}
 						else if (CanExecuteAction(ActionType.Pick, filter, in target))
 						{

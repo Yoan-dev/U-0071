@@ -39,6 +39,7 @@ namespace U0071
 		private ComponentLookup<PartitionComponent> _partitionLookup;
 		private ComponentLookup<CreditsComponent> _creditsLookup;
 		private ComponentLookup<SpawnerComponent> _spawnerLookup;
+		private ComponentLookup<InteractableComponent> _interactableLookup;
 
 		public NativeQueue<ActionEvent>.ParallelWriter EventQueueWriter => _eventQueue.AsParallelWriter();
 
@@ -55,7 +56,8 @@ namespace U0071
 			_positionLookup = state.GetComponentLookup<PositionComponent>();
 			_partitionLookup = state.GetComponentLookup<PartitionComponent>();
 			_creditsLookup = state.GetComponentLookup<CreditsComponent>();
-			_spawnerLookup = state.GetComponentLookup<SpawnerComponent>(true);
+			_spawnerLookup = state.GetComponentLookup<SpawnerComponent>();
+			_interactableLookup = state.GetComponentLookup<InteractableComponent>();
 		}
 
 		[BurstCompile]
@@ -76,8 +78,10 @@ namespace U0071
 			_partitionLookup.Update(ref state);
 			_creditsLookup.Update(ref state);
 			_spawnerLookup.Update(ref state);
+			_interactableLookup.Update(ref state);
 
 			// TODO: have generic events (destroyed, modifyCredits etc) written when processing actions and processed afterwards in // (avoid Lookup-fest)
+			// TBD: use Ecb instead of Lookup-fest ?
 
 			state.Dependency = new ActionUpdateJob
 			{
@@ -97,6 +101,7 @@ namespace U0071
 				PartitionLookup = _partitionLookup,
 				CreditsLookup = _creditsLookup,
 				SpawnerLookup = _spawnerLookup,
+				InteractableLookup = _interactableLookup,
 			}.Schedule(state.Dependency);
 		}
 
@@ -133,8 +138,8 @@ namespace U0071
 			public ComponentLookup<PositionComponent> PositionLookup;
 			public ComponentLookup<PartitionComponent> PartitionLookup;
 			public ComponentLookup<CreditsComponent> CreditsLookup;
-			[ReadOnly]
 			public ComponentLookup<SpawnerComponent> SpawnerLookup;
+			public ComponentLookup<InteractableComponent> InteractableLookup;
 			[ReadOnly]
 			public RoomPartition Partition;
 
@@ -150,14 +155,34 @@ namespace U0071
 						// could be changed depending on action
 						int cost = actionEvent.Action.Cost;
 
-						if (actionEvent.Type == ActionType.Buy)
+						if (actionEvent.Type == ActionType.Collect)
 						{
-							SpawnerComponent spawner = SpawnerLookup[actionEvent.Target];
-							Ecb.SetComponent(Ecb.Instantiate(spawner.Prefab), new PositionComponent
+							ref SpawnerComponent spawner = ref SpawnerLookup.GetRefRW(actionEvent.Target).ValueRW;
+							if (spawner.VarianceCapacity > 0)
 							{
-								Value = actionEvent.Action.Position + spawner.Offset,
-								BaseYOffset = Const.ItemYOffset,
-						});
+								spawner.VarianceCapacity--;
+								Ecb.SetComponent(Ecb.Instantiate(spawner.VariantPrefab), new PositionComponent
+								{
+									Value = actionEvent.Action.Position + spawner.Offset,
+									BaseYOffset = Const.PickableYOffset,
+								});
+							}
+							else if (spawner.Capacity > 0) // someone else might have use it in the frame
+							{
+								spawner.Capacity--;
+								Ecb.SetComponent(Ecb.Instantiate(spawner.Prefab), new PositionComponent
+								{
+									Value = actionEvent.Action.Position + spawner.Offset,
+									BaseYOffset = Const.PickableYOffset,
+								});
+								if (spawner.Capacity == 0)
+								{
+									// remove action type
+									ref InteractableComponent interactable = ref InteractableLookup.GetRefRW(actionEvent.Target).ValueRW;
+									interactable.Flags &= ~ActionType.Collect;
+									interactable.Changed = true;
+								}
+							}
 						}
 						else if (actionEvent.Type == ActionType.Trash)
 						{
@@ -196,7 +221,7 @@ namespace U0071
 
 							ref PositionComponent position = ref PositionLookup.GetRefRW(actionEvent.Target).ValueRW;
 							position.Value = actionEvent.Action.Position;
-							position.BaseYOffset = Const.ItemYOffset;
+							position.BaseYOffset = Const.PickableYOffset;
 						}
 
 						if (cost != 0f)

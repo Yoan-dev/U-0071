@@ -85,6 +85,7 @@ namespace U0071
 			public void Execute(Entity entity, ref PartitionComponent partition, ref PositionComponent position, in InteractableComponent interactable)
 			{
 				// TODO: static entities should be initiated once on start and get filtered from this job
+				// (except on interactable changed)
 
 				// Entity.Null events will be ignored during partition update
 				RoomData newRoom = Partition.GetRoomData(position.Value);
@@ -112,7 +113,7 @@ namespace U0071
 					});
 					partition.CurrentRoom = newRoom.Entity;
 				}
-				else if (position.MovedFlag)
+				else if (position.MovedFlag || interactable.Changed)
 				{
 					Updates.Add(partition.CurrentRoom, new RoomUpdateEvent
 					{

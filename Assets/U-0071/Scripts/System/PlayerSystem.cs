@@ -125,7 +125,7 @@ namespace U0071
 				}
 
 				// retrieve relevant action types
-				ActionType filter = ActionType.All;
+				ActionType filter = ActionType.AllActions;
 
 				if (pick.Picked != Entity.Null)
 				{
@@ -142,9 +142,9 @@ namespace U0071
 						if (target.Entity != entity && Utilities.HasActionType(target.ActionFlags, filter) && position.IsInRange(target.Position, target.Range))
 						{
 							// primary
-							if (target.HasActionType(ActionType.Buy))
+							if (target.HasActionType(ActionType.Collect))
 							{
-								controller.SetPrimaryAction(target.ToActionData(ActionType.Buy), in NameLookup, Entity.Null);
+								controller.SetPrimaryAction(target.ToActionData(ActionType.Collect), in NameLookup, Entity.Null);
 							}
 							else if (!controller.HasPrimaryAction && pick.Picked != Entity.Null && target.HasActionType(ActionType.Trash))
 							{

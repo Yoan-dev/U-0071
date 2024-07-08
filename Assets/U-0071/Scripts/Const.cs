@@ -1,14 +1,12 @@
-using Unity.Mathematics;
-
 namespace U0071
 {
 	public static class Const
 	{
 		public const float AITick = 0.1f;
 		public const float DeviceYOffset = 0.1f;
-		public const float ItemYOffset = 0.4f;
+		public const float PickableYOffset = 0.4f;
 		public const float CharacterYOffset = 0.7f;
-		public const float CarriedItemYOffset = 0.001f;
+		public const float CarriedYOffset = 0.001f;
 
 		// used for Y sorting
 		public const float YOffsetRatioX = 0.05f;

@@ -98,10 +98,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Name: Chunk
   Pickable: 1
-  Storage: 0
+  Trasher: 0
   Range: 0.5
+  Time: 0
   Cost: 0
   Prefab: {fileID: 0}
+  VariantPrefab: {fileID: 0}
+  Offset: 0
+  StartingCapacity: 0
+  GrowTime: -1
+  Destination: {fileID: 0}
+  RefTrash: 1
+  RefProcess: 0
+  RefEat: 0
   Animated: 0
   Animation:
     StartIndex: 0

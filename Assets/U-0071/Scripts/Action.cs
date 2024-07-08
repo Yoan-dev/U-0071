@@ -8,11 +8,20 @@ namespace U0071
 	[Flags]
 	public enum ActionType
 	{
+		// actions
 		Pick = 1 << 0,
 		Drop = 1 << 1,
 		Trash = 1 << 2,
-		Buy = 1 << 3,
-		All = Pick | Trash | Buy,
+		Collect = 1 << 3,
+		Store = 1 << 4,
+		Process = 1 << 5,
+		Eat = 1 << 6,
+		AllActions = Pick | Trash | Collect | Store | Process | Eat,
+		
+		// companion-flags (ex: Collect + RefEat => buy meal)
+		RefTrash = 1 << 7,
+		RefProcess = 1 << 8,
+		RefEat = 1 << 9,
 	}
 
 	public struct ActionData
@@ -47,7 +56,22 @@ namespace U0071
 	public struct SpawnerComponent : IComponentData
 	{
 		public Entity Prefab;
+		public Entity VariantPrefab;
 		public float2 Offset;
+		public int Capacity;
+		public int VarianceCapacity;
+	}
+
+	public struct GrowComponent : IComponentData
+	{
+		public float Time;
+		public float Timer;
+		public int StageCount;
+	}
+
+	public struct StorageComponent : IComponentData
+	{
+		public Entity Destination;
 	}
 
 	public struct ActionController : IComponentData
@@ -81,6 +105,7 @@ namespace U0071
 		public float Range;
 		public float Time;
 		public int Cost;
+		public bool Changed;
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public bool HasType(ActionType inType)

@@ -33,7 +33,6 @@ namespace U0071
 			{
 				PickLookup = _pickLookup,
 			}.ScheduleParallel(state.Dependency);
-
 		}
 
 		[BurstCompile]
@@ -60,7 +59,7 @@ namespace U0071
 				// we assume Carrier entity is not Null
 				PickComponent pick = PickLookup[picked.Carrier];
 				position.Value = pick.Position;
-				position.CurrentYOffset = pick.YOffset + Const.CarriedItemYOffset;
+				position.CurrentYOffset = pick.YOffset + Const.CarriedYOffset;
 			}
 		}
 
