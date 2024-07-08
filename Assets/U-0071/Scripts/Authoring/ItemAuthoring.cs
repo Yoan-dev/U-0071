@@ -17,9 +17,22 @@ namespace U0071
 		public float Range = 0.5f;
 		public int Cost;
 
+		[Header("Spawner")]
+		public GameObject Prefab;
+		public float Offset;
+
 		[Header("Animation")]
 		public bool Animated;
 		public Animation Animation;
+
+		public float2 GetFacingDirection()
+		{
+			float yaw = transform.rotation.eulerAngles.y;
+			return
+				yaw == 0f ? new float2(0f, -1f) :
+				yaw == 90f ? new float2(-1f, 0f) :
+				yaw == 180f ? new float2(0f, 1f) : new float2(1f, 0f);
+		}
 
 		public class Baker : Baker<ItemAuthoring>
 		{
@@ -38,16 +51,8 @@ namespace U0071
 				});
 				AddComponent(entity, new PartitionComponent());
 
-				if (authoring.Animated)
-				{
-					AnimationController controller = new AnimationController();
-					controller.StartAnimation(authoring.Animation);
-					AddComponent(entity, controller);
-					AddComponent(entity, new SimpleAnimationTag());
-					AddComponent(entity, new TextureArrayIndex());
-				}
-
 				ActionType actionType = 0;
+
 				if (authoring.Pickable)
 				{
 					actionType |= ActionType.Pick;
@@ -56,14 +61,33 @@ namespace U0071
 				}
 				if (authoring.Storage)
 				{
-					actionType |= ActionType.Grind;
+					actionType |= ActionType.Trash;
 				}
+				if (authoring.Prefab != null)
+				{
+					actionType |= ActionType.Buy; // TBD: other types of spawner
+					AddComponent(entity, new SpawnerComponent
+					{
+						Prefab = authoring.gameObject != null ? GetEntity(authoring.Prefab, TransformUsageFlags.Dynamic) : Entity.Null,
+						Offset = authoring.Offset * authoring.GetFacingDirection(),
+					});
+				}
+
 				AddComponent(entity, new InteractableComponent
 				{
 					Flags = actionType,
 					Range = authoring.Range,
 					Cost = authoring.Cost,
 				});
+
+				if (authoring.Animated)
+				{
+					AnimationController controller = new AnimationController();
+					controller.StartAnimation(authoring.Animation);
+					AddComponent(entity, controller);
+					AddComponent(entity, new SimpleAnimationTag());
+					AddComponent(entity, new TextureArrayIndex());
+				}
 			}
 		}
 	}

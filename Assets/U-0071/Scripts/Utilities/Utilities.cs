@@ -14,16 +14,17 @@ namespace U0071
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static bool GetClosestRoomElement(in DynamicBuffer<RoomElementBufferElement> elements, float2 position, Entity self, ActionType filter, out RoomElementBufferElement element)
+		public static bool GetClosestRoomElement(in DynamicBuffer<RoomElementBufferElement> elements, float2 position, Entity self, ActionType filter, int credits, out RoomElementBufferElement element)
 		{
 			element = new RoomElementBufferElement();
-
 			float minMagn = float.MaxValue;
 			using (var enumerator = elements.GetEnumerator())
 			{
 				while (enumerator.MoveNext())
 				{
-					if (enumerator.Current.Entity != self && HasActionType(enumerator.Current.ActionFlags, filter))
+					if (enumerator.Current.Entity != self && 
+						HasActionType(enumerator.Current.ActionFlags, filter) && 
+						(enumerator.Current.Cost <= 0f || enumerator.Current.Cost <= credits))
 					{
 						float magn = math.lengthsq(position - enumerator.Current.Position);
 						if (magn < minMagn)

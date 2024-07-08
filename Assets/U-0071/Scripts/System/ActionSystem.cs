@@ -9,24 +9,23 @@ namespace U0071
 	[UpdateBefore(typeof(MovementSystem))]
 	public partial struct ActionSystem : ISystem
 	{
-		private NativeQueue<ActionEventBufferElement> _eventQueue;
+		private NativeQueue<ActionEvent> _eventQueue;
 		private BufferLookup<RoomElementBufferElement> _roomElementLookup;
 		private ComponentLookup<PickComponent> _pickLookup;
 		private ComponentLookup<PickableComponent> _pickableLookup;
 		private ComponentLookup<PositionComponent> _positionLookup;
 		private ComponentLookup<PartitionComponent> _partitionLookup;
 		private ComponentLookup<CreditsComponent> _creditsLookup;
-		private ComponentLookup<InteractableComponent> _interactableLookup;
+		private ComponentLookup<SpawnerComponent> _spawnerLookup;
 
-		public NativeQueue<ActionEventBufferElement>.ParallelWriter EventQueueWriter => _eventQueue.AsParallelWriter();
+		public NativeQueue<ActionEvent>.ParallelWriter EventQueueWriter => _eventQueue.AsParallelWriter();
 
 		[BurstCompile]
 		public void OnCreate(ref SystemState state)
 		{
-			state.RequireForUpdate<ActionEventBufferElement>();
 			state.RequireForUpdate<RoomPartition>();
 
-			_eventQueue = new NativeQueue<ActionEventBufferElement>(Allocator.Persistent);
+			_eventQueue = new NativeQueue<ActionEvent>(Allocator.Persistent);
 
 			_roomElementLookup = state.GetBufferLookup<RoomElementBufferElement>();
 			_pickLookup = state.GetComponentLookup<PickComponent>();
@@ -34,7 +33,7 @@ namespace U0071
 			_positionLookup = state.GetComponentLookup<PositionComponent>();
 			_partitionLookup = state.GetComponentLookup<PartitionComponent>();
 			_creditsLookup = state.GetComponentLookup<CreditsComponent>();
-			_interactableLookup = state.GetComponentLookup<InteractableComponent>(true);
+			_spawnerLookup = state.GetComponentLookup<SpawnerComponent>(true);
 		}
 
 		[BurstCompile]
@@ -54,7 +53,7 @@ namespace U0071
 			_positionLookup.Update(ref state);
 			_partitionLookup.Update(ref state);
 			_creditsLookup.Update(ref state);
-			_interactableLookup.Update(ref state);
+			_spawnerLookup.Update(ref state);
 
 			// TODO: have generic events (destroyed, modifyCredits etc) written when processing actions and processed afterwards in // (avoid Lookup-fest)
 
@@ -69,7 +68,7 @@ namespace U0071
 				PositionLookup = _positionLookup,
 				PartitionLookup = _partitionLookup,
 				CreditsLookup = _creditsLookup,
-				InteractableLookup = _interactableLookup,
+				SpawnerLookup = _spawnerLookup,
 			}.Schedule(state.Dependency);
 		}
 
@@ -77,7 +76,7 @@ namespace U0071
 		public partial struct ActionEventsJob : IJob
 		{
 			public EntityCommandBuffer Ecb;
-			public NativeQueue<ActionEventBufferElement> Events;
+			public NativeQueue<ActionEvent> Events;
 			public BufferLookup<RoomElementBufferElement> RoomElementLookup;
 			public ComponentLookup<PickComponent> PickLookup;
 			public ComponentLookup<PickableComponent> PickableLookup;
@@ -85,27 +84,32 @@ namespace U0071
 			public ComponentLookup<PartitionComponent> PartitionLookup;
 			public ComponentLookup<CreditsComponent> CreditsLookup;
 			[ReadOnly]
-			public ComponentLookup<InteractableComponent> InteractableLookup;
+			public ComponentLookup<SpawnerComponent> SpawnerLookup;
 			[ReadOnly]
 			public RoomPartition Partition;
 
 			public void Execute()
 			{
-				NativeArray<ActionEventBufferElement> events = Events.ToArray(Allocator.Temp);
+				NativeArray<ActionEvent> events = Events.ToArray(Allocator.Temp);
 				using (var enumerator = events.GetEnumerator())
 				{
 					while (enumerator.MoveNext())
 					{
-						ActionEventBufferElement actionEvent = enumerator.Current;
+						ActionEvent actionEvent = enumerator.Current;
 
 						// could be changed depending on action
 						int cost = actionEvent.Action.Cost;
 
 						if (actionEvent.Type == ActionType.Buy)
 						{
-							// TODO
+							SpawnerComponent spawner = SpawnerLookup[actionEvent.Target];
+							Ecb.SetComponent(Ecb.Instantiate(spawner.Prefab), new PositionComponent
+							{
+								Value = actionEvent.Action.Position + spawner.Offset,
+								BaseYOffset = Const.ItemYOffset,
+						});
 						}
-						else if (actionEvent.Type == ActionType.Grind)
+						else if (actionEvent.Type == ActionType.Trash)
 						{
 							ref PickComponent pick = ref PickLookup.GetRefRW(actionEvent.Source).ValueRW;
 							Ecb.DestroyEntity(pick.Picked);

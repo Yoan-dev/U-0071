@@ -13,6 +13,7 @@ namespace U0071
 		public FixedString32Bytes SecondaryName;
 		public KeyCode Key;
 		public ActionType Type;
+		public int Cost;
 		public bool IsPressed;
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -57,6 +58,7 @@ namespace U0071
 				data.Type == ActionType.Pick ? nameLookup[data.Target].Value :
 				usedItem != Entity.Null ? nameLookup[usedItem].Value :
 				new FixedString32Bytes();
+			action.Cost = data.Cost;
 		}
 	}
 

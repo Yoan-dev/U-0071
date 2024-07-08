@@ -3,6 +3,8 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
+using static UnityEditor.Rendering.FilterWindow;
+using static UnityEngine.GraphicsBuffer;
 
 namespace U0071
 {
@@ -44,7 +46,7 @@ namespace U0071
 	[UpdateBefore(typeof(MovementSystem))]
 	public partial struct PlayerControllerSystem : ISystem, ISystemStartStop
 	{
-		private NativeQueue<ActionEventBufferElement>.ParallelWriter _actionEventWriter; // from ActionSystem
+		private NativeQueue<ActionEvent>.ParallelWriter _actionEventWriter; // from ActionSystem
 		private BufferLookup<RoomElementBufferElement> _roomElementLookup;
 		private ComponentLookup<NameComponent> _nameLookup;
 
@@ -52,7 +54,7 @@ namespace U0071
 		public void OnCreate(ref SystemState state)
 		{
 			state.RequireForUpdate<PlayerController>();
-			state.RequireForUpdate<ActionEventBufferElement>();
+			state.RequireForUpdate<RoomPartition>();
 
 			_roomElementLookup = state.GetBufferLookup<RoomElementBufferElement>(true);
 			_nameLookup = state.GetComponentLookup<NameComponent>(true);
@@ -97,7 +99,7 @@ namespace U0071
 		public partial struct PlayerActionJob : IJobEntity
 		{
 			[WriteOnly]
-			public NativeQueue<ActionEventBufferElement>.ParallelWriter ActionEventWriter;
+			public NativeQueue<ActionEvent>.ParallelWriter ActionEventWriter;
 			[ReadOnly]
 			public BufferLookup<RoomElementBufferElement> RoomElementBufferLookup;
 			[ReadOnly]
@@ -127,33 +129,54 @@ namespace U0071
 					controller.SetSecondaryAction(new ActionData(pick.Picked, ActionType.Drop, position.Value + new float2(Const.DropOffsetX * orientation.Value, Const.DropOffsetY), 0f, 0), in NameLookup, pick.Picked);
 				}
 
-				// close room items actions
-				if (Utilities.GetClosestRoomElement(RoomElementBufferLookup[partition.CurrentRoom], position.Value, entity, ActionType.All, out RoomElementBufferElement target) &&
-					position.IsInRange(target.Position, target.Range))
+				// retrieve relevant action types
+				ActionType filter = ActionType.All;
+
+				if (pick.Picked != Entity.Null)
 				{
-					// TODO: check !controller.HasPrimaryAction for subsequent actions
-					if (pick.Picked != Entity.Null && target.HasActionType(ActionType.Grind))
+					filter &= ~ActionType.Pick;
+				}
+
+				// player scan all close items to list actions
+				DynamicBuffer<RoomElementBufferElement> elements = RoomElementBufferLookup[partition.CurrentRoom];
+				using (var enumerator = elements.GetEnumerator())
+				{
+					while (enumerator.MoveNext())
 					{
-						controller.SetPrimaryAction(target.ToActionData(ActionType.Grind), in NameLookup, pick.Picked);
-					}
-					else if (!controller.HasSecondaryAction && target.HasActionType(ActionType.Pick))
-					{
-						controller.SetSecondaryAction(target.ToActionData(ActionType.Pick), in NameLookup, pick.Picked);
+						RoomElementBufferElement target = enumerator.Current;
+						if (target.Entity != entity && Utilities.HasActionType(target.ActionFlags, filter) && position.IsInRange(target.Position, target.Range))
+						{
+							// primary
+							if (target.HasActionType(ActionType.Buy))
+							{
+								controller.SetPrimaryAction(target.ToActionData(ActionType.Buy), in NameLookup, Entity.Null);
+							}
+							else if (!controller.HasPrimaryAction && pick.Picked != Entity.Null && target.HasActionType(ActionType.Trash))
+							{
+								controller.SetPrimaryAction(target.ToActionData(ActionType.Trash), in NameLookup, pick.Picked);
+							}
+
+							// secondary
+							if (!controller.HasSecondaryAction && target.HasActionType(ActionType.Pick))
+							{
+								controller.SetSecondaryAction(target.ToActionData(ActionType.Pick), in NameLookup, pick.Picked);
+							}
+						}
 					}
 				}
 
 				// queue action if needed/able
 				if (controller.PrimaryAction.IsPressed && controller.HasPrimaryAction &&
-					(controller.PrimaryAction.Data.Cost == 0 || controller.PrimaryAction.Data.Cost <= credits.Value))
+					(controller.PrimaryAction.Data.Cost <= 0 || controller.PrimaryAction.Data.Cost <= credits.Value))
 				{
-					ActionEventWriter.Enqueue(new ActionEventBufferElement(entity, in controller.PrimaryAction.Data));
+					ActionEventWriter.Enqueue(new ActionEvent(entity, in controller.PrimaryAction.Data));
 					orientation.Update(controller.PrimaryAction.Data.Position.x - position.x);
 				}
 				else if (
 					controller.SecondaryAction.IsPressed && controller.HasSecondaryAction && 
-					(controller.SecondaryAction.Data.Cost == 0 || controller.SecondaryAction.Data.Cost <= credits.Value))
+					(controller.SecondaryAction.Data.Cost <= 0 || controller.SecondaryAction.Data.Cost <= credits.Value))
 				{
-					ActionEventWriter.Enqueue(new ActionEventBufferElement(entity, in controller.SecondaryAction.Data));
+					ActionEventWriter.Enqueue(new ActionEvent(entity, in controller.SecondaryAction.Data));
 					orientation.Update(controller.SecondaryAction.Data.Position.x - position.x);
 
 				}

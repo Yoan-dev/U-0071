@@ -54,6 +54,7 @@ public class UIManager : MonoBehaviour
 			info.Key.ToString() + ": " + 
 			GetActionTypeName(info.Type) + 
 			(info.SecondaryName.Length > 0 ? " " + info.SecondaryName : "") +
+			(info.Cost > 0f ? " (-" + info.Cost + "c)" : "") +
 			(info.Name.Length > 0 ? " (" + info.Name + ")" : "") : "";
 	}
 
@@ -62,7 +63,8 @@ public class UIManager : MonoBehaviour
 	{
 		return type switch
 		{
-			ActionType.Grind => "Trash",
+			ActionType.Buy => "Buy",
+			ActionType.Trash => "Trash",
 			ActionType.Pick => "Pick",
 			ActionType.Drop => "Drop",
 			_ => "none",

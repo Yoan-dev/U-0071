@@ -15,9 +15,6 @@ namespace U0071
 				Entity entity = GetEntity(TransformUsageFlags.None);
 
 				AddComponent(entity, authoring.Config);
-
-				// we use the config entity as a singleton for events
-				AddBuffer<ActionEventBufferElement>(entity);
 			}
 		}
 	}

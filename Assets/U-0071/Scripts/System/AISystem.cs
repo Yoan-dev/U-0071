@@ -10,7 +10,7 @@ namespace U0071
 	[UpdateBefore(typeof(MovementSystem))]
 	public partial struct AIControllerSystem : ISystem, ISystemStartStop
 	{
-		private NativeQueue<ActionEventBufferElement>.ParallelWriter _actionEventWriter; // from ActionSystem
+		private NativeQueue<ActionEvent>.ParallelWriter _actionEventWriter; // from ActionSystem
 		private BufferLookup<RoomElementBufferElement> _roomElementLookup;
 		private ComponentLookup<PositionComponent> _positionLookup;
 		private ComponentLookup<PickableComponent> _pickableLookup;
@@ -20,7 +20,7 @@ namespace U0071
 		[BurstCompile]
 		public void OnCreate(ref SystemState state)
 		{
-			state.RequireForUpdate<ActionEventBufferElement>();
+			state.RequireForUpdate<RoomPartition>();
 
 			_query = SystemAPI.QueryBuilder()
 				.WithAllRW<AIController, Orientation>()
@@ -72,7 +72,7 @@ namespace U0071
 		public partial struct AIActionJob : IJobEntity
 		{
 			[WriteOnly]
-			public NativeQueue<ActionEventBufferElement>.ParallelWriter ActionEventWriter;
+			public NativeQueue<ActionEvent>.ParallelWriter ActionEventWriter;
 			[ReadOnly]
 			public BufferLookup<RoomElementBufferElement> RoomElementBufferLookup;
 			[ReadOnly]
@@ -105,7 +105,7 @@ namespace U0071
 
 					if (position.IsInRange(controller.Target.Position, controller.Target.Range))
 					{
-						ActionEventWriter.Enqueue(new ActionEventBufferElement(entity, in controller.Target));
+						ActionEventWriter.Enqueue(new ActionEvent(entity, in controller.Target));
 
 						orientation.Update(controller.Target.Position.x - position.Value.x);
 
@@ -127,29 +127,34 @@ namespace U0071
 					}
 					else
 					{
-						filter &= ~ActionType.Grind;
+						filter &= ~ActionType.Trash;
 					}
 
 					// look for target
-					if (Utilities.GetClosestRoomElement(RoomElementBufferLookup[partition.CurrentRoom], position.Value, entity, filter, out RoomElementBufferElement target))
+					if (Utilities.GetClosestRoomElement(RoomElementBufferLookup[partition.CurrentRoom], position.Value, entity, filter, credits.Value, out RoomElementBufferElement target))
 					{
 						// consider which action to do in priority
 						ActionType actionType = 0;
-						if (CanExecuteAction(ActionType.Pick, filter, in target, in credits))
+						if (CanExecuteAction(ActionType.Buy, filter, in target))
+						{
+							actionType = ActionType.Buy;
+						}
+						else if (CanExecuteAction(ActionType.Pick, filter, in target))
 						{
 							actionType = ActionType.Pick;
 						}
-						else if (CanExecuteAction(ActionType.Grind, filter, in target, in credits))
+						else if (CanExecuteAction(ActionType.Trash, filter, in target))
 						{
-							actionType = ActionType.Grind;
+							actionType = ActionType.Trash;
 						}
 
+						// queue action or track target
 						if (actionType != 0)
 						{
 							if (position.IsInRange(target.Position, target.Range))
 							{
 								// interact
-								ActionEventWriter.Enqueue(new ActionEventBufferElement(entity, target.ToActionData(actionType)));
+								ActionEventWriter.Enqueue(new ActionEvent(entity, target.ToActionData(actionType)));
 								orientation.Update(target.Position.x - position.Value.x);
 							}
 							else
@@ -163,12 +168,10 @@ namespace U0071
 			}
 
 			[MethodImpl(MethodImplOptions.AggressiveInlining)]
-			private bool CanExecuteAction(ActionType type, ActionType filter, in RoomElementBufferElement target, in CreditsComponent credits)
+			private bool CanExecuteAction(ActionType type, ActionType filter, in RoomElementBufferElement target)
 			{
-				return
-					Utilities.HasActionType(filter, type) && 
-					Utilities.HasActionType(target.ActionFlags, type) && 
-					(target.Cost == 0 || target.Cost <= credits.Value);
+				// note: credits vs cost already checked during query
+				return Utilities.HasActionType(filter, type) && Utilities.HasActionType(target.ActionFlags, type);
 			}
 		}
 

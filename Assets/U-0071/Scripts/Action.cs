@@ -10,9 +10,9 @@ namespace U0071
 	{
 		Pick = 1 << 0,
 		Drop = 1 << 1,
-		Grind = 1 << 2,
+		Trash = 1 << 2,
 		Buy = 1 << 3,
-		All = Pick | Grind | Buy,
+		All = Pick | Trash | Buy,
 	}
 
 	public struct ActionData
@@ -42,6 +42,12 @@ namespace U0071
 		}
 	}
 
+	public struct SpawnerComponent : IComponentData
+	{
+		public Entity Prefab;
+		public float2 Offset;
+	}
+
 	public struct InteractableComponent : IComponentData
 	{
 		public ActionType Flags;
@@ -67,8 +73,7 @@ namespace U0071
 		public Entity Carrier;
 	}
 
-	[InternalBufferCapacity(0)]
-	public struct ActionEventBufferElement : IBufferElementData
+	public struct ActionEvent
 	{
 		public ActionData Action;
 		public Entity Source;
@@ -78,7 +83,7 @@ namespace U0071
 		public float2 Position => Action.Position;
 		
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public ActionEventBufferElement(Entity source, in ActionData action)
+		public ActionEvent(Entity source, in ActionData action)
 		{
 			Source = source;
 			Action = action;

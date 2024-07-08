@@ -47,14 +47,7 @@ namespace U0071
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public ActionData ToActionData(ActionType selectedActionType)
 		{
-			return new ActionData
-			{
-				Target = Entity,
-				Position = Position,
-				Cost = Cost,
-				Range = Range,
-				Type = selectedActionType,
-			};
+			return new ActionData(Entity, selectedActionType, Position, Range, Cost);
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -3,11 +3,11 @@
 --- !u!21 &2100000
 Material:
   serializedVersion: 8
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 32
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: M_Grinder
+  m_Name: M_Distributor
   m_Shader: {fileID: -6465566751694194690, guid: ce2717a3edb5d1644af242a66cb27e85,
     type: 3}
   m_Parent: {fileID: 0}
@@ -24,8 +24,12 @@ Material:
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
+    - _Texture:
+        m_Texture: {fileID: 2800000, guid: a5784ff643d156543840c1335be8e1ae, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _TextureArray:
-        m_Texture: {fileID: 18700000, guid: c4aaf0d0490517b4fab854468325606c, type: 3}
+        m_Texture: {fileID: 18700000, guid: 153a776b6f9e29643b19500d62745c10, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - unity_Lightmaps:
@@ -47,7 +51,7 @@ Material:
     - _QueueOffset: 0
     m_Colors: []
   m_BuildTextureStacks: []
---- !u!114 &215780316198654944
+--- !u!114 &3511976978748619165
 MonoBehaviour:
   m_ObjectHideFlags: 11
   m_CorrespondingSourceObject: {fileID: 0}
