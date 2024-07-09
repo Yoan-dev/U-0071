@@ -113,22 +113,15 @@ namespace U0071
 
 				if (Utilities.ProcessUnitControllerStart(ref actionController, ref orientation, in position, in pick, in partition, isActing, death, pushed))
 				{
-					// update UI
 					if (actionController.IsResolving)
 					{
+						// update UI
 						controller.ActionTimer = actionController.Action.Time - actionController.Timer;
 					}
+					// consume inputs
+					controller.PrimaryAction.IsPressed = false;
+					controller.SecondaryAction.IsPressed = false;
 					return;
-				}
-
-				// carry item actions
-				if (pick.Picked != Entity.Null)
-				{
-					if (Utilities.HasActionType(pick.Flags, ActionType.Eat))
-					{
-						controller.SetPrimaryAction(new ActionData(pick.Picked, ActionType.Eat, position.Value, 0f, pick.Time, 0), in NameLookup, pick.Picked);
-					}
-					controller.SetSecondaryAction(new ActionData(pick.Picked, ActionType.Drop, position.Value + Const.GetDropOffset(orientation.Value), 0f, 0f, 0), in NameLookup, pick.Picked);
 				}
 
 				// retrieve relevant action types
@@ -136,10 +129,18 @@ namespace U0071
 
 				if (pick.Picked != Entity.Null)
 				{
+					// remove flag
 					filter &= ~ActionType.Pick;
+
+					// consider carried item actions
+					if (Utilities.HasActionType(pick.Flags, ActionType.Eat))
+					{
+						controller.SetPrimaryAction(new ActionData(pick.Picked, ActionType.Eat, position.Value, 0f, pick.Time, 0), in NameLookup, pick.Picked);
+					}
+					controller.SetSecondaryAction(new ActionData(pick.Picked, ActionType.Drop, position.Value + Const.GetDropOffset(orientation.Value), 0f, 0f, 0), in NameLookup, pick.Picked);
 				}
 
-				// player scan all close items to list actions
+				// player assess all close items
 				DynamicBuffer<RoomElementBufferElement> elements = RoomElementBufferLookup[partition.CurrentRoom];
 				using (var enumerator = elements.GetEnumerator())
 				{
@@ -181,23 +182,19 @@ namespace U0071
 				}
 
 				// start interacting if needed/able
-				if (controller.PrimaryAction.IsPressed && controller.HasPrimaryAction &&
-					(controller.PrimaryAction.Data.Cost <= 0 || controller.PrimaryAction.Data.Cost <= credits.Value))
+				if (controller.ShouldStartAction(in controller.PrimaryAction, credits.Value))
 				{
 					isActing.ValueRW = true;
 					actionController.Action = controller.PrimaryAction.Data;
 					actionController.Start();
 					orientation.Update(controller.PrimaryAction.Data.Position.x - position.x);
 				}
-				else if (
-					controller.SecondaryAction.IsPressed && controller.HasSecondaryAction && 
-					(controller.SecondaryAction.Data.Cost <= 0 || controller.SecondaryAction.Data.Cost <= credits.Value))
+				else if (controller.ShouldStartAction(in controller.SecondaryAction, credits.Value))
 				{
 					isActing.ValueRW = true;
 					actionController.Action = controller.SecondaryAction.Data;
 					actionController.Start();
 					orientation.Update(controller.SecondaryAction.Data.Position.x - position.x);
-
 				}
 
 				// consume inputs

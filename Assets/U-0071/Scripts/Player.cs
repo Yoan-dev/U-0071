@@ -16,6 +16,7 @@ namespace U0071
 
 		public int Cost => Data.Cost;
 		public ActionType Type => Data.Type;
+		public bool Has => Data.Has;
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public void Reset()
@@ -32,8 +33,8 @@ namespace U0071
 		public ActionInfo SecondaryAction;
 		public float ActionTimer;
 
-		public bool HasPrimaryAction => PrimaryAction.Data.Has;
-		public bool HasSecondaryAction => SecondaryAction.Data.Has;
+		public bool HasPrimaryAction => PrimaryAction.Has;
+		public bool HasSecondaryAction => SecondaryAction.Has;
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public void SetPrimaryAction(in ActionData data, in ComponentLookup<NameComponent> nameLookup, Entity usedItem)
@@ -58,6 +59,12 @@ namespace U0071
 				data.Type == ActionType.Pick || data.Type == ActionType.Search ? nameLookup[data.Target].Value :
 				usedItem != Entity.Null ? nameLookup[usedItem].Value :
 				new FixedString32Bytes();
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public bool ShouldStartAction(in ActionInfo action, int credits)
+		{
+			return action.IsPressed && action.Has && (action.Data.Cost <= 0 || action.Data.Cost <= credits);
 		}
 	}
 
