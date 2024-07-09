@@ -10,6 +10,7 @@ namespace U0071
 		public float2 Offset;
 		public int Capacity;
 		public int VariantCapacity;
+		public bool Immutable;
 	}
 
 	public struct GrowComponent : IComponentData

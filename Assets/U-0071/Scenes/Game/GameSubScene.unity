@@ -425,7 +425,7 @@ PrefabInstance:
     - target: {fileID: 6182060189481554560, guid: a153a4c14592d0646afb9e802275efe5,
         type: 3}
       propertyPath: Hunger
-      value: 0.5
+      value: 10
       objectReference: {fileID: 0}
     - target: {fileID: 6182060189481554560, guid: a153a4c14592d0646afb9e802275efe5,
         type: 3}
@@ -1647,7 +1647,7 @@ PrefabInstance:
     - target: {fileID: 6182060189481554560, guid: a153a4c14592d0646afb9e802275efe5,
         type: 3}
       propertyPath: Hunger
-      value: 3
+      value: 10
       objectReference: {fileID: 0}
     - target: {fileID: 6182060189481554560, guid: a153a4c14592d0646afb9e802275efe5,
         type: 3}

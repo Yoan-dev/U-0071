@@ -113,6 +113,7 @@ namespace U0071
 						VariantPrefab = authoring.VariantPrefab != null ? GetEntity(authoring.VariantPrefab, TransformUsageFlags.Dynamic) : Entity.Null,
 						Offset = authoring.Offset * authoring.GetFacingDirection(),
 						Capacity = authoring.StartingCapacity,
+						Immutable = authoring.AutoSpawner,
 					});
 					if (authoring.AutoSpawner)
 					{
@@ -150,7 +151,6 @@ namespace U0071
 					Range = authoring.Range,
 					Time = authoring.Time,
 					Cost = authoring.Cost,
-					Immutable = authoring.AutoSpawner,
 				});
 
 				if (authoring.Animated)

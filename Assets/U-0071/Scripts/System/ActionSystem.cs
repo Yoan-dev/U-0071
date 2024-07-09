@@ -1,4 +1,3 @@
-using System.Runtime.CompilerServices;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
@@ -7,28 +6,56 @@ using Unity.Mathematics;
 
 namespace U0071
 {
-	public struct ActionEvent
+	public struct PushEvent
 	{
-		public ActionData Action;
+		public float2 Direction;
+		public Entity Source; // to push back
+		public Entity Target;
+	}
+
+	public struct CreditsEvent
+	{
+		public Entity Source; // can be Null
+		public Entity Target;
+		public int Value;
+	}
+
+	public struct PickDropEvent
+	{
+		public float2 Position;
 		public Entity Source;
+		public Entity Target;
+		public bool Pick;
+	}
 
-		public Entity Target => Action.Target;
-		public ActionType Type => Action.Type;
-		public float2 Position => Action.Position;
+	public struct ChangeInteractableEvent
+	{
+		public Entity Target;
+		public ActionType FlagsToAdd;
+		public ActionType FlagsToRemove;
+	}
 
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public ActionEvent(Entity source, in ActionData action)
-		{
-			Source = source;
-			Action = action;
-		}
+	public struct SpawnerEvent
+	{
+		public float2 Position;
+		public Entity Target;
+		public int CapacityChange;
+		public bool Spawn;
+		// TODO: used item flag (for variant capacity increase)
 	}
 
 	[UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
 	[UpdateBefore(typeof(MovementSystem))]
 	public partial struct ActionSystem : ISystem
 	{
-		private NativeQueue<ActionEvent> _eventQueue;
+		// event queues
+		private NativeQueue<PushEvent> _pushEvents;
+		private NativeQueue<CreditsEvent> _creditsEvents;
+		private NativeQueue<PickDropEvent> _pickDropEvents;
+		private NativeQueue<SpawnerEvent> _spawnerEvents;
+		private NativeQueue<ChangeInteractableEvent> _changeInteractableEvents;
+
+		// lookups (alot)
 		private BufferLookup<RoomElementBufferElement> _roomElementLookup;
 		private ComponentLookup<PickComponent> _pickLookup;
 		private ComponentLookup<PickableComponent> _pickableLookup;
@@ -37,18 +64,19 @@ namespace U0071
 		private ComponentLookup<CreditsComponent> _creditsLookup;
 		private ComponentLookup<SpawnerComponent> _spawnerLookup;
 		private ComponentLookup<InteractableComponent> _interactableLookup;
-		private ComponentLookup<HungerComponent> _hungerLookup;
 		private ComponentLookup<PushedComponent> _pushedLookup;
 		private ComponentLookup<StorageComponent> _storageLookup;
-
-		public NativeQueue<ActionEvent>.ParallelWriter EventQueueWriter => _eventQueue.AsParallelWriter();
 
 		[BurstCompile]
 		public void OnCreate(ref SystemState state)
 		{
 			state.RequireForUpdate<RoomPartition>();
 
-			_eventQueue = new NativeQueue<ActionEvent>(Allocator.Persistent);
+			_pushEvents = new NativeQueue<PushEvent>(Allocator.Persistent);
+			_creditsEvents = new NativeQueue<CreditsEvent>(Allocator.Persistent);
+			_pickDropEvents = new NativeQueue<PickDropEvent>(Allocator.Persistent);
+			_spawnerEvents = new NativeQueue<SpawnerEvent>(Allocator.Persistent);
+			_changeInteractableEvents = new NativeQueue<ChangeInteractableEvent>(Allocator.Persistent);
 
 			_roomElementLookup = state.GetBufferLookup<RoomElementBufferElement>();
 			_pickLookup = state.GetComponentLookup<PickComponent>();
@@ -58,7 +86,6 @@ namespace U0071
 			_creditsLookup = state.GetComponentLookup<CreditsComponent>();
 			_spawnerLookup = state.GetComponentLookup<SpawnerComponent>();
 			_interactableLookup = state.GetComponentLookup<InteractableComponent>();
-			_hungerLookup = state.GetComponentLookup<HungerComponent>();
 			_pushedLookup = state.GetComponentLookup<PushedComponent>();
 			_storageLookup = state.GetComponentLookup<StorageComponent>(true);
 		}
@@ -66,7 +93,11 @@ namespace U0071
 		[BurstCompile]
 		public void OnDestroy(ref SystemState state)
 		{
-			_eventQueue.Dispose();
+			_pushEvents.Dispose();
+			_creditsEvents.Dispose();
+			_pickDropEvents.Dispose();
+			_spawnerEvents.Dispose();
+			_changeInteractableEvents.Dispose();
 		}
 
 		[BurstCompile]
@@ -82,236 +113,436 @@ namespace U0071
 			_creditsLookup.Update(ref state);
 			_spawnerLookup.Update(ref state);
 			_interactableLookup.Update(ref state);
-			_hungerLookup.Update(ref state);
 			_storageLookup.Update(ref state);
 			_pushedLookup.Update(ref state);
 
 			// TODO: have generic events (destroyed, modifyCredits etc) written when processing actions and processed afterwards in // (avoid Lookup-fest)
 			// TBD: use Ecb instead of Lookup-fest ?
 
-			state.Dependency = new ActionUpdateJob
+			state.Dependency = new ResolveActionJob
 			{
+				PushEvents = _pushEvents.AsParallelWriter(),
+				CreditsEvents = _creditsEvents.AsParallelWriter(),
+				PickDropEvents = _pickDropEvents.AsParallelWriter(),
+				SpawnerEvents = _spawnerEvents.AsParallelWriter(),
+				StorageLookup = _storageLookup,
 				DeltaTime = SystemAPI.Time.DeltaTime,
-				Events = _eventQueue.AsParallelWriter(),
 			}.ScheduleParallel(state.Dependency);
 
-			state.Dependency = new ActionEventsJob
+			state.Dependency = new ResolvePickedActionJob
 			{
-				Ecb = ecbs.CreateCommandBuffer(state.WorldUnmanaged),
-				Partition = SystemAPI.GetSingleton<RoomPartition>(),
-				Events = _eventQueue,
+				Ecb = ecbs.CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter(),
+			}.ScheduleParallel(state.Dependency);
+
+			state.Dependency = new StopActionJob().ScheduleParallel(state.Dependency);
+
+			state.Dependency = new PushEventJob
+			{
+				Events = _pushEvents,
+				PushedLookup = _pushedLookup,
+			}.Schedule(state.Dependency);
+
+			state.Dependency = new CreditsEventJob
+			{
+				Events = _creditsEvents,
+				ChangedInteractableEvents = _changeInteractableEvents.AsParallelWriter(),
+				CreditsLookup = _creditsLookup,
+			}.Schedule(state.Dependency);
+
+			state.Dependency = new PickDropEventJob
+			{
+				Events = _pickDropEvents,
 				RoomElementLookup = _roomElementLookup,
+				InteractableLookup = _interactableLookup, // TBD RO ?
 				PickLookup = _pickLookup,
 				PickableLookup = _pickableLookup,
-				PositionLookup = _positionLookup,
 				PartitionLookup = _partitionLookup,
-				CreditsLookup = _creditsLookup,
+				PositionLookup = _positionLookup,
+				Partition = SystemAPI.GetSingleton<RoomPartition>(),
+			}.Schedule(state.Dependency);
+
+			state.Dependency = new SpawnerEventJob
+			{
+				Ecb = ecbs.CreateCommandBuffer(state.WorldUnmanaged),
+				Events = _spawnerEvents,
+				ChangedInteractableEvents = _changeInteractableEvents.AsParallelWriter(),
 				SpawnerLookup = _spawnerLookup,
+			}.Schedule(state.Dependency);
+
+			state.Dependency = new ChangeInteractableEventJob
+			{
+				Events = _changeInteractableEvents,
 				InteractableLookup = _interactableLookup,
-				HungerLookup = _hungerLookup,
-				StorageLookup = _storageLookup,
-				PushedLookup = _pushedLookup,
 			}.Schedule(state.Dependency);
 		}
 
 		[BurstCompile]
-		public partial struct ActionUpdateJob : IJobEntity
+		[WithAll(typeof(IsActing))]
+		public partial struct ResolveActionJob : IJobEntity
 		{
-			[WriteOnly]
-			public NativeQueue<ActionEvent>.ParallelWriter Events;
+			public NativeQueue<PushEvent>.ParallelWriter PushEvents;
+			public NativeQueue<CreditsEvent>.ParallelWriter CreditsEvents;
+			public NativeQueue<PickDropEvent>.ParallelWriter PickDropEvents;
+			public NativeQueue<SpawnerEvent>.ParallelWriter SpawnerEvents;
+			[ReadOnly]
+			public ComponentLookup<StorageComponent> StorageLookup;
 			public float DeltaTime;
 
-			public void Execute(Entity entity, ref ActionController controller, in CreditsComponent credits, EnabledRefRW<IsActing> isActing)
+			public void Execute(
+				Entity entity,
+				ref ActionController controller,
+				ref HungerComponent hunger,
+				in PositionComponent position,
+				in CreditsComponent credits)
 			{
 				// do not filter isDeadTag to be able to drop carried item on death
 				// (isActing will filter the job after)
 
 				controller.Timer += DeltaTime;
-				if (controller.Timer >= controller.Action.Time)
+				if (controller.ShouldResolve(credits.Value))
 				{
-					if (controller.Action.Cost <= 0f || controller.Action.Cost <= credits.Value)
+					// process behavior that can be in parallel here
+					// queue the rest
+
+					if (controller.Action.Type == ActionType.Eat)
 					{
-						Events.Enqueue(new ActionEvent(entity, controller.Action));
+						hunger.Value += Const.EatingHungerGain;
 					}
-					controller.Stop();
-					isActing.ValueRW = false;
+					else if (controller.Action.Type == ActionType.Push)
+					{
+						PushEvents.Enqueue(new PushEvent
+						{
+							Source = entity,
+							Target = controller.Action.Target,
+							Direction = math.normalizesafe(controller.Action.Position - position.Value),
+						});
+					}
+					else if (controller.Action.Type == ActionType.Search)
+					{
+						CreditsEvents.Enqueue(new CreditsEvent
+						{
+							// target/source are switched for credits gain
+							Source = controller.Action.Target,
+							Target = entity,
+							Value = controller.Action.Cost,
+						});
+					}
+					else if (controller.Action.Type == ActionType.Pick || controller.Action.Type == ActionType.Drop)
+					{
+						PickDropEvents.Enqueue(new PickDropEvent
+						{
+							Source = entity,
+							Target = controller.Action.Target,
+							Position = controller.Action.Position,
+							Pick = controller.Action.Type == ActionType.Pick,
+						});
+					}
+					else if (controller.Action.Type == ActionType.Store)
+					{
+						StorageComponent storage = StorageLookup[controller.Action.Target];
+						SpawnerEvents.Enqueue(new SpawnerEvent
+						{
+							Target = storage.Destination,
+							CapacityChange = 1,
+						});
+						if (storage.SecondaryDestination != Entity.Null)
+						{
+							SpawnerEvents.Enqueue(new SpawnerEvent
+							{
+								Target = storage.SecondaryDestination,
+								CapacityChange = 1,
+							});
+						}
+					}
+					else if (controller.Action.Type == ActionType.Collect)
+					{
+						SpawnerEvents.Enqueue(new SpawnerEvent
+						{
+							Target = controller.Action.Target,
+							Position = controller.Action.Position,
+							Spawn = true,
+							CapacityChange = -1,
+						});
+					}
+
+					if (controller.Action.Cost != 0)
+					{
+						CreditsEvents.Enqueue(new CreditsEvent
+						{
+							Source = Entity.Null, // money printing/vanishing
+							Target = entity,
+							Value = controller.Action.Cost,
+						});
+					}
 				}
 			}
 		}
 
 		[BurstCompile]
-		public partial struct ActionEventsJob : IJob
+		[WithAll(typeof(IsActing))]
+		public partial struct ResolvePickedActionJob : IJobEntity
+		{
+			public EntityCommandBuffer.ParallelWriter Ecb;
+
+			public void Execute(
+				[ChunkIndexInQuery] int chunkIndex,
+				ref ActionController controller,
+				ref PickComponent pick,
+				in CreditsComponent credits,
+				EnabledRefRW<PickComponent> pickRefRW)
+			{
+				if (controller.ShouldResolve(credits.Value) &&
+					(controller.Action.Type == ActionType.Trash || controller.Action.Type == ActionType.Store || controller.Action.Type == ActionType.Eat))
+				{
+					// destroy used item
+					Ecb.DestroyEntity(chunkIndex, pick.Picked);
+					pick.Picked = Entity.Null;
+					pick.Flags = 0;
+					pick.Time = 0f;
+					pickRefRW.ValueRW = false;
+				}
+			}
+		}
+
+		[BurstCompile]
+		public partial struct StopActionJob : IJobEntity
+		{
+			public void Execute(ref ActionController controller, EnabledRefRW<IsActing> isActingRefRW)
+			{
+				if (controller.Timer >= controller.Action.Time)
+				{
+					controller.Stop();
+					isActingRefRW.ValueRW = false;
+				}
+			}
+		}
+
+		[BurstCompile]
+		public partial struct PushEventJob : IJob
+		{
+			public NativeQueue<PushEvent> Events;
+			public ComponentLookup<PushedComponent> PushedLookup;
+
+			public void Execute()
+			{
+				NativeArray<PushEvent> events = Events.ToArray(Allocator.Temp);
+				using (var enumerator = events.GetEnumerator())
+				{
+					while (enumerator.MoveNext())
+					{
+						PushEvent pushEvent = enumerator.Current;
+
+						ref PushedComponent pushed = ref PushedLookup.GetRefRW(pushEvent.Target).ValueRW;
+						pushed.Direction = pushEvent.Direction;
+						pushed.Timer = Const.PushedTimer;
+						PushedLookup.SetComponentEnabled(pushEvent.Target, true);
+					}
+				}
+				Events.Clear();
+				events.Dispose();
+			}
+		}
+
+		[BurstCompile]
+		public partial struct CreditsEventJob : IJob
 		{
 			public EntityCommandBuffer Ecb;
-			public NativeQueue<ActionEvent> Events;
+			public NativeQueue<CreditsEvent> Events;
+			public NativeQueue<ChangeInteractableEvent>.ParallelWriter ChangedInteractableEvents;
+			public ComponentLookup<CreditsComponent> CreditsLookup;
+
+			public void Execute()
+			{
+				NativeArray<CreditsEvent> events = Events.ToArray(Allocator.Temp);
+				using (var enumerator = events.GetEnumerator())
+				{
+					while (enumerator.MoveNext())
+					{
+						CreditsEvent creditsEvent = enumerator.Current;
+						int value = creditsEvent.Value;
+
+						if (creditsEvent.Source != Entity.Null)
+						{
+							// clamp value to source credits and decrease source credits
+
+							ref CreditsComponent credits = ref CreditsLookup.GetRefRW(creditsEvent.Target).ValueRW;
+							value = math.min(math.max(0, credits.Value), value);
+							credits.Value -= value;
+
+							if (credits.Value <= 0f)
+							{
+								ChangedInteractableEvents.Enqueue(new ChangeInteractableEvent
+								{
+									Target = creditsEvent.Source,
+									FlagsToRemove = ActionType.Search, // TBD: only for AI (empty search for player)
+								});
+							}
+						}
+						if (value > 0)
+						{
+							CreditsLookup.GetRefRW(creditsEvent.Target).ValueRW.Value += value;
+						}
+					}
+				}
+				Events.Clear();
+				events.Dispose();
+			}
+		}
+
+		[BurstCompile]
+		public partial struct PickDropEventJob : IJob
+		{
+			public EntityCommandBuffer Ecb;
+			public NativeQueue<PickDropEvent> Events;
 			public BufferLookup<RoomElementBufferElement> RoomElementLookup;
 			public ComponentLookup<PickComponent> PickLookup;
 			public ComponentLookup<PickableComponent> PickableLookup;
-			public ComponentLookup<PositionComponent> PositionLookup;
 			public ComponentLookup<PartitionComponent> PartitionLookup;
-			public ComponentLookup<CreditsComponent> CreditsLookup;
-			public ComponentLookup<SpawnerComponent> SpawnerLookup;
-			public ComponentLookup<InteractableComponent> InteractableLookup;
-			public ComponentLookup<HungerComponent> HungerLookup;
-			public ComponentLookup<PushedComponent> PushedLookup;
+			public ComponentLookup<PositionComponent> PositionLookup;
 			[ReadOnly]
-			public ComponentLookup<StorageComponent> StorageLookup;
+			public ComponentLookup<InteractableComponent> InteractableLookup;
 			[ReadOnly]
 			public RoomPartition Partition;
 
 			public void Execute()
 			{
-				NativeArray<ActionEvent> events = Events.ToArray(Allocator.Temp);
+				NativeArray<PickDropEvent> events = Events.ToArray(Allocator.Temp);
 				using (var enumerator = events.GetEnumerator())
 				{
 					while (enumerator.MoveNext())
 					{
-						ActionEvent actionEvent = enumerator.Current;
+						PickDropEvent pickDropEvent = enumerator.Current;
 
-						// could be changed depending on action
-						int cost = actionEvent.Action.Cost;
-
-						if (actionEvent.Type == ActionType.Trash || actionEvent.Type == ActionType.Store || actionEvent.Type == ActionType.Eat)
+						if (pickDropEvent.Pick)
 						{
-							// destroy used item
-							ref PickComponent pick = ref PickLookup.GetRefRW(actionEvent.Source).ValueRW;
-							Ecb.DestroyEntity(pick.Picked);
-							pick.Picked = Entity.Null;
-							pick.Flags = 0;
-							pick.Time = 0f;
-							PickLookup.SetComponentEnabled(actionEvent.Source, false);
-						}
-
-						if (actionEvent.Type == ActionType.Push)
-						{
-							ref PushedComponent pushed = ref PushedLookup.GetRefRW(actionEvent.Target).ValueRW;
-							pushed.Direction = math.normalizesafe(actionEvent.Position - PositionLookup[actionEvent.Source].Value);
-							pushed.Timer = Const.PushedTimer;
-							PushedLookup.SetComponentEnabled(actionEvent.Target, true);
-						}
-						else if (actionEvent.Type == ActionType.Search)
-						{
-							ref CreditsComponent credits = ref CreditsLookup.GetRefRW(actionEvent.Target).ValueRW;
-							int gain = math.min(math.max(0, credits.Value), Const.LootCreditsCount);
-							cost -= gain;
-							credits.Value -= gain;
-
-							if (credits.Value <= 0f)
-							{
-								// remove action type
-								ref InteractableComponent interactable = ref InteractableLookup.GetRefRW(actionEvent.Target).ValueRW;
-								interactable.Flags &= ~ActionType.Search;
-								interactable.Changed = true;
-							}
-						}
-						else if (actionEvent.Type == ActionType.Eat)
-						{
-							HungerLookup.GetRefRW(actionEvent.Source).ValueRW.Value += Const.EatingHungerGain;
-						}
-						else if (actionEvent.Type == ActionType.Store)
-						{
-							StorageComponent storage = StorageLookup[actionEvent.Target];
-
-							// TODO: increase variable capacity (if !refFlag ?)
-							IncreaseCapacity(storage.Destination);
-							if (storage.SecondaryDestination != Entity.Null)
-							{
-								IncreaseCapacity(storage.SecondaryDestination);
-							}
-						}
-						else if (actionEvent.Type == ActionType.Collect)
-						{
-							ref SpawnerComponent spawner = ref SpawnerLookup.GetRefRW(actionEvent.Target).ValueRW;
-							if (spawner.VariantCapacity > 0)
-							{
-								spawner.VariantCapacity--;
-								Ecb.SetComponent(Ecb.Instantiate(spawner.VariantPrefab), new PositionComponent
-								{
-									Value = actionEvent.Action.Position + spawner.Offset,
-									BaseYOffset = Const.PickableYOffset,
-								});
-							}
-							else if (spawner.Capacity > 0)
-							{
-								spawner.Capacity--;
-								Ecb.SetComponent(Ecb.Instantiate(spawner.Prefab), new PositionComponent
-								{
-									Value = actionEvent.Action.Position + spawner.Offset,
-									BaseYOffset = Const.PickableYOffset,
-								});
-							}
-							if (spawner.Capacity == 0 && spawner.VariantCapacity == 0)
-							{
-								// remove action type
-								ref InteractableComponent interactable = ref InteractableLookup.GetRefRW(actionEvent.Target).ValueRW;
-								interactable.Flags &= ~ActionType.Collect;
-								interactable.Changed = true;
-							}
-						}
-						else if (actionEvent.Type == ActionType.Pick)
-						{
-							// verify target has not been picked by another event
-							if (PickableLookup.IsComponentEnabled(actionEvent.Target))
+							// verify target has not been picked before
+							if (PickableLookup.IsComponentEnabled(pickDropEvent.Target))
 							{
 								continue;
 							}
 
-							ref PickComponent pick = ref PickLookup.GetRefRW(actionEvent.Source).ValueRW;
-							pick.Picked = actionEvent.Target;
-							InteractableComponent interactable = InteractableLookup[actionEvent.Target];
+							ref PickComponent pick = ref PickLookup.GetRefRW(pickDropEvent.Source).ValueRW;
+							pick.Picked = pickDropEvent.Target;
+							// TBD update Flags/Time later (conflict with change interactable events)
+							// TBD2 no need if item flags (+ another component)
+							InteractableComponent interactable = InteractableLookup[pickDropEvent.Target];
 							pick.Flags = interactable.Flags;
 							pick.Time = interactable.Time;
-							PickLookup.SetComponentEnabled(actionEvent.Source, true);
+							PickLookup.SetComponentEnabled(pickDropEvent.Source, true);
 
-							PickableLookup.GetRefRW(actionEvent.Target).ValueRW.Carrier = actionEvent.Source;
-							PickableLookup.SetComponentEnabled(actionEvent.Target, true);
+							PickableLookup.GetRefRW(pickDropEvent.Target).ValueRW.Carrier = pickDropEvent.Source;
+							PickableLookup.SetComponentEnabled(pickDropEvent.Target, true);
 
-							Entity room = Partition.GetRoomData(actionEvent.Position).Entity;
+							Entity room = Partition.GetRoomData(pickDropEvent.Position).Entity;
 							if (room != Entity.Null)
 							{
 								DynamicBuffer<RoomElementBufferElement> roomElements = RoomElementLookup[room];
-								RoomElementBufferElement.RemoveElement(ref roomElements, new RoomElementBufferElement(actionEvent.Target));
-								PartitionLookup.GetRefRW(actionEvent.Target).ValueRW.CurrentRoom = Entity.Null;
+								RoomElementBufferElement.RemoveElement(ref roomElements, new RoomElementBufferElement(pickDropEvent.Target));
+								PartitionLookup.GetRefRW(pickDropEvent.Target).ValueRW.CurrentRoom = Entity.Null;
 							}
 						}
-						else if (actionEvent.Type == ActionType.Drop)
+						else // drop
 						{
-							PickLookup.GetRefRW(actionEvent.Source).ValueRW.Picked = Entity.Null;
-							PickLookup.SetComponentEnabled(actionEvent.Source, false);
-							PickableLookup.GetRefRW(actionEvent.Target).ValueRW.Carrier = Entity.Null;
-							PickableLookup.SetComponentEnabled(actionEvent.Target, false);
+							PickLookup.GetRefRW(pickDropEvent.Source).ValueRW.Picked = Entity.Null;
+							PickLookup.SetComponentEnabled(pickDropEvent.Source, false);
+							PickableLookup.GetRefRW(pickDropEvent.Target).ValueRW.Carrier = Entity.Null;
+							PickableLookup.SetComponentEnabled(pickDropEvent.Target, false);
 
-							ref PositionComponent position = ref PositionLookup.GetRefRW(actionEvent.Target).ValueRW;
-							position.Value = actionEvent.Action.Position;
+							ref PositionComponent position = ref PositionLookup.GetRefRW(pickDropEvent.Target).ValueRW;
+							position.Value = pickDropEvent.Position;
 							position.BaseYOffset = Const.PickableYOffset;
 						}
+					}
+				}
+				Events.Clear();
+				events.Dispose();
+			}
+		}
 
-						if (cost != 0f)
+		[BurstCompile]
+		public partial struct SpawnerEventJob : IJob
+		{
+			public EntityCommandBuffer Ecb;
+			public NativeQueue<SpawnerEvent> Events;
+			public NativeQueue<ChangeInteractableEvent>.ParallelWriter ChangedInteractableEvents;
+			public ComponentLookup<SpawnerComponent> SpawnerLookup;
+
+			public void Execute()
+			{
+				NativeArray<SpawnerEvent> events = Events.ToArray(Allocator.Temp);
+				using (var enumerator = events.GetEnumerator())
+				{
+					while (enumerator.MoveNext())
+					{
+						// spawning and capacity changed are processed
+						// together because spawning depends on capacity (able, variant)
+
+						SpawnerEvent spawnerEvent = enumerator.Current;
+
+						ref SpawnerComponent spawner = ref SpawnerLookup.GetRefRW(spawnerEvent.Target).ValueRW;
+
+						// TODO: variant capacity/spawn
+
+						if (spawnerEvent.Spawn && spawner.Capacity > 0)
 						{
-							// can be negative (task reward)
-							CreditsLookup.GetRefRW(actionEvent.Source).ValueRW.Value -= cost;
+							Ecb.SetComponent(Ecb.Instantiate(spawner.Prefab), new PositionComponent
+							{
+								Value = spawnerEvent.Position + spawner.Offset,
+								BaseYOffset = Const.PickableYOffset,
+							});
 						}
+
+						int newCapacity = spawner.Capacity + spawnerEvent.CapacityChange;
+
+						if (!spawner.Immutable && spawner.Capacity <= 0 && newCapacity > 0)
+						{
+							ChangedInteractableEvents.Enqueue(new ChangeInteractableEvent
+							{
+								Target = spawnerEvent.Target,
+								FlagsToAdd = ActionType.Collect,
+							});
+						}
+						else if (!spawner.Immutable && spawner.Capacity > 0 && newCapacity <= 0)
+						{
+							ChangedInteractableEvents.Enqueue(new ChangeInteractableEvent
+							{
+								Target = spawnerEvent.Target,
+								FlagsToRemove = ActionType.Collect,
+							});
+						}
+
+						spawner.Capacity = newCapacity;
+					}
+				}
+				Events.Clear();
+				events.Dispose();
+			}
+		}
+
+		[BurstCompile]
+		public partial struct ChangeInteractableEventJob : IJob
+		{
+			public NativeQueue<ChangeInteractableEvent> Events;
+			public ComponentLookup<InteractableComponent> InteractableLookup;
+
+			public void Execute()
+			{
+				NativeArray<ChangeInteractableEvent> events = Events.ToArray(Allocator.Temp);
+				using (var enumerator = events.GetEnumerator())
+				{
+					while (enumerator.MoveNext())
+					{
+						ChangeInteractableEvent changeInteractableEvent = enumerator.Current;
+
+						ref InteractableComponent interactable = ref InteractableLookup.GetRefRW(changeInteractableEvent.Target).ValueRW;
+
+						interactable.Flags |= changeInteractableEvent.FlagsToAdd;
+						interactable.Flags &= ~changeInteractableEvent.FlagsToRemove;
+						interactable.Changed = true;
 					}
 				}
 				events.Dispose();
 				Events.Clear();
-			}
-
-			[MethodImpl(MethodImplOptions.AggressiveInlining)]
-			private void IncreaseCapacity(Entity entity)
-			{
-				ref SpawnerComponent spawner = ref SpawnerLookup.GetRefRW(entity).ValueRW;
-				if (spawner.Capacity == 0)
-				{
-					// add action type
-					ref InteractableComponent interactable = ref InteractableLookup.GetRefRW(entity).ValueRW;
-					if (!interactable.Immutable)
-					{
-						interactable.Flags |= ActionType.Collect;
-						interactable.Changed = true;
-					}
-				}
-				spawner.Capacity++;
 			}
 		}
 	}

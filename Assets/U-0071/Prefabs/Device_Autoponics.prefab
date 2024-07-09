@@ -100,17 +100,20 @@ MonoBehaviour:
   Pickable: 0
   Processable: 0
   Eatable: 0
-  Trasher: 0
   Range: 1
   Time: 0.5
   Cost: 0
+  Trasher: 0
+  HazardRange: 0
   Prefab: {fileID: 1708813368808323750, guid: 0dc4e0c974808174bb9f93a57620d2cf, type: 3}
   VariantPrefab: {fileID: 0}
   Offset: 0
   StartingCapacity: 0
-  GrowTime: 10
+  GrowTime: 5
   GrowStageCount: 5
+  AutoSpawner: 0
   Destination: {fileID: 0}
+  SecondaryDestination: {fileID: 0}
   RefTrash: 0
   RefProcess: 0
   RefEat: 0

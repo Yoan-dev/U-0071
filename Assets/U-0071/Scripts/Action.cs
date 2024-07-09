@@ -76,6 +76,13 @@ namespace U0071
 			Action.Target = Entity.Null;
 			IsResolving = false;
 		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public bool ShouldResolve(int credits)
+		{
+			// TBC credits check, should already be checked in controller (action start)
+			return Timer >= Action.Time && (Action.Cost <= 0f || Action.Cost <= credits);
+		}
 	}
 
 	public struct IsActing : IComponentData, IEnableableComponent { }
@@ -87,7 +94,6 @@ namespace U0071
 		public float Time;
 		public int Cost;
 		public bool Changed;
-		public bool Immutable;
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public bool HasType(ActionType inType)
