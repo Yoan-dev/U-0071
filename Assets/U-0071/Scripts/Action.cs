@@ -11,14 +11,14 @@ namespace U0071
 		// actions
 		Pick = 1 << 0,
 		Drop = 1 << 1,
-		Trash = 1 << 2,
-		Collect = 1 << 3,
-		Store = 1 << 4,
+		Destroy = 1 << 2,
+		Store = 1 << 3,
+		Collect = 1 << 4,
 		Process = 1 << 5,
 		Eat = 1 << 6,
 		Search = 1 << 7,
 		Push = 1 << 8,
-		AllActions = Pick | Trash | Collect | Store | Process | Eat | Search | Push,
+		AllActions = Pick | Destroy | Store | Collect | Process | Eat | Search | Push,
 		
 		// companion-flags (ex: Collect + RefEat => buy meal)
 		RefTrash = 1 << 9,

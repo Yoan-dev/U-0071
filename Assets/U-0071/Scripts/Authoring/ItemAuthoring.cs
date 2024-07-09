@@ -89,7 +89,7 @@ namespace U0071
 				}
 				if (authoring.Trasher)
 				{
-					actionType |= ActionType.Trash;
+					actionType |= ActionType.Destroy;
 
 					if (authoring.HazardRange > 0f)
 					{

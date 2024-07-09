@@ -292,7 +292,7 @@ namespace U0071
 				EnabledRefRW<PickComponent> pickRefRW)
 			{
 				if (controller.ShouldResolve(credits.Value) &&
-					(controller.Action.Type == ActionType.Trash || controller.Action.Type == ActionType.Store || controller.Action.Type == ActionType.Eat))
+					(controller.Action.Type == ActionType.Destroy || controller.Action.Type == ActionType.Store || controller.Action.Type == ActionType.Eat))
 				{
 					// destroy used item
 					Ecb.DestroyEntity(chunkIndex, pick.Picked);

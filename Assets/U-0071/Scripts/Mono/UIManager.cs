@@ -77,7 +77,7 @@ public class UIManager : MonoBehaviour
 		{
 			ActionType.Collect => cost > 0f ? "Buy" : "Take",
 			ActionType.Eat => "Eat",
-			ActionType.Trash => "Destroy",
+			ActionType.Destroy => "Destroy",
 			ActionType.Pick => "Pick",
 			ActionType.Store => "Store",
 			ActionType.Drop => "Drop",

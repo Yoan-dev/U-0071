@@ -169,9 +169,9 @@ namespace U0071
 							{
 								controller.SetPrimaryAction(target.ToActionData(ActionType.Store), in NameLookup, pick.Picked);
 							}
-							else if (target.HasActionType(ActionType.Trash) && pick.Picked != Entity.Null)
+							else if (target.HasActionType(ActionType.Destroy) && pick.Picked != Entity.Null)
 							{
-								controller.SetPrimaryAction(target.ToActionData(ActionType.Trash), in NameLookup, pick.Picked);
+								controller.SetPrimaryAction(target.ToActionData(ActionType.Destroy), in NameLookup, pick.Picked);
 							}
 							else if (target.HasActionType(ActionType.Search))
 							{

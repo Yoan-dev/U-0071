@@ -145,7 +145,7 @@ namespace U0071
 					}
 
 					filter &= ~ActionType.Pick;
-					if (Utilities.HasActionType(pick.Flags, ActionType.RefTrash)) filter |= ActionType.Trash;
+					if (Utilities.HasActionType(pick.Flags, ActionType.RefTrash)) filter |= ActionType.Destroy;
 					if (Utilities.HasActionType(pick.Flags, ActionType.Process))
 					{
 						filter |= ActionType.Store;
@@ -155,7 +155,7 @@ namespace U0071
 				else
 				{
 					filter &= ~ActionType.Store;
-					filter &= ~ActionType.Trash;
+					filter &= ~ActionType.Destroy;
 				}
 
 				// look for target
@@ -167,9 +167,9 @@ namespace U0071
 					{
 						actionType = ActionType.Store;
 					}
-					else if (CanExecuteAction(ActionType.Trash, filter, in target))
+					else if (CanExecuteAction(ActionType.Destroy, filter, in target))
 					{
-						actionType = ActionType.Trash;
+						actionType = ActionType.Destroy;
 					}
 					else if (CanExecuteAction(ActionType.Search, filter, in target))
 					{
