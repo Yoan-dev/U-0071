@@ -102,7 +102,7 @@ namespace U0071
 				in PickComponent pick,
 				in PartitionComponent partition,
 				in CreditsComponent credits,
-				EnabledRefRO<DeathComponent> isDead,
+				EnabledRefRO<DeathComponent> death,
 				EnabledRefRO<PushedComponent> pushed,
 				EnabledRefRW<IsActing> isActing)
 			{
@@ -110,27 +110,16 @@ namespace U0071
 				controller.PrimaryAction.Reset();
 				controller.SecondaryAction.Reset();
 				controller.ActionTimer = 0f;
-				
-				if (isDead.ValueRO || pushed.ValueRO)
+
+				if (Utilities.ProcessUnitControllerStart(ref actionController, ref orientation, in position, in pick, in partition, isActing, death, pushed))
 				{
-					if (pick.Picked != Entity.Null)
+					// update UI
+					if (actionController.IsResolving)
 					{
-						actionController.Action = new ActionData(pick.Picked, ActionType.Drop, position.Value + Const.GetDropOffset(orientation.Value), 0f, 0f, 0);
-						actionController.Start();
-						isActing.ValueRW = true;
+						controller.ActionTimer = actionController.Action.Time - actionController.Timer;
 					}
 					return;
 				}
-
-				if (actionController.IsResolving)
-				{
-					// already acting
-					controller.ActionTimer = actionController.Action.Time - actionController.Timer;
-					return;
-				}
-
-				// cannot act if not in partition
-				if (partition.CurrentRoom == Entity.Null) return;
 
 				// carry item actions
 				if (pick.Picked != Entity.Null)

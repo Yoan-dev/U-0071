@@ -78,23 +78,14 @@ namespace U0071
 				in PickComponent pick,
 				in PartitionComponent partition,
 				in CreditsComponent credits,
-				EnabledRefRO<DeathComponent> isDead,
-				EnabledRefRO<PushedComponent> pushed,
-				EnabledRefRW<IsActing> isActing)
+				EnabledRefRW<IsActing> isActing,
+				EnabledRefRO<DeathComponent> death,
+				EnabledRefRO<PushedComponent> pushed)
 			{
-				if (isDead.ValueRO || pushed.ValueRO)
+				if (Utilities.ProcessUnitControllerStart(ref controller, ref orientation, in position, in pick, in partition, isActing, death, pushed))
 				{
-					if (pick.Picked != Entity.Null)
-					{
-						controller.Action = new ActionData(pick.Picked, ActionType.Drop, position.Value + Const.GetDropOffset(orientation.Value), 0f, 0f, 0);
-						controller.Start();
-						isActing.ValueRW = true;
-					}
 					return;
 				}
-
-				// cannot act if not in partition or already acting
-				if (partition.CurrentRoom == Entity.Null || controller.IsResolving) return;
 
 				// evaluate current target
 				if (controller.HasTarget)

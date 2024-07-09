@@ -153,7 +153,7 @@ namespace U0071
 			{
 				Events = _pickDropEvents,
 				RoomElementLookup = _roomElementLookup,
-				InteractableLookup = _interactableLookup, // TBD RO ?
+				InteractableLookup = _interactableLookup,
 				PickLookup = _pickLookup,
 				PickableLookup = _pickableLookup,
 				PartitionLookup = _partitionLookup,
@@ -289,7 +289,7 @@ namespace U0071
 				ref ActionController controller,
 				ref PickComponent pick,
 				in CreditsComponent credits,
-				EnabledRefRW<PickComponent> pickRefRW)
+				EnabledRefRW<PickComponent> pickRef)
 			{
 				if (controller.ShouldResolve(credits.Value) &&
 					(controller.Action.Type == ActionType.Destroy || controller.Action.Type == ActionType.Store || controller.Action.Type == ActionType.Eat))
@@ -299,7 +299,7 @@ namespace U0071
 					pick.Picked = Entity.Null;
 					pick.Flags = 0;
 					pick.Time = 0f;
-					pickRefRW.ValueRW = false;
+					pickRef.ValueRW = false;
 				}
 			}
 		}
@@ -307,12 +307,12 @@ namespace U0071
 		[BurstCompile]
 		public partial struct StopActionJob : IJobEntity
 		{
-			public void Execute(ref ActionController controller, EnabledRefRW<IsActing> isActingRefRW)
+			public void Execute(ref ActionController controller, EnabledRefRW<IsActing> isActing)
 			{
 				if (controller.Timer >= controller.Action.Time)
 				{
 					controller.Stop();
-					isActingRefRW.ValueRW = false;
+					isActing.ValueRW = false;
 				}
 			}
 		}
@@ -423,8 +423,6 @@ namespace U0071
 
 							ref PickComponent pick = ref PickLookup.GetRefRW(pickDropEvent.Source).ValueRW;
 							pick.Picked = pickDropEvent.Target;
-							// TBD update Flags/Time later (conflict with change interactable events)
-							// TBD2 no need if item flags (+ another component)
 							InteractableComponent interactable = InteractableLookup[pickDropEvent.Target];
 							pick.Flags = interactable.Flags;
 							pick.Time = interactable.Time;

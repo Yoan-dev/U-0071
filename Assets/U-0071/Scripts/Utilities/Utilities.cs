@@ -14,6 +14,41 @@ namespace U0071
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static EntityManager GetEntityManager()
+		{
+			return World.DefaultGameObjectInjectionWorld.Unmanaged.EntityManager;
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static bool ProcessUnitControllerStart(
+			ref ActionController controller,
+			ref Orientation orientation,
+			in PositionComponent position,
+			in PickComponent pick,
+			in PartitionComponent partition,
+			EnabledRefRW<IsActing> isActingRefRW,
+			EnabledRefRO<DeathComponent> deathRefRO,
+			EnabledRefRO<PushedComponent> pushedRefRO)
+		{
+			// returns "should stop" to AI/Player controller jobs
+
+			if (deathRefRO.ValueRO || pushedRefRO.ValueRO)
+			{
+				if (pick.Picked != Entity.Null)
+				{
+					// drop item on death/pushed
+					controller.Action = new ActionData(pick.Picked, ActionType.Drop, position.Value + Const.GetDropOffset(orientation.Value), 0f, 0f, 0);
+					controller.Start();
+					isActingRefRW.ValueRW = true;
+				}
+				return true;
+			}
+
+			// cannot act if not in partition or already acting
+			return partition.CurrentRoom == Entity.Null || controller.IsResolving;
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static bool GetClosestRoomElement(in DynamicBuffer<RoomElementBufferElement> elements, float2 position, Entity self, ActionType filter, ActionType refFilter, int credits, out RoomElementBufferElement element)
 		{
 			element = new RoomElementBufferElement();
@@ -69,12 +104,6 @@ namespace U0071
 		public static bool IsInCircle(float2 point, float2 center, float radius)
 		{
 			return math.lengthsq(point - center) <= math.pow(radius, 2f);
-		}
-
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static EntityManager GetEntityManager()
-		{
-			return World.DefaultGameObjectInjectionWorld.Unmanaged.EntityManager;
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
