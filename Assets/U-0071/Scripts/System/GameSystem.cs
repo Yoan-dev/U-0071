@@ -30,19 +30,27 @@ namespace U0071
 			Config config = SystemAPI.GetSingleton<Config>();
 			RoomPartition partition = new RoomPartition(config.WorldDimensions);
 
-			new PartitionInitJob
+			// jobs are run with NativeDisableParallelForRestriction on the partition
+			// because rooms and doors/links should not be on top of one another
+			// (isolated cell indexes)
+			// (otherwise map is wrong)
+
+			new RoomInitJob
 			{
 				Partition = partition,
 			}.ScheduleParallel(state.Dependency).Complete();
 
-			// TODO: room links init
+			new RoomLinkJob
+			{
+				Partition = partition,
+			}.ScheduleParallel(state.Dependency).Complete();
 
 			state.EntityManager.AddComponentData(state.SystemHandle, partition);
 			state.Enabled = false;
 		}
 
 		[BurstCompile]
-		public partial struct PartitionInitJob : IJobEntity
+		public partial struct RoomInitJob : IJobEntity
 		{
 			[NativeDisableParallelForRestriction]
 			public RoomPartition Partition;
@@ -53,7 +61,8 @@ namespace U0071
 				{
 					for (int x = 0; x < room.Dimensions.x; x++)
 					{
-						Partition.SetRoomData(
+						Partition.SetCellData(
+							true,
 							new RoomData
 							{
 								Entity = entity,
@@ -62,11 +71,42 @@ namespace U0071
 							},
 							new float2
 							{
-							x = position.x + x - room.Dimensions.x / 2f,
-							y = position.y + y - room.Dimensions.y / 2f,
-						});
+								x = position.x + x - room.Dimensions.x / 2f,
+								y = position.y + y - room.Dimensions.y / 2f,
+							});
 					}
 				}
+			}
+		}
+
+		[BurstCompile]
+		public partial struct RoomLinkJob : IJobEntity
+		{
+			[NativeDisableParallelForRestriction]
+			public RoomPartition Partition;
+
+			public void Execute(Entity entity, in RoomLinkComponent link)
+			{
+				// try to retreive the two connected rooms
+				RoomData room1;
+				RoomData room2;
+				if (Partition.IsPathable(new float2(link.Position.x + 1, link.Position.y))) // horizontal
+				{
+					room1 = Partition.GetRoomData(new float2(link.Position.x - 1, link.Position.y));
+					room2 = Partition.GetRoomData(new float2(link.Position.x + 1, link.Position.y));
+				}
+				else // vertical
+				{
+					room1 = Partition.GetRoomData(new float2(link.Position.x, link.Position.y - 1));
+					room2 = Partition.GetRoomData(new float2(link.Position.x, link.Position.y + 1));
+				}
+
+				// we assume that the room data are eligible
+				// (otherwise map is wrong)
+
+				Partition.SetCellData(true, new RoomData(), link.Position);
+
+				// TBD: set the cell room data as the biggest adjacent room
 			}
 		}
 	}

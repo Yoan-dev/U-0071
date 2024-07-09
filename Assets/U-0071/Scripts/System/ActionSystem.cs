@@ -441,7 +441,9 @@ namespace U0071
 						}
 						else // drop
 						{
-							PickLookup.GetRefRW(pickDropEvent.Source).ValueRW.Picked = Entity.Null;
+							ref CarryComponent carry = ref PickLookup.GetRefRW(pickDropEvent.Source).ValueRW;
+							carry.Picked = Entity.Null;
+							carry.Flags = 0;
 							PickLookup.SetComponentEnabled(pickDropEvent.Source, false);
 							PickableLookup.GetRefRW(pickDropEvent.Target).ValueRW.Carrier = Entity.Null;
 							PickableLookup.SetComponentEnabled(pickDropEvent.Target, false);

@@ -1,36 +1,26 @@
-using System;
 using System.Runtime.CompilerServices;
-using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 
 namespace U0071
 {
-	public struct PartitionComponent : IComponentData
-	{
-		public Entity CurrentRoom;
-	}
-
 	public struct RoomComponent : IComponentData
 	{
 		public int2 Dimensions;
 	}
 
-	public struct RoomData
+	public struct RoomLinkComponent : IComponentData
 	{
-		public RoomComponent Room;
 		public float2 Position;
-		public Entity Entity;
+		public bool Open;
+	}
 
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public float2 GetRoomRatio(float2 position)
-		{
-			return new float2
-			{
-				x = (position.x - (Position.x - Room.Dimensions.x / 2f)) / Room.Dimensions.x,
-				y = -(position.y - (Position.y + Room.Dimensions.y / 2f)) / Room.Dimensions.y,
-			};
-		}
+	[InternalBufferCapacity(4)]
+	public struct RoomLinkBufferElement : IBufferElementData
+	{
+		public int2 Anchor;
+		public Entity Neighbor;
+		public bool IsOpen;
 	}
 
 	[InternalBufferCapacity(32)]
@@ -129,54 +119,6 @@ namespace U0071
 					break;
 				}
 			}
-		}
-	}
-
-	[InternalBufferCapacity(4)]
-	public struct RoomLinkBufferElement : IBufferElementData
-	{
-		public int2 Anchor;
-		public Entity Neighbor;
-		public bool IsOpen;
-	}
-
-	public struct RoomPartition : IComponentData, IDisposable
-	{
-		public NativeArray<RoomData> Cells; // cell to room
-		public int2 Dimensions;
-
-		public RoomPartition(int2 dimensions)
-		{
-			Dimensions = dimensions;
-			Cells = new NativeArray<RoomData>(dimensions.x * dimensions.y, Allocator.Persistent);
-		}
-
-		public void Dispose()
-		{
-			Cells.Dispose();
-		}
-
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public RoomData GetRoomData(float2 position)
-		{
-			int index = GetIndex(position);
-			return index >= 0 && index < Cells.Length ? Cells[index] : new RoomData();
-		}
-
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void SetRoomData(RoomData room, float2 position)
-		{
-			int index = GetIndex(position);
-			if (index >= 0 && index < Cells.Length)
-			{
-				Cells[index] = room;
-			}
-		}
-
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public int GetIndex(float2 position)
-		{
-			return (int)(position.x + Dimensions.x / 2) + (int)(position.y + Dimensions.y / 2) * Dimensions.x;
 		}
 	}
 }

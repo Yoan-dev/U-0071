@@ -28,13 +28,6 @@ namespace U0071
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void Add(float2 value)
-		{
-			Value += value;
-			MovedFlag = MovedFlag || !value.Equals(float2.zero);
-		}
-
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public bool IsInRange(float2 position, float range)
 		{
 			return math.lengthsq(Value - position) <= math.pow(range, 2f);

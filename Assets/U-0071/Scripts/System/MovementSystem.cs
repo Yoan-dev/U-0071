@@ -14,6 +14,8 @@ namespace U0071
 		[BurstCompile]
 		public void OnCreate(ref SystemState state)
 		{
+			state.RequireForUpdate<RoomPartition>();
+
 			_pickLookup = SystemAPI.GetComponentLookup<CarryComponent>(true);
 		}
 
@@ -22,13 +24,17 @@ namespace U0071
 		{
 			_pickLookup.Update(ref state);
 
+			RoomPartition partition = SystemAPI.GetSingleton<RoomPartition>();
+
 			state.Dependency = new MovementJob
 			{
+				Partition = partition,
 				DeltaTime = SystemAPI.Time.DeltaTime,
 			}.ScheduleParallel(state.Dependency);
 
 			state.Dependency = new PushedJob
 			{
+				Partition = partition,
 				DeltaTime = SystemAPI.Time.DeltaTime,
 			}.ScheduleParallel(state.Dependency);
 
@@ -45,14 +51,22 @@ namespace U0071
 		[WithNone(typeof(PickableComponent))]
 		public partial struct MovementJob : IJobEntity
 		{
+			[ReadOnly]
+			public RoomPartition Partition;
 			public float DeltaTime;
 
 			public void Execute(ref PositionComponent position, ref Orientation orientation, in MovementComponent movement)
 			{
-				float2 input = movement.Input * movement.Speed * DeltaTime;
-
 				// input should already be normalized
-				position.Add(input);
+				float2 input = movement.Input * movement.Speed * DeltaTime;
+				float2 newPosition = position.Value + input;
+				
+				// rough collision
+				if (!input.Equals(float2.zero) && Partition.IsPathable(newPosition))
+				{
+					position.Value = newPosition;
+					position.MovedFlag = true;
+				}
 				orientation.Update(input.x);
 			}
 		}
@@ -61,12 +75,22 @@ namespace U0071
 		[WithNone(typeof(DeathComponent))]
 		public partial struct PushedJob : IJobEntity
 		{
+			[ReadOnly]
+			public RoomPartition Partition;
 			public float DeltaTime;
 
 			public void Execute(ref PushedComponent pushed, ref PositionComponent position, EnabledRefRW<PushedComponent> pushedRef)
 			{
-				position.Value += pushed.Direction * Const.PushedSpeed * DeltaTime;
-				position.MovedFlag = true;
+				// input should already be normalized
+				// assumed non-zero (push parameters)
+				float2 newPosition = position.Value + pushed.Direction * Const.PushedSpeed * DeltaTime;
+
+				// rough collision
+				if (Partition.IsPathable(newPosition))
+				{
+					position.Value = newPosition;
+					position.MovedFlag = true;
+				}
 
 				pushed.Timer -= DeltaTime;
 				if (pushed.Timer <= 0f)
