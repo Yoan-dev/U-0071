@@ -1,7 +1,6 @@
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
-using static U0071.HealthSystem;
 
 namespace U0071
 {

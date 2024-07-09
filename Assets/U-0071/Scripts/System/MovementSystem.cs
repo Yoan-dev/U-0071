@@ -27,7 +27,12 @@ namespace U0071
 				DeltaTime = SystemAPI.Time.DeltaTime,
 			}.ScheduleParallel(state.Dependency);
 
-			state.Dependency = new PickPositionJob().ScheduleParallel(state.Dependency);
+			state.Dependency = new PushedJob
+			{
+				DeltaTime = SystemAPI.Time.DeltaTime,
+			}.ScheduleParallel(state.Dependency);
+
+			state.Dependency = new CarryPositionJob().ScheduleParallel(state.Dependency);
 
 			state.Dependency = new PickablePositionJob
 			{
@@ -36,8 +41,45 @@ namespace U0071
 		}
 
 		[BurstCompile]
+		[WithNone(typeof(DeathComponent))]
+		[WithNone(typeof(PickableComponent))]
+		public partial struct MovementJob : IJobEntity
+		{
+			public float DeltaTime;
+
+			public void Execute(ref PositionComponent position, ref Orientation orientation, in MovementComponent movement)
+			{
+				float2 input = movement.Input * movement.Speed * DeltaTime;
+
+				// input should already be normalized
+				position.Add(input);
+				orientation.Update(input.x);
+			}
+		}
+
+		[BurstCompile]
+		[WithNone(typeof(DeathComponent))]
+		public partial struct PushedJob : IJobEntity
+		{
+			public float DeltaTime;
+
+			public void Execute(ref PushedComponent pushed, ref PositionComponent position, EnabledRefRW<PushedComponent> pushedRef)
+			{
+				position.Value += pushed.Direction * Const.PushedSpeed * DeltaTime;
+				position.MovedFlag = true;
+
+				pushed.Timer -= DeltaTime;
+				if (pushed.Timer <= 0f)
+				{
+					pushedRef.ValueRW = false;
+				}
+			}
+		}
+
+		[BurstCompile]
+		[WithNone(typeof(DeathComponent))]
 		[WithAll(typeof(CarryComponent))]
-		public partial struct PickPositionJob : IJobEntity
+		public partial struct CarryPositionJob : IJobEntity
 		{
 			public void Execute(ref CarryComponent carry, in PositionComponent position, in Orientation orientation)
 			{
@@ -60,23 +102,6 @@ namespace U0071
 				CarryComponent carry = PickLookup[pickable.Carrier];
 				position.Value = new float2(carry.Position.x, carry.Position.y + pickable.CarriedZOffset);
 				position.CurrentYOffset = carry.YOffset + Const.CarriedYOffset;
-			}
-		}
-
-		[BurstCompile]
-		[WithNone(typeof(DeathComponent))]
-		[WithNone(typeof(PickableComponent))]
-		public partial struct MovementJob : IJobEntity
-		{
-			public float DeltaTime;
-
-			public void Execute(ref PositionComponent position, ref Orientation orientation, in MovementComponent movement)
-			{
-				float2 input = movement.Input * movement.Speed * DeltaTime;
-
-				// input should already be normalized
-				position.Add(input);
-				orientation.Update(input.x);
 			}
 		}
 	}

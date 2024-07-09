@@ -25,11 +25,6 @@ namespace U0071
 				DeltaTime = SystemAPI.Time.DeltaTime,
 			}.ScheduleParallel(state.Dependency);
 
-			state.Dependency = new PushedJob
-			{
-				DeltaTime = SystemAPI.Time.DeltaTime,
-			}.ScheduleParallel(state.Dependency);
-
 			state.Dependency = new DeathJob
 			{
 				Ecb = ecbs.CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter(),
@@ -52,25 +47,6 @@ namespace U0071
 					DeathComponent death = new DeathComponent { Context = DeathType.Hunger };
 					Ecb.SetComponent(chunkIndex, entity, death);
 					Ecb.SetComponentEnabled<DeathComponent>(chunkIndex, entity, true);
-				}
-			}
-		}
-
-		[BurstCompile]
-		[WithNone(typeof(DeathComponent))]
-		public partial struct PushedJob : IJobEntity
-		{
-			public float DeltaTime;
-
-			public void Execute(ref PushedComponent pushed, ref PositionComponent position, EnabledRefRW<PushedComponent> pushedRef)
-			{
-				position.Value += pushed.Direction * Const.PushedSpeed * DeltaTime;
-				position.MovedFlag = true;
-
-				pushed.Timer -= DeltaTime;
-				if (pushed.Timer <= 0f)
-				{
-					pushedRef.ValueRW = false;
 				}
 			}
 		}
