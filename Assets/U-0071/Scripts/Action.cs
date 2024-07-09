@@ -73,6 +73,7 @@ namespace U0071
 		public void Stop()
 		{
 			Action.Target = Entity.Null;
+			Action.Type = 0;
 			IsResolving = false;
 		}
 

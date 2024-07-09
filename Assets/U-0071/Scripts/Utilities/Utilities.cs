@@ -49,32 +49,6 @@ namespace U0071
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static bool GetClosestRoomElement(in DynamicBuffer<RoomElementBufferElement> elements, float2 position, Entity self, ActionType filter, ActionType refFilter, int credits, out RoomElementBufferElement element)
-		{
-			element = new RoomElementBufferElement();
-			float minMagn = float.MaxValue;
-			using (var enumerator = elements.GetEnumerator())
-			{
-				while (enumerator.MoveNext())
-				{
-					if (enumerator.Current.Entity != self && 
-						HasActionType(enumerator.Current.ActionFlags, filter) && 
-						CheckStoreActionEligibility(enumerator.Current.ActionFlags, refFilter) &&
-						(enumerator.Current.Cost <= 0f || enumerator.Current.Cost <= credits))
-					{
-						float magn = math.lengthsq(position - enumerator.Current.Position);
-						if (magn < minMagn)
-						{
-							minMagn = magn;
-							element = enumerator.Current;
-						}
-					}
-				}
-			}
-			return element.Entity != Entity.Null;
-		}
-
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static bool HasActionType(ActionType type, ActionType check)
 		{
 			return (type & check) != 0;

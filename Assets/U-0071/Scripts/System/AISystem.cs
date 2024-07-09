@@ -4,6 +4,8 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEditor.Searcher;
+using static UnityEditor.Rendering.FilterWindow;
+using static UnityEngine.GraphicsBuffer;
 
 namespace U0071
 {
@@ -87,15 +89,15 @@ namespace U0071
 					return;
 				}
 
-				// evaluate current target
+				// re-evaluate current target
 				if (controller.HasTarget)
 				{
 					if (!InteractableLookup.TryGetComponent(controller.Action.Target, out InteractableComponent interactable) ||
 						interactable.HasType(ActionType.Pick) && PickableLookup.IsComponentEnabled(controller.Action.Target) ||
 						!interactable.HasType(controller.Action.Type))
 					{
-						// target has been destroyed / picked / exhausted
-						controller.Action.Target = Entity.Null;
+						// target has been destroyed/picked/disabled
+						controller.Stop();
 					}
 					else if (position.IsInRange(controller.Action.Position, controller.Action.Range))
 					{
@@ -107,7 +109,7 @@ namespace U0071
 					}
 
 					// going to target
-					if (controller.Action.Target != Entity.Null)
+					if (controller.HasTarget)
 					{
 						return;
 					}
@@ -115,12 +117,9 @@ namespace U0071
 
 				// look for new target
 
-				// reset if picked / destroyed
-				controller.Action.Target = Entity.Null;
-
 				// retrieve relevant action types
 				ActionType filter = ActionType.Pick | ActionType.Collect | ActionType.Search;
-				ActionType refFilter = 0;
+				ActionType TEMPItemFilter = 0;
 
 				if (pick.Picked != Entity.Null)
 				{
@@ -135,67 +134,51 @@ namespace U0071
 						return;
 					}
 
+					// TEMP get device-item flags
 					filter &= ~ActionType.Pick;
 					if (Utilities.HasActionType(pick.Flags, ActionType.RefTrash)) filter |= ActionType.Destroy;
 					if (Utilities.HasActionType(pick.Flags, ActionType.Process))
 					{
 						filter |= ActionType.Store;
-						refFilter |= ActionType.RefProcess;
+						TEMPItemFilter |= ActionType.RefProcess;
 					}
-				}
-				else
-				{
-					filter &= ~ActionType.Store;
-					filter &= ~ActionType.Destroy;
 				}
 
 				// look for target
-				if (Utilities.GetClosestRoomElement(RoomElementBufferLookup[partition.CurrentRoom], position.Value, entity, filter, refFilter, credits.Value, out RoomElementBufferElement target))
+				DynamicBuffer<RoomElementBufferElement> elements = RoomElementBufferLookup[partition.CurrentRoom];
+				float minMagn = float.MaxValue;
+				using (var enumerator = elements.GetEnumerator())
 				{
-					// consider which action to do in priority
-					ActionType actionType = 0;
-					if (CanExecuteAction(ActionType.Store, filter, in target))
+					while (enumerator.MoveNext())
 					{
-						actionType = ActionType.Store;
-					}
-					else if (CanExecuteAction(ActionType.Destroy, filter, in target))
-					{
-						actionType = ActionType.Destroy;
-					}
-					else if (CanExecuteAction(ActionType.Search, filter, in target))
-					{
-						actionType = ActionType.Search;
-					}
-					else if (CanExecuteAction(ActionType.Pick, filter, in target))
-					{
-						actionType = ActionType.Pick;
-					}
-					else if (CanExecuteAction(ActionType.Collect, filter, in target))
-					{
-						actionType = ActionType.Collect;
-					}
-
-					// queue action or track target
-					if (actionType != 0)
-					{
-						controller.Action = target.ToActionData(actionType);
-
-						if (position.IsInRange(target.Position, target.Range))
+						RoomElementBufferElement target = enumerator.Current;
+						if (target.Entity != entity &&
+							target.HasActionType(filter) &&
+							(target.Cost <= 0f || target.Cost <= credits.Value) &&
+							Utilities.CheckStoreActionEligibility(target.ActionFlags, TEMPItemFilter) &&
+							target.Evaluate(controller.Action.Type, filter, pick.Picked != Entity.Null, out ActionType selectedActionType))
 						{
-							// start interacting
-							isActing.ValueRW = true;
-							controller.Start();
-							orientation.Update(controller.Action.Position.x - position.Value.x);
+							float magn = math.lengthsq(position.Value - target.Position);
+
+							// retrieve closest of prioritary type
+							if (selectedActionType > controller.Action.Type || magn < minMagn)
+							{
+								minMagn = magn;
+								controller.Action = target.ToActionData(selectedActionType);
+							}
+							// lower prio would have been filtered in target.Evaluate
 						}
 					}
 				}
-			}
 
-			[MethodImpl(MethodImplOptions.AggressiveInlining)]
-			private bool CanExecuteAction(ActionType type, ActionType filter, in RoomElementBufferElement target)
-			{
-				// note: credits vs cost already checked during query
-				return Utilities.HasActionType(filter, type) && Utilities.HasActionType(target.ActionFlags, type);
+				if (controller.HasTarget && position.IsInRange(controller.Action.Position, controller.Action.Range))
+				{
+					// immediately interact
+					isActing.ValueRW = true;
+					controller.Start();
+					orientation.Update(controller.Action.Position.x - position.Value.x);
+				}
+				// else start moving to target
 			}
 		}
 
