@@ -5,6 +5,7 @@ namespace U0071
 {
 	public static class Const
 	{
+		public const int ParallelForCount = 256;
 		public const float AITick = 0.1f;
 		public const float DeviceYOffset = 0.1f;
 		public const float PickableYOffset = 0.4f;

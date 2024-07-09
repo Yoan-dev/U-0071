@@ -55,8 +55,8 @@ namespace U0071
 
 			int size = config.WorldDimensions.x * config.WorldDimensions.y;
 
-			FlowfieldBuilder foodLevelZeroBuilder = new FlowfieldBuilder(flowfield.FoodLevelZero, ActionFlag.Collect, ItemFlag.Food);
-			FlowfieldBuilder destroyLevelZeroBuilder = new FlowfieldBuilder(flowfield.DestroyLevelZero, ActionFlag.Destroy, ItemFlag.Trash);
+			FlowfieldBuilder foodLevelZeroBuilder = new FlowfieldBuilder(flowfield.FoodLevelZero, ActionFlag.Collect, ItemFlag.Food, in partition);
+			FlowfieldBuilder destroyLevelZeroBuilder = new FlowfieldBuilder(flowfield.DestroyLevelZero, ActionFlag.Destroy, ItemFlag.Trash, in partition);
 
 			new DeviceFlowfieldInitJob
 			{
@@ -65,24 +65,20 @@ namespace U0071
 				DestroyLevelZeroBuilder = destroyLevelZeroBuilder,
 			}.ScheduleParallel(state.Dependency).Complete();
 
-			// TODO: spread
+			state.Dependency = new FlowfieldSpreadJob { Builder = foodLevelZeroBuilder }.Schedule(state.Dependency);
+			state.Dependency = new FlowfieldSpreadJob { Builder = destroyLevelZeroBuilder }.Schedule(state.Dependency);
 
-			// TODO: direction job (in //)
+			state.Dependency = new FlowfieldDirectionJob { Builder = foodLevelZeroBuilder }.ScheduleParallel(size, Const.ParallelForCount, state.Dependency);
+			state.Dependency = new FlowfieldDirectionJob { Builder = destroyLevelZeroBuilder }.ScheduleParallel(size, Const.ParallelForCount, state.Dependency);
 
-			// TODO: devices as cost field
+			// TODO: devices as cost field (set on cell and use in direction job)
 
-			// debug
-			for (int i = 0; i < size; i++)
-			{
-				flowfield.FoodLevelZero[i] = new float2(foodLevelZeroBuilder.Values[i], 0f);
-				flowfield.DestroyLevelZero[i] = new float2(destroyLevelZeroBuilder.Values[i], 0f);
-			}
-			//
+			new SpawnerInitJob().ScheduleParallel(state.Dependency).Complete();
+
+			state.Dependency.Complete();
 
 			foodLevelZeroBuilder.Dispose();
 			destroyLevelZeroBuilder.Dispose();
-
-			new SpawnerInitJob().ScheduleParallel(state.Dependency).Complete();
 
 			state.EntityManager.AddComponentData(state.SystemHandle, partition);
 			state.EntityManager.AddComponentData(state.SystemHandle, flowfield);
@@ -164,6 +160,29 @@ namespace U0071
 		}
 
 		[BurstCompile]
+		public partial struct FlowfieldSpreadJob : IJob
+		{
+			public FlowfieldBuilder Builder;
+
+			public void Execute()
+			{
+				Builder.Spread();
+			}
+		}
+
+		[BurstCompile]
+		public partial struct FlowfieldDirectionJob : IJobFor
+		{
+			[NativeDisableParallelForRestriction]
+			public FlowfieldBuilder Builder;
+
+			public void Execute(int index)
+			{
+				Builder.ProcessDirection(index);
+			}
+		}
+
+		[BurstCompile]
 		public partial struct SpawnerInitJob : IJobEntity
 		{
 			public void Execute(ref InteractableComponent interactable, in SpawnerComponent spawner)
@@ -174,21 +193,6 @@ namespace U0071
 				{
 					interactable.ActionFlags &= ~ActionFlag.Collect;
 				}
-			}
-		}
-
-		[BurstCompile]
-		public partial struct FlowfieldJob : IJob
-		{
-			[ReadOnly]
-			public Partition Partition;
-			[ReadOnly]
-			public NativeArray<int> values;
-			public NativeArray<float2> flowfield;
-			
-			public void Execute()
-			{
-
 			}
 		}
 	}

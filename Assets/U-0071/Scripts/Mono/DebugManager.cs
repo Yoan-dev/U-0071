@@ -20,11 +20,19 @@ public class DebugManager : MonoBehaviour
 	public TMP_Text CellElementPrefab;
 
 	private Dictionary<Entity, TMP_Text> _roomElements;
-	private List<TMP_Text> _cellElements;
+	private List<FlowfieldInfo> _flowfieldInfos;
 
 	public void Awake()
 	{
 		Instance = this;
+	}
+
+	private void OnDrawGizmos()
+	{
+		if (_flowfieldInfos != null && _flowfieldInfos.Count > 0)
+		{
+			DrawFlowfield();
+		}
 	}
 
 	public void UpdateRoomElements(in NativeList<RoomInfo> roomInfos)
@@ -49,7 +57,7 @@ public class DebugManager : MonoBehaviour
 		}
 	}
 
-	public void ClearFlowfieldElements()
+	public void ClearRoomElements()
 	{
 		foreach (var pair in _roomElements)
 		{
@@ -65,43 +73,21 @@ public class DebugManager : MonoBehaviour
 
 	public void UpdateFlowfieldElements(in NativeArray<FlowfieldInfo> flowfieldInfos)
 	{
-		if (_cellElements == null)
+		_flowfieldInfos = new List<FlowfieldInfo>(flowfieldInfos);
+	}
+
+	public void DrawFlowfield()
+	{
+		foreach (var info in _flowfieldInfos)
 		{
-			_cellElements = new List<TMP_Text>();
-			for (int i = 0; i < flowfieldInfos.Length; i++)
-			{
-				FlowfieldInfo info = flowfieldInfos[i];
-				TMP_Text element = Instantiate(CellElementPrefab, new Vector3(info.Position.x, 0.5f, info.Position.y), CellElementPrefab.transform.rotation, transform);
-				SetFlowfieldInfo(element, info);
-				_cellElements.Add(element);
-			}
-		}
-		else
-		{
-			// we assume there is no cell addition/deletion during playtime
-			for (int i = 0; i < flowfieldInfos.Length; i++)
-			{
-				SetFlowfieldInfo(_cellElements[i], flowfieldInfos[i]);
-			}
+			Vector3 from = new Vector3(info.Position.x, 0.5f, info.Position.y);
+			Gizmos.color = Color.red;
+			Gizmos.DrawLine(from, from + new Vector3(info.Value.x, 0.5f, info.Value.y) / 2f);
 		}
 	}
 
-	public void ClearRoomElements()
+	public void ClearFlowfieldElements()
 	{
-		foreach (var element in _cellElements)
-		{
-			Destroy(element.gameObject);
-		}
-		_cellElements = null;
-	}
-
-	private void SetFlowfieldInfo(TMP_Text element, in FlowfieldInfo info)
-	{
-		element.text = GetFlowfieldValue(info.Value.x) + "," + GetFlowfieldValue(info.Value.y);
-	}
-
-	private string GetFlowfieldValue(float value)
-	{
-		return value >= int.MaxValue ? "-" : value.ToString();
+		_flowfieldInfos.Clear();
 	}
 }
