@@ -86,6 +86,7 @@ namespace U0071
 				Entity entity,
 				ref DeathComponent Death,
 				ref MovementComponent movement,
+				ref PositionComponent position,
 				ref ActionController controller,
 				ref AnimationController animation,
 				ref InteractableComponent interactable,
@@ -100,6 +101,7 @@ namespace U0071
 				{
 					Death.IsResolved = true;
 					movement.Input = float2.zero;
+					position.BaseYOffset = Const.PickableYOffset;
 					controller.Stop();
 					Ecb.SetComponentEnabled<IsActing>(chunkIndex, entity, false);
 					Ecb.SetComponentEnabled<DeathComponent>(chunkIndex, entity, true);
