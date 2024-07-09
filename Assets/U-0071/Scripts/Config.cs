@@ -13,5 +13,6 @@ namespace U0071
 		public Animation CharacterWalk;
 		public Animation CharacterInteract;
 		public Animation CharacterDie;
+		public Animation CharacterCrushed;
 	}
 }

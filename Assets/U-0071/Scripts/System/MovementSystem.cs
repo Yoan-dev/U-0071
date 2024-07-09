@@ -64,6 +64,7 @@ namespace U0071
 		}
 
 		[BurstCompile]
+		[WithNone(typeof(DeathComponent))]
 		[WithNone(typeof(PickableComponent))]
 		public partial struct MovementJob : IJobEntity
 		{

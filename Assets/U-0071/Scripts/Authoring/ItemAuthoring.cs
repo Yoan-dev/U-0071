@@ -15,10 +15,13 @@ namespace U0071
 		public bool Pickable;
 		public bool Processable;
 		public bool Eatable;
-		public bool Trasher;
 		public float Range = 0.5f;
 		public float Time;
 		public int Cost;
+
+		[Header("Hazard")]
+		public bool Trasher;
+		public float HazardRange;
 
 		[Header("Spawner")]
 		public GameObject Prefab;
@@ -87,6 +90,15 @@ namespace U0071
 				if (authoring.Trasher)
 				{
 					actionType |= ActionType.Trash;
+
+					if (authoring.HazardRange > 0f)
+					{
+						AddComponent(entity, new HazardComponent
+						{
+							DeathContext = DeathContext.Crushed,
+							Range = authoring.HazardRange,
+						});
+					}
 				}
 				if (authoring.Prefab != null)
 				{

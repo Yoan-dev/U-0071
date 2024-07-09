@@ -66,6 +66,12 @@ namespace U0071
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static bool IsInCircle(float2 point, float2 center, float radius)
+		{
+			return math.lengthsq(point - center) <= math.pow(radius, 2f);
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static EntityManager GetEntityManager()
 		{
 			return World.DefaultGameObjectInjectionWorld.Unmanaged.EntityManager;

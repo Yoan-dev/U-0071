@@ -1,16 +1,31 @@
 using Unity.Burst;
+using Unity.Collections;
 using Unity.Entities;
+using static U0071.HealthSystem;
 
 namespace U0071
 {
 	[UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
 	[UpdateAfter(typeof(ActionSystem))]
+	[UpdateBefore(typeof(HealthSystem))]
 	public partial struct DeviceSystem : ISystem
 	{
+		public BufferLookup<RoomElementBufferElement> _roomElementLookup;
+
+		[BurstCompile]
+		public void OnCreate(ref SystemState state)
+		{
+			state.RequireForUpdate<RoomPartition>();
+
+			_roomElementLookup = state.GetBufferLookup<RoomElementBufferElement>(true);
+		}
+
 		[BurstCompile]
 		public void OnUpdate(ref SystemState state)
 		{
 			var ecbs = SystemAPI.GetSingleton<EndFixedStepSimulationEntityCommandBufferSystem.Singleton>();
+
+			_roomElementLookup.Update(ref state);
 
 			state.Dependency = new GrowJob
 			{
@@ -20,6 +35,12 @@ namespace U0071
 			state.Dependency = new AutoSpawnJob
 			{
 				Ecb = ecbs.CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter(),
+			}.ScheduleParallel(state.Dependency);
+
+			state.Dependency = new HazardJob
+			{
+				Ecb = ecbs.CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter(),
+				RoomElementBufferLookup = _roomElementLookup,
 			}.ScheduleParallel(state.Dependency);
 		}
 
@@ -74,6 +95,35 @@ namespace U0071
 						Value = position.Value + spawner.Offset,
 						BaseYOffset = Const.PickableYOffset,
 					});
+				}
+			}
+		}
+
+		[BurstCompile]
+		public partial struct HazardJob : IJobEntity
+		{
+			public EntityCommandBuffer.ParallelWriter Ecb;
+			[ReadOnly]
+			public BufferLookup<RoomElementBufferElement> RoomElementBufferLookup;
+
+			public void Execute([ChunkIndexInQuery] int chunkIndex, Entity entity, in HazardComponent hazard, in PositionComponent position, in PartitionComponent partition)
+			{
+				DynamicBuffer<RoomElementBufferElement> elements = RoomElementBufferLookup[partition.CurrentRoom];
+				using (var enumerator = elements.GetEnumerator())
+				{
+					while (enumerator.MoveNext())
+					{
+						// check for push action (living characters)
+						// TODO: a better way
+						if (enumerator.Current.Entity != entity &&
+							enumerator.Current.HasActionType(ActionType.Push) &&
+							Utilities.IsInCircle(position.Value, enumerator.Current.Position, hazard.Range))
+						{
+							DeathComponent death = new DeathComponent { Context = hazard.DeathContext };
+							Ecb.SetComponent(chunkIndex, enumerator.Current.Entity, death);
+							Ecb.SetComponentEnabled<DeathComponent>(chunkIndex, enumerator.Current.Entity, true);
+						}
+					}
 				}
 			}
 		}

@@ -100,10 +100,11 @@ MonoBehaviour:
   Pickable: 0
   Processable: 0
   Eatable: 0
-  Trasher: 1
   Range: 1.25
   Time: 1
-  Cost: -3
+  Cost: -2
+  Trasher: 1
+  HazardRange: 0.4
   Prefab: {fileID: 0}
   VariantPrefab: {fileID: 0}
   Offset: 0

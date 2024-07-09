@@ -69,3 +69,8 @@ MonoBehaviour:
       Duration: 6
       FrameTime: 0.15
       Looping: 0
+    CharacterCrushed:
+      StartIndex: 20
+      Duration: 7
+      FrameTime: 0.1
+      Looping: 0

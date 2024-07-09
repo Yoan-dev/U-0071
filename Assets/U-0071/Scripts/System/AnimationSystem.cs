@@ -29,7 +29,7 @@ namespace U0071
 
 		[BurstCompile]
 		[WithNone(typeof(SimpleAnimationTag))]
-		[WithNone(typeof(IsDeadTag))]
+		[WithNone(typeof(DeathComponent))]
 		public partial struct CharacterAnimationJob : IJobEntity
 		{
 			public Config Config;

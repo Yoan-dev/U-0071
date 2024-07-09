@@ -74,7 +74,7 @@ namespace U0071
 		}
 
 		[BurstCompile]
-		[WithNone(typeof(IsDeadTag))]
+		[WithNone(typeof(DeathComponent))]
 		[WithNone(typeof(PushedComponent))]
 		public partial struct PlayerMovementJob : IJobEntity
 		{
@@ -102,7 +102,7 @@ namespace U0071
 				in PickComponent pick,
 				in PartitionComponent partition,
 				in CreditsComponent credits,
-				EnabledRefRO<IsDeadTag> isDead,
+				EnabledRefRO<DeathComponent> isDead,
 				EnabledRefRO<PushedComponent> pushed,
 				EnabledRefRW<IsActing> isActing)
 			{

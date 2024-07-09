@@ -25,5 +25,11 @@ namespace U0071
 		public Entity SecondaryDestination;
 	}
 
+	public struct HazardComponent : IComponentData
+	{
+		public DeathContext DeathContext;
+		public float Range;
+	}
+
 	public struct AutoSpawnTag : IComponentData { }
 }

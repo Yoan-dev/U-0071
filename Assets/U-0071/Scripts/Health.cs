@@ -3,6 +3,13 @@ using Unity.Mathematics;
 
 namespace U0071
 {
+	public enum DeathContext
+	{
+		Hunger = 0,
+		Crushed,
+		Electric,
+	}
+
 	public struct HungerComponent : IComponentData
 	{
 		public float Value;
@@ -14,7 +21,11 @@ namespace U0071
 		public float Timer;
 	}
 
-	public struct IsSickTag : IComponentData, IEnableableComponent { }
+	public struct DeathComponent : IComponentData, IEnableableComponent
+	{
+		public DeathContext Context;
+		public bool IsResolved;
+	}
 
-	public struct IsDeadTag : IComponentData, IEnableableComponent { }
+	public struct IsSickTag : IComponentData, IEnableableComponent { }
 }

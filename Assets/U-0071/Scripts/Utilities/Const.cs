@@ -16,10 +16,10 @@ namespace U0071
 		public const float YOffsetRatioY = 0.2f;
 
 		public const float CarriedOffsetX = 0.225f;
-		public const float CarriedOffsetY = -0.175f;
-		public const float CorpseCarriedOffsetZ = 0.3f;
+		public const float CarriedOffsetY = 0.125f;
+		public const float CorpseCarriedOffsetZ = 0f;
 		public const float DropOffsetX = 0.35f;
-		public const float DropOffsetY = -0.3f;
+		public const float DropOffsetY = 0f;
 
 		public const int LootCreditsCount = 10;
 		public const float PushedTimer = 0.35f;
