@@ -9,12 +9,17 @@ namespace U0071
 	[DisallowMultipleComponent]
 	public class UnitAuthoring : MonoBehaviour
 	{
+		[Header("Core")]
 		public string Name;
 		public float Speed;
-		public float InteractableRange;
-		public float InteractableTime;
-		public float Hunger;
+		public float Hunger = 10f;
 		public int Credits;
+		
+		[Header("Interactable")]
+		public float Range = 0.5f;
+		public float Time = 1f;
+
+		[Header("Render")]
 		public Color ShirtColor;
 		public Color SkinColor;
 		public Color ShortHairColor;
@@ -44,8 +49,8 @@ namespace U0071
 				SetComponentEnabled<IsActing>(entity, false);
 				AddComponent(entity, new InteractableComponent
 				{
-					Range = authoring.InteractableRange,
-					Time = authoring.InteractableTime,
+					Range = authoring.Range,
+					Time = authoring.Time,
 					ActionFlags = ActionFlag.Push,
 				});
 				AddComponent(entity, new CreditsComponent { Value = authoring.Credits });
