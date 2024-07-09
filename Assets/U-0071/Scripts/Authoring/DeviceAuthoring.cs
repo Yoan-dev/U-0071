@@ -66,6 +66,10 @@ namespace U0071
 				// core
 				AddComponent(entity, new DepthSorted_Tag());
 				AddComponent(entity, new NameComponent { Value = new FixedString32Bytes(authoring.Name) });
+				if (authoring.ActionName.Length > 0)
+				{
+					AddComponent(entity, new ActionNameComponent { Value = new FixedString32Bytes(authoring.ActionName) });
+				}
 				AddComponent(entity, new PositionComponent
 				{
 					Value = new float2(position.x, position.z),

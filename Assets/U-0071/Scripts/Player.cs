@@ -9,6 +9,7 @@ namespace U0071
 	public struct ActionInfo
 	{
 		public ActionData Data;
+		public FixedString32Bytes ActionName;
 		public FixedString32Bytes TargetName;
 		public FixedString32Bytes DeviceName;
 		public KeyCode Key;
@@ -38,21 +39,24 @@ namespace U0071
 		public bool HasSecondaryAction => SecondaryAction.Has;
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void SetPrimaryAction(in ActionData data, in ComponentLookup<NameComponent> nameLookup, Entity usedItem)
+		public void SetPrimaryAction(in ActionData data, in ComponentLookup<NameComponent> nameLookup, in ComponentLookup<ActionNameComponent> actionNameLookup, Entity usedItem)
 		{
-			SetAction(ref PrimaryAction, in data, in nameLookup, usedItem);
+			SetAction(ref PrimaryAction, in data, in nameLookup, in actionNameLookup, usedItem);
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void SetSecondaryAction(in ActionData data, in ComponentLookup<NameComponent> nameLookup, Entity usedItem)
+		public void SetSecondaryAction(in ActionData data, in ComponentLookup<NameComponent> nameLookup, in ComponentLookup<ActionNameComponent> actionNameLookup, Entity usedItem)
 		{
-			SetAction(ref SecondaryAction, in data, in nameLookup, usedItem);
+			SetAction(ref SecondaryAction, in data, in nameLookup, in actionNameLookup, usedItem);
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		private void SetAction(ref ActionInfo action, in ActionData data, in ComponentLookup<NameComponent> nameLookup, Entity carried)
+		private void SetAction(ref ActionInfo action, in ActionData data, in ComponentLookup<NameComponent> nameLookup, in ComponentLookup<ActionNameComponent> actionNameLookup, Entity carried)
 		{
 			action.Data = data;
+			action.ActionName =
+				actionNameLookup.HasComponent(data.Target) ? actionNameLookup[data.Target].Value :
+				new FixedString32Bytes();
 			action.TargetName =
 				data.HasActionFlag(ActionFlag.Pick | ActionFlag.Search) ? nameLookup[data.Target].Value :
 				Utilities.RequireItem(data.ActionFlag) && carried != Entity.Null ? nameLookup[carried].Value :

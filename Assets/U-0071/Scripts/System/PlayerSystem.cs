@@ -50,6 +50,7 @@ namespace U0071
 	{
 		private BufferLookup<RoomElementBufferElement> _roomElementLookup;
 		private ComponentLookup<NameComponent> _nameLookup;
+		private ComponentLookup<ActionNameComponent> _actionNameLookup;
 
 		[BurstCompile]
 		public void OnCreate(ref SystemState state)
@@ -59,6 +60,7 @@ namespace U0071
 
 			_roomElementLookup = state.GetBufferLookup<RoomElementBufferElement>(true);
 			_nameLookup = state.GetComponentLookup<NameComponent>(true);
+			_actionNameLookup = state.GetComponentLookup<ActionNameComponent>(true);
 		}
 
 		[BurstCompile]
@@ -66,11 +68,13 @@ namespace U0071
 		{
 			_roomElementLookup.Update(ref state);
 			_nameLookup.Update(ref state);
+			_actionNameLookup.Update(ref state);
 
 			state.Dependency = new PlayerActionJob
 			{
 				RoomElementBufferLookup = _roomElementLookup,
 				NameLookup = _nameLookup,
+				ActionNameLookup = _actionNameLookup,
 			}.Schedule(state.Dependency);
 
 			state.Dependency = new PlayerMovementJob().Schedule(state.Dependency);
@@ -95,6 +99,8 @@ namespace U0071
 			public BufferLookup<RoomElementBufferElement> RoomElementBufferLookup;
 			[ReadOnly]
 			public ComponentLookup<NameComponent> NameLookup;
+			[ReadOnly]
+			public ComponentLookup<ActionNameComponent> ActionNameLookup;
 
 			public void Execute(
 				Entity entity,
@@ -135,11 +141,11 @@ namespace U0071
 					// consider carried item actions
 					if (Utilities.HasItemFlag(carry.Flags, ItemFlag.Food))
 					{
-						controller.SetPrimaryAction(new ActionData(carry.Picked, ActionFlag.Eat, position.Value, 0f, carry.Time, 0), in NameLookup, carry.Picked);
+						controller.SetPrimaryAction(new ActionData(carry.Picked, ActionFlag.Eat, position.Value, 0f, carry.Time, 0), in NameLookup, in ActionNameLookup, carry.Picked);
 					}
 
 					// set drop action
-					controller.SetSecondaryAction(new ActionData(carry.Picked, ActionFlag.Drop, position.Value + Const.GetDropOffset(orientation.Value), 0f, 0f, 0), in NameLookup, carry.Picked);
+					controller.SetSecondaryAction(new ActionData(carry.Picked, ActionFlag.Drop, position.Value + Const.GetDropOffset(orientation.Value), 0f, 0f, 0), in NameLookup, in ActionNameLookup, carry.Picked);
 				}
 
 				// player assess all elements in range
@@ -154,16 +160,16 @@ namespace U0071
 							// primary
 							// (override carried item action)
 							if (Utilities.HasActionFlag(target.ActionFlags, primaryFilter) &&
-								target.Evaluate(controller.PrimaryAction.Type, primaryFilter, carry.Flags, out ActionFlag selectedActionFlag, true))
+								target.Evaluate(controller.PrimaryAction.Type, primaryFilter, carry.Flags, out ActionFlag selectedActionFlag, carry.Picked != Entity.Null))
 							{
-								controller.SetPrimaryAction(target.ToActionData(selectedActionFlag), in NameLookup, carry.Picked);
+								controller.SetPrimaryAction(target.ToActionData(selectedActionFlag), in NameLookup, in ActionNameLookup, carry.Picked);
 							}
 							
 							// secondary
 							// for now, secondary is hard-coded pick/drop
 							if (!controller.HasSecondaryAction && target.HasActionFlag(ActionFlag.Pick))
 							{
-								controller.SetSecondaryAction(target.ToActionData(ActionFlag.Pick), in NameLookup, Entity.Null);
+								controller.SetSecondaryAction(target.ToActionData(ActionFlag.Pick), in NameLookup, in ActionNameLookup, Entity.Null);
 							}
 						}
 					}

@@ -64,14 +64,14 @@ public class UIManager : MonoBehaviour
 	{
 		return info.Data.Target != Entity.Null ? 
 			info.Key.ToString() + ": " + 
-			GetActionFlagName(info.Type, info.Cost) + 
+			(info.ActionName.Length > 0 ? info.ActionName : GetActionName(info.Type, info.Cost)) + 
 			(info.TargetName.Length > 0 ? " " + info.TargetName : "") +
 			(info.Cost > 0f ? " (-" + info.Cost + "c)" : "") +
 			(info.DeviceName.Length > 0 ? " (" + info.DeviceName + ")" : "") : "";
 	}
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	private string GetActionFlagName(ActionFlag type, int cost)
+	private string GetActionName(ActionFlag type, int cost)
 	{
 		return type switch
 		{

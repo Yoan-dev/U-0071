@@ -1,8 +1,12 @@
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 
 namespace U0071
 {
+	// should probably have a Device ID and a blob
+	// with all its data instead of cached in components
+
 	public struct SpawnerComponent : IComponentData
 	{
 		public Entity Prefab;
@@ -30,6 +34,11 @@ namespace U0071
 	{
 		public DeathType DeathType;
 		public float Range;
+	}
+
+	public struct ActionNameComponent : IComponentData
+	{
+		public FixedString32Bytes Value;
 	}
 
 	public struct AutoSpawnTag : IComponentData { }
