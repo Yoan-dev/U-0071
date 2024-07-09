@@ -75,6 +75,7 @@ namespace U0071
 					Value = new float2(position.x, position.z),
 					BaseYOffset = Const.DeviceYOffset,
 				});
+				AddComponent(entity, new DeviceTag());
 				AddComponent(entity, new PartitionComponent());
 
 				// device actions
@@ -85,11 +86,7 @@ namespace U0071
 				}
 				if (authoring.Prefab != null)
 				{
-					if (authoring.StartingCapacity > 0 && !authoring.AutoSpawner)
-					{
-						// collectable on start
-						actionFlags |= ActionFlag.Collect;
-					}
+					actionFlags |= ActionFlag.Collect;
 					AddComponent(entity, new SpawnerComponent
 					{
 						Prefab = GetEntity(authoring.Prefab, TransformUsageFlags.Dynamic),

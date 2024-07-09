@@ -23,7 +23,7 @@ namespace U0071
 		[BurstCompile]
 		public void OnCreate(ref SystemState state)
 		{
-			state.RequireForUpdate<RoomPartition>();
+			state.RequireForUpdate<Partition>();
 
 			_query = SystemAPI.QueryBuilder()
 				.WithAllRW<ActionController, Orientation>()

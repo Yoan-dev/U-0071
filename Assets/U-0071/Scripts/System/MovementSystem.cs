@@ -14,7 +14,7 @@ namespace U0071
 		[BurstCompile]
 		public void OnCreate(ref SystemState state)
 		{
-			state.RequireForUpdate<RoomPartition>();
+			state.RequireForUpdate<Partition>();
 
 			_pickLookup = SystemAPI.GetComponentLookup<CarryComponent>(true);
 		}
@@ -24,7 +24,7 @@ namespace U0071
 		{
 			_pickLookup.Update(ref state);
 
-			RoomPartition partition = SystemAPI.GetSingleton<RoomPartition>();
+			Partition partition = SystemAPI.GetSingleton<Partition>();
 
 			state.Dependency = new MovementJob
 			{
@@ -52,7 +52,7 @@ namespace U0071
 		public partial struct MovementJob : IJobEntity
 		{
 			[ReadOnly]
-			public RoomPartition Partition;
+			public Partition Partition;
 			public float DeltaTime;
 
 			public void Execute(ref PositionComponent position, ref Orientation orientation, in MovementComponent movement)
@@ -76,7 +76,7 @@ namespace U0071
 		public partial struct PushedJob : IJobEntity
 		{
 			[ReadOnly]
-			public RoomPartition Partition;
+			public Partition Partition;
 			public float DeltaTime;
 
 			public void Execute(ref PushedComponent pushed, ref PositionComponent position, EnabledRefRW<PushedComponent> pushedRef)

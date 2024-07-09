@@ -27,7 +27,6 @@ namespace U0071
 				});
 
 				AddBuffer<RoomElementBufferElement>(entity);
-				AddBuffer<RoomLinkBufferElement>(entity);
 			}
 		}
 	}

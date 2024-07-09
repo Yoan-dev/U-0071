@@ -95,6 +95,12 @@ namespace U0071
 		{
 			return Utilities.HasActionFlag(ActionFlags, inFlag);
 		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public bool HasItemFlag(ItemFlag inFlag)
+		{
+			return Utilities.HasItemFlag(ItemFlags, inFlag);
+		}
 	}
 
 	public struct CarryComponent : IComponentData, IEnableableComponent

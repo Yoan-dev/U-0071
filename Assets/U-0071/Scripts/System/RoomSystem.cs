@@ -34,7 +34,7 @@ namespace U0071
 		[BurstCompile]
 		public void OnCreate(ref SystemState state)
 		{
-			state.RequireForUpdate<RoomPartition>();
+			state.RequireForUpdate<Partition>();
 
 			_query = SystemAPI.QueryBuilder()
 				.WithAllRW<PartitionComponent>()
@@ -64,7 +64,7 @@ namespace U0071
 
 			state.Dependency = new RoomUpdateJob
 			{
-				Partition = SystemAPI.GetSingleton<RoomPartition>(),
+				Partition = SystemAPI.GetSingleton<Partition>(),
 				Updates = _updates.AsParallelWriter(),
 			}.ScheduleParallel(_query, state.Dependency);
 
@@ -78,7 +78,7 @@ namespace U0071
 		public partial struct RoomUpdateJob : IJobEntity
 		{
 			[ReadOnly]
-			public RoomPartition Partition;
+			public Partition Partition;
 			[WriteOnly]
 			public NativeParallelMultiHashMap<Entity, RoomUpdateEvent>.ParallelWriter Updates;
 

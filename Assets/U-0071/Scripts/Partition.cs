@@ -30,22 +30,22 @@ namespace U0071
 		}
 	}
 
-	public struct RoomPartition : IComponentData, IDisposable
+	public struct Partition : IComponentData, IDisposable
 	{
-		public NativeArray<RoomData> Cells; // cell to room
+		public NativeArray<RoomData> Rooms;
 		public NativeArray<bool> Path;
 		public int2 Dimensions;
 
-		public RoomPartition(int2 dimensions)
+		public Partition(int2 dimensions)
 		{
 			Dimensions = dimensions;
-			Cells = new NativeArray<RoomData>(dimensions.x * dimensions.y, Allocator.Persistent);
+			Rooms = new NativeArray<RoomData>(dimensions.x * dimensions.y, Allocator.Persistent);
 			Path = new NativeArray<bool>(dimensions.x * dimensions.y, Allocator.Persistent);
 		}
 
 		public void Dispose()
 		{
-			Cells.Dispose();
+			Rooms.Dispose();
 			Path.Dispose();
 		}
 
@@ -53,23 +53,29 @@ namespace U0071
 		public RoomData GetRoomData(float2 position)
 		{
 			int index = GetIndex(position);
-			return index >= 0 && index < Cells.Length ? Cells[index] : new RoomData();
+			return index >= 0 && index < Rooms.Length ? Rooms[index] : new RoomData();
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public bool IsPathable(float2 position)
 		{
 			int index = GetIndex(position);
-			return index >= 0 && index < Cells.Length ? Path[index] : false;
+			return IsPathable(index);
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public bool IsPathable(int index)
+		{
+			return index >= 0 && index < Rooms.Length ? Path[index] : false;
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public void SetCellData(bool pathable, RoomData room, float2 position)
 		{
 			int index = GetIndex(position);
-			if (index >= 0 && index < Cells.Length)
+			if (index >= 0 && index < Rooms.Length)
 			{
-				Cells[index] = room;
+				Rooms[index] = room;
 				Path[index] = pathable;
 			}
 		}

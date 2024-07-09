@@ -70,7 +70,7 @@ namespace U0071
 		[BurstCompile]
 		public void OnCreate(ref SystemState state)
 		{
-			state.RequireForUpdate<RoomPartition>();
+			state.RequireForUpdate<Partition>();
 
 			_pushEvents = new NativeQueue<PushEvent>(Allocator.Persistent);
 			_creditsEvents = new NativeQueue<CreditsEvent>(Allocator.Persistent);
@@ -158,7 +158,7 @@ namespace U0071
 				PickableLookup = _pickableLookup,
 				PartitionLookup = _partitionLookup,
 				PositionLookup = _positionLookup,
-				Partition = SystemAPI.GetSingleton<RoomPartition>(),
+				Partition = SystemAPI.GetSingleton<Partition>(),
 			}.Schedule(state.Dependency);
 
 			state.Dependency = new SpawnerEventJob
@@ -271,7 +271,7 @@ namespace U0071
 						{
 							Source = Entity.Null, // money printing/vanishing
 							Target = entity,
-							Value = controller.Action.Cost,
+							Value = -controller.Action.Cost,
 						});
 					}
 				}
@@ -402,7 +402,7 @@ namespace U0071
 			[ReadOnly]
 			public ComponentLookup<InteractableComponent> InteractableLookup;
 			[ReadOnly]
-			public RoomPartition Partition;
+			public Partition Partition;
 
 			public void Execute()
 			{

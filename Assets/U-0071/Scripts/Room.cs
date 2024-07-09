@@ -15,14 +15,6 @@ namespace U0071
 		public bool Open;
 	}
 
-	[InternalBufferCapacity(4)]
-	public struct RoomLinkBufferElement : IBufferElementData
-	{
-		public int2 Anchor;
-		public Entity Neighbor;
-		public bool IsOpen;
-	}
-
 	[InternalBufferCapacity(32)]
 	public struct RoomElementBufferElement : IBufferElementData
 	{

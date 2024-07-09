@@ -56,7 +56,7 @@ namespace U0071
 		public void OnCreate(ref SystemState state)
 		{
 			state.RequireForUpdate<PlayerController>();
-			state.RequireForUpdate<RoomPartition>();
+			state.RequireForUpdate<Partition>();
 
 			_roomElementLookup = state.GetBufferLookup<RoomElementBufferElement>(true);
 			_nameLookup = state.GetComponentLookup<NameComponent>(true);
