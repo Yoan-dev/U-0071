@@ -5,8 +5,6 @@ using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Transforms;
-using UnityEditor.PackageManager;
-using static UnityEngine.EventSystems.EventTrigger;
 
 namespace U0071
 {
@@ -57,36 +55,32 @@ namespace U0071
 
 			int size = config.WorldDimensions.x * config.WorldDimensions.y;
 
-			NativeArray<int> foodLevelZero = new NativeArray<int>(size, Allocator.TempJob);
-			NativeArray<int> destroyLevelZero = new NativeArray<int>(size, Allocator.TempJob);
-			
-			for (int i = 0; i < size; i++)
-			{
-				foodLevelZero[i] = int.MaxValue;
-				destroyLevelZero[i] = int.MaxValue;
-			}
+			FlowfieldBuilder foodLevelZeroBuilder = new FlowfieldBuilder(flowfield.FoodLevelZero, ActionFlag.Collect, ItemFlag.Food);
+			FlowfieldBuilder destroyLevelZeroBuilder = new FlowfieldBuilder(flowfield.DestroyLevelZero, ActionFlag.Destroy, ItemFlag.Trash);
 
 			new DeviceFlowfieldInitJob
 			{
 				Partition = partition,
-				FoodLevelZero = foodLevelZero,
-				DestroyLevelZero = destroyLevelZero,
+				FoodLevelZeroBuilder = foodLevelZeroBuilder,
+				DestroyLevelZeroBuilder = destroyLevelZeroBuilder,
 			}.ScheduleParallel(state.Dependency).Complete();
 
 			// TODO: spread
 
-			// TODO: direction job (parellelized)
+			// TODO: direction job (in //)
+
+			// TODO: devices as cost field
 
 			// debug
 			for (int i = 0; i < size; i++)
 			{
-				flowfield.FoodLevelZero[i] = new float2(foodLevelZero[i], 0f);
-				flowfield.DestroyLevelZero[i] = new float2(destroyLevelZero[i], 0f);
+				flowfield.FoodLevelZero[i] = new float2(foodLevelZeroBuilder.Values[i], 0f);
+				flowfield.DestroyLevelZero[i] = new float2(destroyLevelZeroBuilder.Values[i], 0f);
 			}
 			//
 
-			foodLevelZero.Dispose();
-			destroyLevelZero.Dispose();
+			foodLevelZeroBuilder.Dispose();
+			destroyLevelZeroBuilder.Dispose();
 
 			new SpawnerInitJob().ScheduleParallel(state.Dependency).Complete();
 
@@ -153,8 +147,8 @@ namespace U0071
 		public partial struct DeviceFlowfieldInitJob : IJobEntity
 		{
 			[ReadOnly] public Partition Partition;
-			[NativeDisableParallelForRestriction] public NativeArray<int> FoodLevelZero;
-			[NativeDisableParallelForRestriction] public NativeArray<int> DestroyLevelZero;
+			[NativeDisableParallelForRestriction] public FlowfieldBuilder FoodLevelZeroBuilder;
+			[NativeDisableParallelForRestriction] public FlowfieldBuilder DestroyLevelZeroBuilder;
 
 			public void Execute(in InteractableComponent interactable, in LocalTransform transform)
 			{
@@ -164,33 +158,8 @@ namespace U0071
 				float2 position = new float2(transform.Position.x, transform.Position.z);
 				int size = (int)transform.Scale;
 
-                if (interactable.HasActionFlag(ActionFlag.Collect) && interactable.HasItemFlag(ItemFlag.Food))
-                {
-					SetFlowfieldStart(position, size, in Partition, ref FoodLevelZero);
-                }
-				if (interactable.HasActionFlag(ActionFlag.Destroy) && interactable.HasItemFlag(ItemFlag.Trash))
-				{
-					SetFlowfieldStart(position, size, in Partition, ref DestroyLevelZero);
-				}
-			}
-
-			[MethodImpl(MethodImplOptions.AggressiveInlining)]
-			private void SetFlowfieldStart(float2 position, int size, in Partition partition, ref NativeArray<int> values)
-			{
-				if (size == 1)
-				{
-					values[partition.GetIndex(position)] = 0;
-				}
-				else
-				{
-					for (int y = 0; y < size; y++)
-					{
-						for (int x = 0; x < size; x++)
-						{
-							values[partition.GetIndex(new float2(position.x + x - size / 2f, position.y + y - size / 2f))] = 0;
-						}
-					}
-				}
+				FoodLevelZeroBuilder.ProcessDevice(in interactable, in Partition, position, size);
+				DestroyLevelZeroBuilder.ProcessDevice(in interactable, in Partition, position, size);
 			}
 		}
 
