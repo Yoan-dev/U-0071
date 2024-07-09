@@ -28,7 +28,7 @@ namespace U0071
 			_query = SystemAPI.QueryBuilder()
 				.WithAllRW<ActionController, Orientation>()
 				.WithAll<AITag, PositionComponent, PartitionComponent, CreditsComponent>()
-				.WithPresent<PickComponent, DeathComponent, PushedComponent>()
+				.WithPresent<CarryComponent, DeathComponent, PushedComponent>()
 				.WithPresentRW<IsActing>()
 				.Build();
 
@@ -77,14 +77,14 @@ namespace U0071
 				ref ActionController controller,
 				ref Orientation orientation,
 				in PositionComponent position,
-				in PickComponent pick,
+				in CarryComponent carry,
 				in PartitionComponent partition,
 				in CreditsComponent credits,
 				EnabledRefRW<IsActing> isActing,
 				EnabledRefRO<DeathComponent> death,
 				EnabledRefRO<PushedComponent> pushed)
 			{
-				if (Utilities.ProcessUnitControllerStart(ref controller, ref orientation, in position, in pick, in partition, isActing, death, pushed))
+				if (Utilities.ProcessUnitControllerStart(ref controller, ref orientation, in position, in carry, in partition, isActing, death, pushed))
 				{
 					return;
 				}
@@ -93,8 +93,8 @@ namespace U0071
 				if (controller.HasTarget)
 				{
 					if (!InteractableLookup.TryGetComponent(controller.Action.Target, out InteractableComponent interactable) ||
-						interactable.HasType(ActionType.Pick) && PickableLookup.IsComponentEnabled(controller.Action.Target) ||
-						!interactable.HasType(controller.Action.Type))
+						interactable.HasActionFlag(ActionFlag.Pick) && PickableLookup.IsComponentEnabled(controller.Action.Target) ||
+						!interactable.HasActionFlag(controller.Action.ActionFlag))
 					{
 						// target has been destroyed/picked/disabled
 						controller.Stop();
@@ -118,29 +118,21 @@ namespace U0071
 				// look for new target
 
 				// retrieve relevant action types
-				ActionType filter = ActionType.Pick | ActionType.Collect | ActionType.Search;
-				ActionType TEMPItemFilter = 0;
+				ActionFlag filter = ActionFlag.Pick | ActionFlag.Store | ActionFlag.Destroy | ActionFlag.Collect | ActionFlag.Search;
 
-				if (pick.Picked != Entity.Null)
+				if (carry.Picked != Entity.Null)
 				{
+					filter &= ~ActionFlag.Pick;
+
 					// consider picked interactable action
-					if (Utilities.HasActionType(pick.Flags, ActionType.Eat))
+					if (Utilities.HasItemFlag(carry.Flags, ItemFlag.Food))
 					{
 						// start interacting
 						isActing.ValueRW = true;
-						controller.Action = new ActionData(pick.Picked, ActionType.Eat, position.Value, 0f, pick.Time, 0);
+						controller.Action = new ActionData(carry.Picked, ActionFlag.Eat, position.Value, 0f, carry.Time, 0);
 						controller.Start();
 						orientation.Update(controller.Action.Position.x - position.Value.x);
 						return;
-					}
-
-					// TEMP get device-item flags
-					filter &= ~ActionType.Pick;
-					if (Utilities.HasActionType(pick.Flags, ActionType.RefTrash)) filter |= ActionType.Destroy;
-					if (Utilities.HasActionType(pick.Flags, ActionType.Process))
-					{
-						filter |= ActionType.Store;
-						TEMPItemFilter |= ActionType.RefProcess;
 					}
 				}
 
@@ -153,18 +145,17 @@ namespace U0071
 					{
 						RoomElementBufferElement target = enumerator.Current;
 						if (target.Entity != entity &&
-							target.HasActionType(filter) &&
+							target.HasActionFlag(filter) &&
 							(target.Cost <= 0f || target.Cost <= credits.Value) &&
-							Utilities.CheckStoreActionEligibility(target.ActionFlags, TEMPItemFilter) &&
-							target.Evaluate(controller.Action.Type, filter, pick.Picked != Entity.Null, out ActionType selectedActionType))
+							target.Evaluate(controller.Action.ActionFlag, filter, carry.Flags, out ActionFlag selectedActionFlag))
 						{
 							float magn = math.lengthsq(position.Value - target.Position);
 
 							// retrieve closest of prioritary type
-							if (selectedActionType > controller.Action.Type || magn < minMagn)
+							if (selectedActionFlag > controller.Action.ActionFlag || magn < minMagn)
 							{
 								minMagn = magn;
-								controller.Action = target.ToActionData(selectedActionType);
+								controller.Action = target.ToActionData(selectedActionFlag);
 							}
 							// lower prio would have been filtered in target.Evaluate
 						}

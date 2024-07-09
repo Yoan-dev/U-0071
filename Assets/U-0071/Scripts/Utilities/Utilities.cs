@@ -24,22 +24,22 @@ namespace U0071
 			ref ActionController controller,
 			ref Orientation orientation,
 			in PositionComponent position,
-			in PickComponent pick,
+			in CarryComponent carry,
 			in PartitionComponent partition,
-			EnabledRefRW<IsActing> isActingRefRW,
-			EnabledRefRO<DeathComponent> deathRefRO,
-			EnabledRefRO<PushedComponent> pushedRefRO)
+			EnabledRefRW<IsActing> isActing,
+			EnabledRefRO<DeathComponent> death,
+			EnabledRefRO<PushedComponent> pushed)
 		{
 			// returns "should stop" to AI/Player controller jobs
 
-			if (deathRefRO.ValueRO || pushedRefRO.ValueRO)
+			if (death.ValueRO || pushed.ValueRO)
 			{
-				if (pick.Picked != Entity.Null)
+				if (carry.Picked != Entity.Null)
 				{
 					// drop item on death/pushed
-					controller.Action = new ActionData(pick.Picked, ActionType.Drop, position.Value + Const.GetDropOffset(orientation.Value), 0f, 0f, 0);
+					controller.Action = new ActionData(carry.Picked, ActionFlag.Drop, position.Value + Const.GetDropOffset(orientation.Value), 0f, 0f, 0);
 					controller.Start();
-					isActingRefRW.ValueRW = true;
+					isActing.ValueRW = true;
 				}
 				return true;
 			}
@@ -49,29 +49,21 @@ namespace U0071
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static bool HasActionType(ActionType type, ActionType check)
+		public static bool HasActionFlag(ActionFlag flag, ActionFlag check)
 		{
-			return (type & check) != 0;
+			return (flag & check) != 0;
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static bool RequireCarriedItem(ActionType type)
+		public static bool HasItemFlag(ItemFlag flag, ItemFlag check)
 		{
-			return type == ActionType.Store || type == ActionType.Destroy;
+			return (flag & check) != 0;
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static bool CheckStoreActionEligibility(ActionType flags, ActionType filter)
+		public static bool RequireItem(ActionFlag actionFlag)
 		{
-			// TODO: find a fancier way
-			if (HasActionType(flags, ActionType.Store))
-			{
-				return
-					HasActionType(flags, ActionType.RefProcess) && HasActionType(filter, ActionType.RefProcess) ||
-					HasActionType(flags, ActionType.RefEat) && HasActionType(filter, ActionType.RefEat) ||
-					HasActionType(flags, ActionType.RefTrash) && HasActionType(filter, ActionType.RefTrash);
-			}
-			return true;
+			return actionFlag == ActionFlag.Store || actionFlag == ActionFlag.Destroy;
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -40,15 +40,16 @@ namespace U0071
 		public float2 Position;
 		public InteractableComponent Interactable; // cached
 
-		public ActionType ActionFlags => Interactable.Flags;
+		public ActionFlag ActionFlags => Interactable.ActionFlags;
+		public ItemFlag ItemFlags => Interactable.ItemFlags;
 		public float Range => Interactable.Range;
 		public float Time => Interactable.Time;
 		public int Cost => Interactable.Cost;
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public ActionData ToActionData(ActionType selectedActionType)
+		public ActionData ToActionData(ActionFlag selectedActionFlag)
 		{
-			return new ActionData(Entity, selectedActionType, Position, Range, Const.GetActionTime(selectedActionType, Time), Cost);
+			return new ActionData(Entity, selectedActionFlag, Position, Range, Const.GetActionTime(selectedActionFlag, Time), Cost);
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -68,34 +69,38 @@ namespace U0071
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public bool Evaluate(ActionType current, ActionType filter, bool isCarryingItem, out ActionType selected)
+		public bool Evaluate(ActionFlag current, ActionFlag filter, ItemFlag itemFlag, out ActionFlag selected, bool canDestroyAll = false)
 		{
-			// TODO: send carried item flags
-
 			// retrieve eligible action in priority order
 			return
-				EvaluateActionType(ActionType.Store, current, filter, isCarryingItem, out selected) ||
-				EvaluateActionType(ActionType.Destroy, current, filter, isCarryingItem, out selected) ||
-				EvaluateActionType(ActionType.Collect, current, filter, isCarryingItem, out selected) ||
-				EvaluateActionType(ActionType.Search, current, filter, isCarryingItem, out selected) ||
-				EvaluateActionType(ActionType.Pick, current, filter, isCarryingItem, out selected) ||
-				EvaluateActionType(ActionType.Push, current, filter, isCarryingItem, out selected);
+				EvaluateActionFlag(ActionFlag.Store, current, filter, itemFlag, out selected) ||
+				EvaluateActionFlag(ActionFlag.Destroy, current, filter, canDestroyAll ? ItemFlag.All : itemFlag, out selected) ||
+				EvaluateActionFlag(ActionFlag.Collect, current, filter, itemFlag, out selected) ||
+				EvaluateActionFlag(ActionFlag.Search, current, filter, itemFlag, out selected) ||
+				EvaluateActionFlag(ActionFlag.Pick, current, filter, itemFlag, out selected) ||
+				EvaluateActionFlag(ActionFlag.Push, current, filter, itemFlag, out selected);
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		private bool EvaluateActionType(ActionType checkedType, ActionType current, ActionType filter, bool isCarryingItem, out ActionType selected)
+		private bool EvaluateActionFlag(ActionFlag checkedType, ActionFlag current, ActionFlag filter, ItemFlag itemFlag, out ActionFlag selected)
 		{
-			selected =
-				checkedType >= current && // >= to search closest
-				(ActionFlags & filter & checkedType) != 0 &&
-				(isCarryingItem || !Utilities.RequireCarriedItem(checkedType)) ? checkedType : 0;
+			selected = 
+				checkedType >= current && 
+				(ActionFlags & filter & checkedType) != 0 && 
+				(!Utilities.RequireItem(checkedType) || HasItemFlag(itemFlag)) ? checkedType : 0;
 			return selected != 0;
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public bool HasActionType(ActionType inType)
+		public bool HasActionFlag(ActionFlag inFlag)
 		{
-			return Utilities.HasActionType(ActionFlags, inType);
+			return Utilities.HasActionFlag(ActionFlags, inFlag);
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public bool HasItemFlag(ItemFlag inFlag)
+		{
+			return Utilities.HasItemFlag(ItemFlags, inFlag);
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]

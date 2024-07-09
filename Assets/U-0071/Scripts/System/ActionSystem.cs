@@ -31,8 +31,8 @@ namespace U0071
 	public struct ChangeInteractableEvent
 	{
 		public Entity Target;
-		public ActionType FlagsToAdd;
-		public ActionType FlagsToRemove;
+		public ActionFlag FlagsToAdd;
+		public ActionFlag FlagsToRemove;
 	}
 
 	public struct SpawnerEvent
@@ -57,7 +57,7 @@ namespace U0071
 
 		// lookups (alot)
 		private BufferLookup<RoomElementBufferElement> _roomElementLookup;
-		private ComponentLookup<PickComponent> _pickLookup;
+		private ComponentLookup<CarryComponent> _pickLookup;
 		private ComponentLookup<PickableComponent> _pickableLookup;
 		private ComponentLookup<PositionComponent> _positionLookup;
 		private ComponentLookup<PartitionComponent> _partitionLookup;
@@ -79,7 +79,7 @@ namespace U0071
 			_changeInteractableEvents = new NativeQueue<ChangeInteractableEvent>(Allocator.Persistent);
 
 			_roomElementLookup = state.GetBufferLookup<RoomElementBufferElement>();
-			_pickLookup = state.GetComponentLookup<PickComponent>();
+			_pickLookup = state.GetComponentLookup<CarryComponent>();
 			_pickableLookup = state.GetComponentLookup<PickableComponent>();
 			_positionLookup = state.GetComponentLookup<PositionComponent>();
 			_partitionLookup = state.GetComponentLookup<PartitionComponent>();
@@ -204,11 +204,11 @@ namespace U0071
 					// process behavior that can be in parallel here
 					// queue the rest
 
-					if (controller.Action.Type == ActionType.Eat)
+					if (controller.Action.ActionFlag == ActionFlag.Eat)
 					{
 						hunger.Value += Const.EatingHungerGain;
 					}
-					else if (controller.Action.Type == ActionType.Push)
+					else if (controller.Action.ActionFlag == ActionFlag.Push)
 					{
 						PushEvents.Enqueue(new PushEvent
 						{
@@ -217,7 +217,7 @@ namespace U0071
 							Direction = math.normalizesafe(controller.Action.Position - position.Value),
 						});
 					}
-					else if (controller.Action.Type == ActionType.Search)
+					else if (controller.Action.ActionFlag == ActionFlag.Search)
 					{
 						CreditsEvents.Enqueue(new CreditsEvent
 						{
@@ -227,17 +227,17 @@ namespace U0071
 							Value = controller.Action.Cost,
 						});
 					}
-					else if (controller.Action.Type == ActionType.Pick || controller.Action.Type == ActionType.Drop)
+					else if (controller.Action.ActionFlag == ActionFlag.Pick || controller.Action.ActionFlag == ActionFlag.Drop)
 					{
 						PickDropEvents.Enqueue(new PickDropEvent
 						{
 							Source = entity,
 							Target = controller.Action.Target,
 							Position = controller.Action.Position,
-							Pick = controller.Action.Type == ActionType.Pick,
+							Pick = controller.Action.ActionFlag == ActionFlag.Pick,
 						});
 					}
-					else if (controller.Action.Type == ActionType.Store)
+					else if (controller.Action.ActionFlag == ActionFlag.Store)
 					{
 						StorageComponent storage = StorageLookup[controller.Action.Target];
 						SpawnerEvents.Enqueue(new SpawnerEvent
@@ -254,7 +254,7 @@ namespace U0071
 							});
 						}
 					}
-					else if (controller.Action.Type == ActionType.Collect)
+					else if (controller.Action.ActionFlag == ActionFlag.Collect)
 					{
 						SpawnerEvents.Enqueue(new SpawnerEvent
 						{
@@ -287,18 +287,18 @@ namespace U0071
 			public void Execute(
 				[ChunkIndexInQuery] int chunkIndex,
 				ref ActionController controller,
-				ref PickComponent pick,
+				ref CarryComponent carry,
 				in CreditsComponent credits,
-				EnabledRefRW<PickComponent> pickRef)
+				EnabledRefRW<CarryComponent> pickRef)
 			{
 				if (controller.ShouldResolve(credits.Value) &&
-					(controller.Action.Type == ActionType.Destroy || controller.Action.Type == ActionType.Store || controller.Action.Type == ActionType.Eat))
+					(controller.Action.ActionFlag == ActionFlag.Destroy || controller.Action.ActionFlag == ActionFlag.Store || controller.Action.ActionFlag == ActionFlag.Eat))
 				{
 					// destroy used item
-					Ecb.DestroyEntity(chunkIndex, pick.Picked);
-					pick.Picked = Entity.Null;
-					pick.Flags = 0;
-					pick.Time = 0f;
+					Ecb.DestroyEntity(chunkIndex, carry.Picked);
+					carry.Picked = Entity.Null;
+					carry.Flags = 0;
+					carry.Time = 0f;
 					pickRef.ValueRW = false;
 				}
 			}
@@ -374,7 +374,7 @@ namespace U0071
 								ChangedInteractableEvents.Enqueue(new ChangeInteractableEvent
 								{
 									Target = creditsEvent.Source,
-									FlagsToRemove = ActionType.Search, // TBD: only for AI (empty search for player)
+									FlagsToRemove = ActionFlag.Search, // TBD: only for AI (empty search for player)
 								});
 							}
 						}
@@ -395,7 +395,7 @@ namespace U0071
 			public EntityCommandBuffer Ecb;
 			public NativeQueue<PickDropEvent> Events;
 			public BufferLookup<RoomElementBufferElement> RoomElementLookup;
-			public ComponentLookup<PickComponent> PickLookup;
+			public ComponentLookup<CarryComponent> PickLookup;
 			public ComponentLookup<PickableComponent> PickableLookup;
 			public ComponentLookup<PartitionComponent> PartitionLookup;
 			public ComponentLookup<PositionComponent> PositionLookup;
@@ -421,11 +421,11 @@ namespace U0071
 								continue;
 							}
 
-							ref PickComponent pick = ref PickLookup.GetRefRW(pickDropEvent.Source).ValueRW;
-							pick.Picked = pickDropEvent.Target;
+							ref CarryComponent carry = ref PickLookup.GetRefRW(pickDropEvent.Source).ValueRW;
+							carry.Picked = pickDropEvent.Target;
 							InteractableComponent interactable = InteractableLookup[pickDropEvent.Target];
-							pick.Flags = interactable.Flags;
-							pick.Time = interactable.Time;
+							carry.Flags = interactable.ItemFlags;
+							carry.Time = interactable.Time;
 							PickLookup.SetComponentEnabled(pickDropEvent.Source, true);
 
 							PickableLookup.GetRefRW(pickDropEvent.Target).ValueRW.Carrier = pickDropEvent.Source;
@@ -497,7 +497,7 @@ namespace U0071
 							ChangedInteractableEvents.Enqueue(new ChangeInteractableEvent
 							{
 								Target = spawnerEvent.Target,
-								FlagsToAdd = ActionType.Collect,
+								FlagsToAdd = ActionFlag.Collect,
 							});
 						}
 						else if (!spawner.Immutable && spawner.Capacity > 0 && newCapacity <= 0)
@@ -505,7 +505,7 @@ namespace U0071
 							ChangedInteractableEvents.Enqueue(new ChangeInteractableEvent
 							{
 								Target = spawnerEvent.Target,
-								FlagsToRemove = ActionType.Collect,
+								FlagsToRemove = ActionFlag.Collect,
 							});
 						}
 
@@ -534,8 +534,8 @@ namespace U0071
 
 						ref InteractableComponent interactable = ref InteractableLookup.GetRefRW(changeInteractableEvent.Target).ValueRW;
 
-						interactable.Flags |= changeInteractableEvent.FlagsToAdd;
-						interactable.Flags &= ~changeInteractableEvent.FlagsToRemove;
+						interactable.ActionFlags |= changeInteractableEvent.FlagsToAdd;
+						interactable.ActionFlags &= ~changeInteractableEvent.FlagsToRemove;
 						interactable.Changed = true;
 					}
 				}

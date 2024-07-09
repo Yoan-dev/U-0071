@@ -28,7 +28,7 @@ namespace U0071
 
 	public struct HazardComponent : IComponentData
 	{
-		public DeathContext DeathContext;
+		public DeathType DeathType;
 		public float Range;
 	}
 

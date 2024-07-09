@@ -49,7 +49,7 @@ namespace U0071
 				hunger.Value -= DeltaTime * Const.HungerDepleteRate;
 				if (hunger.Value <= 0f)
 				{
-					DeathComponent death = new DeathComponent { Context = DeathContext.Hunger };
+					DeathComponent death = new DeathComponent { Context = DeathType.Hunger };
 					Ecb.SetComponent(chunkIndex, entity, death);
 					Ecb.SetComponentEnabled<DeathComponent>(chunkIndex, entity, true);
 				}
@@ -112,20 +112,23 @@ namespace U0071
 					Ecb.SetComponentEnabled<PickableComponent>(chunkIndex, entity, false);
 
 					interactable.Changed = true;
-					interactable.Flags &= ~ActionType.Push;
+					interactable.ActionFlags &= ~ActionFlag.Push;
 
-					if (Death.Context == DeathContext.Crushed)
+					if (Death.Context == DeathType.Crushed)
 					{
 						animation.StartAnimation(in Config.CharacterCrushed);
 					}
 					else
 					{
 						animation.StartAnimation(in Config.CharacterDie);
-						interactable.Flags |= ActionType.Pick;
-						interactable.Flags |= ActionType.RefTrash;
+						interactable.ActionFlags |= ActionFlag.Pick;
+						interactable.ItemFlags |= ItemFlag.Trash;
 						if (credits.Value > 0)
 						{
-							interactable.Flags |= ActionType.Search;
+							// TBD add regardless
+							// (empty research for player)
+							// (need AI to ignore)
+							interactable.ActionFlags |= ActionFlag.Search;
 						}
 					}
 

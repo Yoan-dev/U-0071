@@ -97,26 +97,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Name: Potato
-  Pickable: 1
-  Processable: 1
-  Eatable: 0
-  Trasher: 0
   Range: 0.4
   Time: 0
-  Cost: 0
-  Prefab: {fileID: 0}
-  VariantPrefab: {fileID: 0}
-  Offset: 0
-  StartingCapacity: 0
-  GrowTime: -1
-  GrowStageCount: 0
-  Destination: {fileID: 0}
-  RefTrash: 0
-  RefProcess: 0
-  RefEat: 0
-  Animated: 0
-  Animation:
-    StartIndex: 0
-    Duration: 0
-    FrameTime: 0
-    Looping: 0
+  RawFood: 1
+  Food: 0
+  Trash: 0

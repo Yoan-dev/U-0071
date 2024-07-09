@@ -59,7 +59,7 @@ namespace U0071
 				{
 					grow.Timer = 0f;
 					spawner.Capacity = 1;
-					interactable.Flags |= ActionType.Collect;
+					interactable.ActionFlags |= ActionFlag.Collect;
 					interactable.Changed = true;
 					index.Value = grow.StageCount - 1;
 				}
@@ -116,10 +116,10 @@ namespace U0071
 						// check for push action (living characters)
 						// TODO: a better way
 						if (enumerator.Current.Entity != entity &&
-							enumerator.Current.HasActionType(ActionType.Push) &&
+							enumerator.Current.HasActionFlag(ActionFlag.Push) &&
 							Utilities.IsInCircle(position.Value, enumerator.Current.Position, hazard.Range))
 						{
-							DeathComponent death = new DeathComponent { Context = hazard.DeathContext };
+							DeathComponent death = new DeathComponent { Context = hazard.DeathType };
 							Ecb.SetComponent(chunkIndex, enumerator.Current.Entity, death);
 							Ecb.SetComponentEnabled<DeathComponent>(chunkIndex, enumerator.Current.Entity, true);
 						}

@@ -9,12 +9,12 @@ namespace U0071
 	[UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
 	public partial struct MovementSystem : ISystem
 	{
-		private ComponentLookup<PickComponent> _pickLookup;
+		private ComponentLookup<CarryComponent> _pickLookup;
 
 		[BurstCompile]
 		public void OnCreate(ref SystemState state)
 		{
-			_pickLookup = SystemAPI.GetComponentLookup<PickComponent>(true);
+			_pickLookup = SystemAPI.GetComponentLookup<CarryComponent>(true);
 		}
 
 		[BurstCompile]
@@ -36,13 +36,13 @@ namespace U0071
 		}
 
 		[BurstCompile]
-		[WithAll(typeof(PickComponent))]
+		[WithAll(typeof(CarryComponent))]
 		public partial struct PickPositionJob : IJobEntity
 		{
-			public void Execute(ref PickComponent pick, in PositionComponent position, in Orientation orientation)
+			public void Execute(ref CarryComponent carry, in PositionComponent position, in Orientation orientation)
 			{
-				pick.Position = new float2(position.x + Const.CarriedOffsetX * orientation.Value, position.y + Const.CarriedOffsetY);
-				pick.YOffset = position.CurrentYOffset;
+				carry.Position = new float2(position.x + Const.CarriedOffsetX * orientation.Value, position.y + Const.CarriedOffsetY);
+				carry.YOffset = position.CurrentYOffset;
 			}
 		}
 
@@ -52,14 +52,14 @@ namespace U0071
 		{
 			[NativeDisableParallelForRestriction]
 			[ReadOnly]
-			public ComponentLookup<PickComponent> PickLookup;
+			public ComponentLookup<CarryComponent> PickLookup;
 
 			public void Execute(ref PositionComponent position, in PickableComponent pickable)
 			{
 				// we assume Carrier entity is not Null
-				PickComponent pick = PickLookup[pickable.Carrier];
-				position.Value = new float2(pick.Position.x, pick.Position.y + pickable.CarriedZOffset);
-				position.CurrentYOffset = pick.YOffset + Const.CarriedYOffset;
+				CarryComponent carry = PickLookup[pickable.Carrier];
+				position.Value = new float2(carry.Position.x, carry.Position.y + pickable.CarriedZOffset);
+				position.CurrentYOffset = carry.YOffset + Const.CarriedYOffset;
 			}
 		}
 

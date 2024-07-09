@@ -97,28 +97,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Name: Meal
-  Pickable: 1
-  Processable: 0
-  Eatable: 1
-  Trasher: 0
   Range: 0.4
   Time: 1
-  Cost: 0
-  Prefab: {fileID: 0}
-  VariantPrefab: {fileID: 0}
-  Offset: 0
-  StartingCapacity: 0
-  GrowTime: -1
-  GrowStageCount: 0
-  AutoSpawner: 0
-  Destination: {fileID: 0}
-  SecondaryDestination: {fileID: 0}
-  RefTrash: 0
-  RefProcess: 0
-  RefEat: 0
-  Animated: 0
-  Animation:
-    StartIndex: 0
-    Duration: 0
-    FrameTime: 0
-    Looping: 0
+  RawFood: 0
+  Food: 1
+  Trash: 0

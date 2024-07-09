@@ -30,15 +30,15 @@ namespace U0071
 		public const float DeathSkinToneOffset = 0.15f;
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static float GetActionTime(ActionType type, float baseTime)
+		public static float GetActionTime(ActionFlag type, float baseTime)
 		{
 			// not very fancy but otherwise would need an 
 			//  interaction timeper item per action type
 			return type switch
 			{
-				ActionType.Pick => 0f,
-				ActionType.Drop => 0f,
-				ActionType.Push => 0.25f,
+				ActionFlag.Pick => 0f,
+				ActionFlag.Drop => 0f,
+				ActionFlag.Push => 0.25f,
 				_ => baseTime,
 			};
 		}

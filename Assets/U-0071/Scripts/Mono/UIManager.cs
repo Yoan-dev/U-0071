@@ -64,25 +64,25 @@ public class UIManager : MonoBehaviour
 	{
 		return info.Data.Target != Entity.Null ? 
 			info.Key.ToString() + ": " + 
-			GetActionTypeName(info.Type, info.Cost) + 
+			GetActionFlagName(info.Type, info.Cost) + 
 			(info.TargetName.Length > 0 ? " " + info.TargetName : "") +
 			(info.Cost > 0f ? " (-" + info.Cost + "c)" : "") +
 			(info.DeviceName.Length > 0 ? " (" + info.DeviceName + ")" : "") : "";
 	}
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	private string GetActionTypeName(ActionType type, int cost)
+	private string GetActionFlagName(ActionFlag type, int cost)
 	{
 		return type switch
 		{
-			ActionType.Collect => cost > 0f ? "Buy" : "Take",
-			ActionType.Eat => "Eat",
-			ActionType.Destroy => "Destroy",
-			ActionType.Pick => "Pick",
-			ActionType.Store => "Store",
-			ActionType.Drop => "Drop",
-			ActionType.Search => "Loot",
-			ActionType.Push => "Push",
+			ActionFlag.Collect => cost > 0f ? "Buy" : "Take",
+			ActionFlag.Eat => "Eat",
+			ActionFlag.Destroy => "Destroy",
+			ActionFlag.Pick => "Pick",
+			ActionFlag.Store => "Store",
+			ActionFlag.Drop => "Drop",
+			ActionFlag.Search => "Loot",
+			ActionFlag.Push => "Push",
 			_ => "none",
 		};
 	}

@@ -15,14 +15,14 @@ namespace U0071
 		public bool IsPressed;
 
 		public int Cost => Data.Cost;
-		public ActionType Type => Data.Type;
+		public ActionFlag Type => Data.ActionFlag;
 		public bool Has => Data.Has;
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public void Reset()
 		{
 			Data.Target = Entity.Null;
-			Data.Type = 0;
+			Data.ActionFlag = 0;
 		}
 	}
 
@@ -54,11 +54,11 @@ namespace U0071
 		{
 			action.Data = data;
 			action.TargetName =
-				data.HasActionType(ActionType.Pick | ActionType.Search) ? nameLookup[data.Target].Value :
-				Utilities.RequireCarriedItem(data.Type) && carried != Entity.Null ? nameLookup[carried].Value :
+				data.HasActionFlag(ActionFlag.Pick | ActionFlag.Search) ? nameLookup[data.Target].Value :
+				Utilities.RequireItem(data.ActionFlag) && carried != Entity.Null ? nameLookup[carried].Value :
 				new FixedString32Bytes();
 			action.DeviceName = 
-				!data.HasActionType(ActionType.Pick | ActionType.Drop | ActionType.Eat | ActionType.Search) ? nameLookup[data.Target].Value :
+				!data.HasActionFlag(ActionFlag.Pick | ActionFlag.Drop | ActionFlag.Eat | ActionFlag.Search) ? nameLookup[data.Target].Value :
 				new FixedString32Bytes();
 		}
 

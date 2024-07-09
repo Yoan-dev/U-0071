@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 1177275384974132183}
   - component: {fileID: 6974654136566561813}
   - component: {fileID: 4980161819497224902}
-  - component: {fileID: 6409239047060852075}
+  - component: {fileID: -6266540913623479672}
   m_Layer: 0
   m_Name: Device_Omnitrasher
   m_TagString: Untagged
@@ -84,7 +84,7 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!114 &6409239047060852075
+--- !u!114 &-6266540913623479672
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -93,30 +93,29 @@ MonoBehaviour:
   m_GameObject: {fileID: 3777985933561052076}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: dccb9266239c8d64c9bcf20db0937c0f, type: 3}
+  m_Script: {fileID: 11500000, guid: f31f27170626c2c468cc12af570e0ac3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   Name: Omnitrasher
-  Pickable: 0
-  Processable: 0
-  Eatable: 0
+  ActionName: Destroy
   Range: 1.25
   Time: 1
   Cost: -2
-  Trasher: 1
-  HazardRange: 0.4
+  DestroyAction: 1
+  RawFood: 0
+  Food: 0
+  Trash: 1
   Prefab: {fileID: 0}
   VariantPrefab: {fileID: 0}
-  Offset: 0
+  SpawnOffset: 0
   StartingCapacity: 0
   GrowTime: -1
   GrowStageCount: 0
   AutoSpawner: 0
   Destination: {fileID: 0}
   SecondaryDestination: {fileID: 0}
-  RefTrash: 0
-  RefProcess: 0
-  RefEat: 0
+  DeathType: 1
+  HazardRange: 0.4
   Animated: 1
   Animation:
     StartIndex: 0

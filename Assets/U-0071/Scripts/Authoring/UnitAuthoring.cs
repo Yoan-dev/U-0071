@@ -46,11 +46,11 @@ namespace U0071
 				{
 					Range = authoring.InteractableRange,
 					Time = authoring.InteractableTime,
-					Flags = ActionType.Push,
+					ActionFlags = ActionFlag.Push,
 				});
 				AddComponent(entity, new CreditsComponent { Value = authoring.Credits });
-				AddComponent(entity, new PickComponent());
-				SetComponentEnabled<PickComponent>(entity, false);
+				AddComponent(entity, new CarryComponent());
+				SetComponentEnabled<CarryComponent>(entity, false);
 				AddComponent(entity, new HungerComponent { Value = authoring.Hunger });
 				AddComponent(entity, new DeathComponent());
 				SetComponentEnabled<DeathComponent>(entity, false);

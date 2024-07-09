@@ -102,7 +102,7 @@ namespace U0071
 				ref ActionController actionController,
 				ref Orientation orientation,
 				in PositionComponent position,
-				in PickComponent pick,
+				in CarryComponent carry,
 				in PartitionComponent partition,
 				in CreditsComponent credits,
 				EnabledRefRO<DeathComponent> death,
@@ -114,7 +114,7 @@ namespace U0071
 				controller.SecondaryAction.Reset();
 				controller.ActionTimer = 0f;
 
-				if (Utilities.ProcessUnitControllerStart(ref actionController, ref orientation, in position, in pick, in partition, isActing, death, pushed))
+				if (Utilities.ProcessUnitControllerStart(ref actionController, ref orientation, in position, in carry, in partition, isActing, death, pushed))
 				{
 					if (actionController.IsResolving)
 					{
@@ -128,18 +128,18 @@ namespace U0071
 				}
 
 				// retrieve relevant action types
-				ActionType primaryFilter = ActionType.Store | ActionType.Destroy | ActionType.Collect | ActionType.Search | ActionType.Push;
+				ActionFlag primaryFilter = ActionFlag.Store | ActionFlag.Destroy | ActionFlag.Collect | ActionFlag.Search | ActionFlag.Push;
 
-				if (pick.Picked != Entity.Null)
+				if (carry.Picked != Entity.Null)
 				{
 					// consider carried item actions
-					if (Utilities.HasActionType(pick.Flags, ActionType.Eat))
+					if (Utilities.HasItemFlag(carry.Flags, ItemFlag.Food))
 					{
-						controller.SetPrimaryAction(new ActionData(pick.Picked, ActionType.Eat, position.Value, 0f, pick.Time, 0), in NameLookup, pick.Picked);
+						controller.SetPrimaryAction(new ActionData(carry.Picked, ActionFlag.Eat, position.Value, 0f, carry.Time, 0), in NameLookup, carry.Picked);
 					}
 
 					// set drop action
-					controller.SetSecondaryAction(new ActionData(pick.Picked, ActionType.Drop, position.Value + Const.GetDropOffset(orientation.Value), 0f, 0f, 0), in NameLookup, pick.Picked);
+					controller.SetSecondaryAction(new ActionData(carry.Picked, ActionFlag.Drop, position.Value + Const.GetDropOffset(orientation.Value), 0f, 0f, 0), in NameLookup, carry.Picked);
 				}
 
 				// player assess all elements in range
@@ -153,17 +153,17 @@ namespace U0071
 						{
 							// primary
 							// (override carried item action)
-							if (Utilities.HasActionType(target.ActionFlags, primaryFilter) &&
-								target.Evaluate(controller.PrimaryAction.Type, primaryFilter, pick.Picked != Entity.Null, out ActionType selectedActionType))
+							if (Utilities.HasActionFlag(target.ActionFlags, primaryFilter) &&
+								target.Evaluate(controller.PrimaryAction.Type, primaryFilter, carry.Flags, out ActionFlag selectedActionFlag, true))
 							{
-								controller.SetPrimaryAction(target.ToActionData(selectedActionType), in NameLookup, pick.Picked);
+								controller.SetPrimaryAction(target.ToActionData(selectedActionFlag), in NameLookup, carry.Picked);
 							}
 							
 							// secondary
 							// for now, secondary is hard-coded pick/drop
-							if (!controller.HasSecondaryAction && target.HasActionType(ActionType.Pick))
+							if (!controller.HasSecondaryAction && target.HasActionFlag(ActionFlag.Pick))
 							{
-								controller.SetSecondaryAction(target.ToActionData(ActionType.Pick), in NameLookup, Entity.Null);
+								controller.SetSecondaryAction(target.ToActionData(ActionFlag.Pick), in NameLookup, Entity.Null);
 							}
 						}
 					}

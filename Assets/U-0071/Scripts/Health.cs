@@ -3,7 +3,7 @@ using Unity.Mathematics;
 
 namespace U0071
 {
-	public enum DeathContext
+	public enum DeathType
 	{
 		Hunger = 0,
 		Crushed,
@@ -23,7 +23,7 @@ namespace U0071
 
 	public struct DeathComponent : IComponentData, IEnableableComponent
 	{
-		public DeathContext Context;
+		public DeathType Context;
 		public bool IsResolved;
 	}
 
