@@ -34,9 +34,11 @@ namespace U0071
 
 	public struct FlowfieldBuilderCell
 	{
+		public float2 Position;
 		public int Index;
 		public int Value;
 		public bool Pathable;
+		public bool HasObstacle; // rough "cost"
 	}
 
 	public struct FlowfieldBuilder : IDisposable
@@ -58,20 +60,21 @@ namespace U0071
 		public FlowfieldBuilder(NativeArray<float2> flowfield, ActionFlag actionFlag, ItemFlag itemFlag, in Partition partition)
 		{
 			Flowfield = flowfield;
+			Dimensions = partition.Dimensions;
+			ActionFlag = actionFlag;
+			ItemFlag = itemFlag;
 			Queue = new NativeQueue<FlowfieldBuilderCell>(Allocator.Persistent);
 			Cells = new NativeArray<FlowfieldBuilderCell>(flowfield.Length, Allocator.Persistent);
 			for (int i = 0; i < Cells.Length; i++)
 			{
 				Cells[i] = new FlowfieldBuilderCell
 				{
+					Position = new float2(i % Dimensions.x, i / Dimensions.x), // only need relative pos to each other
 					Index = i,
 					Value = int.MaxValue,
 					Pathable = partition.IsPathable(i),
 				};
 			}
-			ActionFlag = actionFlag;
-			ItemFlag = itemFlag;
-			Dimensions = partition.Dimensions;
 		}
 
 		public void Dispose()
@@ -83,32 +86,38 @@ namespace U0071
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public void ProcessDevice(in InteractableComponent interactable, in Partition partition, float2 position, int size)
 		{
-			if (interactable.HasActionFlag(ActionFlag) && interactable.HasItemFlag(ItemFlag))
+			bool isStartingCell = interactable.HasActionFlag(ActionFlag) && interactable.HasItemFlag(ItemFlag);
+
+			if (size == 1)
 			{
-				if (size == 1)
+				InitDeviceCell(partition.GetIndex(position), isStartingCell);
+			}
+			else
+			{
+				for (int y = 0; y < size; y++)
 				{
-					AddStartingCell(partition.GetIndex(position));
-				}
-				else
-				{
-					for (int y = 0; y < size; y++)
+					for (int x = 0; x < size; x++)
 					{
-						for (int x = 0; x < size; x++)
-						{
-							AddStartingCell(partition.GetIndex(new float2(position.x + x - size / 2f, position.y + y - size / 2f)));
-						}
+						InitDeviceCell(partition.GetIndex(new float2(position.x + x - size / 2f, position.y + y - size / 2f)), isStartingCell);
 					}
 				}
 			}
 		}
 		
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		private void AddStartingCell(int index)
+		private void InitDeviceCell(int index, bool isStartingCell)
 		{
 			FlowfieldBuilderCell cell = Cells[index];
-			cell.Value = 0;
+			if (isStartingCell)
+			{
+				cell.Value = 0;
+				Queue.Enqueue(cell);
+			}
+			else // obstacle
+			{
+				cell.HasObstacle = true;
+			}
 			Cells[index] = cell;
-			Queue.Enqueue(cell);
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -157,13 +166,10 @@ namespace U0071
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public void ProcessDirection(int index)
 		{
-			Flowfield[index] = math.normalizesafe(GetDirection(index));
-		}
-
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public float2 GetDirection(int index)
-		{
 			FlowfieldBuilderCell cell = Cells[index];
+
+			if (!cell.Pathable) return;
+
 			FlowfieldBuilderCell cellNW = GetCellSafe(cell.Index + offsetNW);
 			FlowfieldBuilderCell cellN = GetCellSafe(cell.Index + offsetN);
 			FlowfieldBuilderCell cellNE = GetCellSafe(cell.Index + offsetNE);
@@ -173,21 +179,32 @@ namespace U0071
 			FlowfieldBuilderCell cellS = GetCellSafe(cell.Index + offsetS);
 			FlowfieldBuilderCell cellSE = GetCellSafe(cell.Index + offsetSE);
 
+			FlowfieldBuilderCell best = cell;
+
 			// adjacents
-			if (cell.Value > cellN.Value) return new float2(0f, 1f);
-			if (cell.Value > cellS.Value) return new float2(0f, -1f);
-			if (cell.Value > cellE.Value) return new float2(1f, 0f);
-			if (cell.Value > cellW.Value) return new float2(-1f, 0f);
+			TryGetBest(ref best, in cellN);
+			TryGetBest(ref best, in cellS);
+			TryGetBest(ref best, in cellE);
+			TryGetBest(ref best, in cellW);
 
 			// diagonals
-			if (cellN.Pathable && cellW.Pathable && cell.Value > cellNW.Value) return new float2(-1f, 1f);
-			if (cellN.Pathable && cellE.Pathable && cell.Value > cellNE.Value) return new float2(1f, 1f);
-			if (cellS.Pathable && cellW.Pathable && cell.Value > cellSW.Value) return new float2(-1f, -1f);
-			if (cellS.Pathable && cellE.Pathable && cell.Value > cellSE.Value) return new float2(1f, -1f);
+			if (cellN.Pathable && cellW.Pathable) TryGetBest(ref best, in cellNW);
+			if (cellN.Pathable && cellE.Pathable) TryGetBest(ref best, in cellNE);
+			if (cellS.Pathable && cellW.Pathable) TryGetBest(ref best, in cellSW);
+			if (cellS.Pathable && cellE.Pathable) TryGetBest(ref best, in cellSE);
 
-			return float2.zero;
+			Flowfield[index] = math.normalizesafe(best.Position - cell.Position);
 		}
-		
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		private void TryGetBest(ref FlowfieldBuilderCell currentBest, in FlowfieldBuilderCell checkedCell)
+		{
+			if (checkedCell.Value < currentBest.Value || checkedCell.Value == currentBest.Value && !checkedCell.HasObstacle && currentBest.HasObstacle)
+			{
+				currentBest = checkedCell;
+			}
+		}
+
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		private FlowfieldBuilderCell GetCellSafe(int index)
 		{

@@ -24,6 +24,7 @@ namespace U0071
 			if (SystemAPI.HasComponent<Partition>(state.SystemHandle))
 			{
 				SystemAPI.GetComponent<Partition>(state.SystemHandle).Dispose();
+				SystemAPI.GetComponent<Flowfield>(state.SystemHandle).Dispose();
 			}
 		}
 
