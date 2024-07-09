@@ -56,23 +56,25 @@ namespace U0071
 
 			int size = config.WorldDimensions.x * config.WorldDimensions.y;
 
-			FlowfieldBuilder foodLevelZeroBuilder = new FlowfieldBuilder(flowfield.FoodLevelZero, ActionFlag.Collect, ItemFlag.Food, in partition);
-			FlowfieldBuilder destroyLevelZeroBuilder = new FlowfieldBuilder(flowfield.DestroyLevelZero, ActionFlag.Destroy, ItemFlag.Trash, in partition);
+			FlowfieldBuilder foodLevelZeroBuilder = new FlowfieldBuilder(flowfield.FoodLevelZero, ActionFlag.Collect, ItemFlag.Food, false, in partition);
+			FlowfieldBuilder destroyLevelZeroBuilder = new FlowfieldBuilder(flowfield.DestroyLevelZero, ActionFlag.Destroy, ItemFlag.Trash, false, in partition);
+			FlowfieldBuilder workLevelZeroBuilder = new FlowfieldBuilder(flowfield.WorkLevelZero, 0, 0, true, in partition);
 
 			new DeviceFlowfieldInitJob
 			{
 				Partition = partition,
 				FoodLevelZeroBuilder = foodLevelZeroBuilder,
 				DestroyLevelZeroBuilder = destroyLevelZeroBuilder,
+				WorkLevelZeroBuilder = workLevelZeroBuilder,
 			}.ScheduleParallel(state.Dependency).Complete();
 
 			state.Dependency = new FlowfieldSpreadJob { Builder = foodLevelZeroBuilder }.Schedule(state.Dependency);
 			state.Dependency = new FlowfieldSpreadJob { Builder = destroyLevelZeroBuilder }.Schedule(state.Dependency);
+			state.Dependency = new FlowfieldSpreadJob { Builder = workLevelZeroBuilder }.Schedule(state.Dependency);
 
 			state.Dependency = new FlowfieldDirectionJob { Builder = foodLevelZeroBuilder }.ScheduleParallel(size, Const.ParallelForCount, state.Dependency);
 			state.Dependency = new FlowfieldDirectionJob { Builder = destroyLevelZeroBuilder }.ScheduleParallel(size, Const.ParallelForCount, state.Dependency);
-
-			// TODO: devices as cost field (set on cell and use in direction job)
+			state.Dependency = new FlowfieldDirectionJob { Builder = workLevelZeroBuilder }.ScheduleParallel(size, Const.ParallelForCount, state.Dependency);
 
 			new SpawnerInitJob().ScheduleParallel(state.Dependency).Complete();
 
@@ -146,6 +148,7 @@ namespace U0071
 			[ReadOnly] public Partition Partition;
 			[NativeDisableParallelForRestriction] public FlowfieldBuilder FoodLevelZeroBuilder;
 			[NativeDisableParallelForRestriction] public FlowfieldBuilder DestroyLevelZeroBuilder;
+			[NativeDisableParallelForRestriction] public FlowfieldBuilder WorkLevelZeroBuilder;
 
 			public void Execute(in InteractableComponent interactable, in LocalTransform transform)
 			{
@@ -157,6 +160,7 @@ namespace U0071
 
 				FoodLevelZeroBuilder.ProcessDevice(in interactable, in Partition, position, size);
 				DestroyLevelZeroBuilder.ProcessDevice(in interactable, in Partition, position, size);
+				WorkLevelZeroBuilder.ProcessDevice(in interactable, in Partition, position, size);
 			}
 		}
 

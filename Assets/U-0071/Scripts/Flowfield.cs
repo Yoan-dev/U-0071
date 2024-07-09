@@ -10,6 +10,7 @@ namespace U0071
 	{
 		public NativeArray<float2> FoodLevelZero;
 		public NativeArray<float2> DestroyLevelZero;
+		public NativeArray<float2> WorkLevelZero;
 		public int2 Dimensions;
 
 		public Flowfield(int2 dimensions)
@@ -17,12 +18,14 @@ namespace U0071
 			Dimensions = dimensions;
 			FoodLevelZero = new NativeArray<float2>(dimensions.x * dimensions.y, Allocator.Persistent);
 			DestroyLevelZero = new NativeArray<float2>(dimensions.x * dimensions.y, Allocator.Persistent);
+			WorkLevelZero = new NativeArray<float2>(dimensions.x * dimensions.y, Allocator.Persistent);
 		}
 
 		public void Dispose()
 		{
 			FoodLevelZero.Dispose();
 			DestroyLevelZero.Dispose();
+			WorkLevelZero.Dispose();
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -48,6 +51,7 @@ namespace U0071
 		public NativeQueue<FlowfieldBuilderCell> Queue;
 		public ActionFlag ActionFlag;
 		public ItemFlag ItemFlag;
+		public bool WorkFlag;
 		public int2 Dimensions;
 
 		private int offsetNW => Dimensions.x - 1;
@@ -57,12 +61,13 @@ namespace U0071
 		private int offsetS => -Dimensions.x;
 		private int offsetSE => -Dimensions.x + 1;
 
-		public FlowfieldBuilder(NativeArray<float2> flowfield, ActionFlag actionFlag, ItemFlag itemFlag, in Partition partition)
+		public FlowfieldBuilder(NativeArray<float2> flowfield, ActionFlag actionFlag, ItemFlag itemFlag, bool worldFlag, in Partition partition)
 		{
 			Flowfield = flowfield;
 			Dimensions = partition.Dimensions;
 			ActionFlag = actionFlag;
 			ItemFlag = itemFlag;
+			WorkFlag = worldFlag;
 			Queue = new NativeQueue<FlowfieldBuilderCell>(Allocator.Persistent);
 			Cells = new NativeArray<FlowfieldBuilderCell>(flowfield.Length, Allocator.Persistent);
 			for (int i = 0; i < Cells.Length; i++)
@@ -86,7 +91,9 @@ namespace U0071
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public void ProcessDevice(in InteractableComponent interactable, in Partition partition, float2 position, int size)
 		{
-			bool isStartingCell = interactable.HasActionFlag(ActionFlag) && interactable.HasItemFlag(ItemFlag);
+			bool isStartingCell =
+				(!WorkFlag || interactable.Cost < 0f) && 
+				(interactable.HasActionFlag(ActionFlag) && interactable.HasItemFlag(ItemFlag) || ActionFlag == 0 && ItemFlag == 0);
 
 			if (size == 1)
 			{
