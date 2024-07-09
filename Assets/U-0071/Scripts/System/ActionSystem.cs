@@ -206,7 +206,7 @@ namespace U0071
 
 					if (controller.Action.ActionFlag == ActionFlag.Eat)
 					{
-						hunger.Value += Const.EatingHungerGain;
+						hunger.Value = math.min(Const.MaxHunger, hunger.Value + Const.EatingHungerGain);
 					}
 					else if (controller.Action.ActionFlag == ActionFlag.Push)
 					{
