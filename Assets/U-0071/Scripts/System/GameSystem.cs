@@ -85,7 +85,7 @@ namespace U0071
 			[NativeDisableParallelForRestriction]
 			public RoomPartition Partition;
 
-			public void Execute(Entity entity, in RoomLinkComponent link)
+			public void Execute(in RoomLinkComponent link)
 			{
 				// try to retreive the two connected rooms
 				RoomData room1;
@@ -101,12 +101,8 @@ namespace U0071
 					room2 = Partition.GetRoomData(new float2(link.Position.x, link.Position.y + 1));
 				}
 
-				// we assume that the room data are eligible
-				// (otherwise map is wrong)
-
-				Partition.SetCellData(true, new RoomData(), link.Position);
-
-				// TBD: set the cell room data as the biggest adjacent room
+				// room link is "owned" by the biggest room
+				Partition.SetCellData(true, room1.Size >= room2.Size ? room1 : room2, link.Position);
 			}
 		}
 	}

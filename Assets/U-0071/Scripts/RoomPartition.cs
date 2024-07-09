@@ -16,6 +16,8 @@ namespace U0071
 		public RoomComponent Room;
 		public float2 Position;
 		public Entity Entity;
+		
+		public int Size => Room.Dimensions.x * Room.Dimensions.y;
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public float2 GetRoomRatio(float2 position)
