@@ -75,15 +75,15 @@ namespace U0071
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static bool IsActionType(ActionType type, ActionType check)
-		{
-			return (type & check) == check;
-		}
-
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static bool HasActionType(ActionType type, ActionType check)
 		{
 			return (type & check) != 0;
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static bool RequireCarriedItem(ActionType type)
+		{
+			return type == ActionType.Store || type == ActionType.Destroy;
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]

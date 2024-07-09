@@ -378,7 +378,7 @@ namespace U0071
 								});
 							}
 						}
-						if (value > 0)
+						if (value != 0)
 						{
 							CreditsLookup.GetRefRW(creditsEvent.Target).ValueRW.Value += value;
 						}

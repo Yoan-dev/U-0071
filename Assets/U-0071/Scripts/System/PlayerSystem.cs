@@ -1,7 +1,10 @@
+using System.Diagnostics;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
+using Unity.VisualScripting;
+using UnityEditor.Searcher;
 using UnityEngine;
 
 namespace U0071
@@ -125,54 +128,39 @@ namespace U0071
 				}
 
 				// retrieve relevant action types
-				ActionType filter = ActionType.AllActions;
+				ActionType primaryFilter = ActionType.Store | ActionType.Destroy | ActionType.Collect | ActionType.Search | ActionType.Push;
 
 				if (pick.Picked != Entity.Null)
 				{
-					// remove flag
-					filter &= ~ActionType.Pick;
-
 					// consider carried item actions
 					if (Utilities.HasActionType(pick.Flags, ActionType.Eat))
 					{
 						controller.SetPrimaryAction(new ActionData(pick.Picked, ActionType.Eat, position.Value, 0f, pick.Time, 0), in NameLookup, pick.Picked);
 					}
+
+					// set drop action
 					controller.SetSecondaryAction(new ActionData(pick.Picked, ActionType.Drop, position.Value + Const.GetDropOffset(orientation.Value), 0f, 0f, 0), in NameLookup, pick.Picked);
 				}
 
-				// player assess all close items
+				// player assess all elements in range
 				DynamicBuffer<RoomElementBufferElement> elements = RoomElementBufferLookup[partition.CurrentRoom];
 				using (var enumerator = elements.GetEnumerator())
 				{
 					while (enumerator.MoveNext())
 					{
 						RoomElementBufferElement target = enumerator.Current;
-						if (target.Entity != entity && Utilities.HasActionType(target.ActionFlags, filter) && position.IsInRange(target.Position, target.Range))
+						if (target.Entity != entity && position.IsInRange(target.Position, target.Range))
 						{
 							// primary
 							// (override carried item action)
-							if (target.HasActionType(ActionType.Collect))
+							if (Utilities.HasActionType(target.ActionFlags, primaryFilter) &&
+								target.Evaluate(controller.PrimaryAction.Type, primaryFilter, pick.Picked != Entity.Null, out ActionType selectedActionType))
 							{
-								controller.SetPrimaryAction(target.ToActionData(ActionType.Collect), in NameLookup, Entity.Null);
+								controller.SetPrimaryAction(target.ToActionData(selectedActionType), in NameLookup, pick.Picked);
 							}
-							else if (target.HasActionType(ActionType.Store) && pick.Picked != Entity.Null)
-							{
-								controller.SetPrimaryAction(target.ToActionData(ActionType.Store), in NameLookup, pick.Picked);
-							}
-							else if (target.HasActionType(ActionType.Destroy) && pick.Picked != Entity.Null)
-							{
-								controller.SetPrimaryAction(target.ToActionData(ActionType.Destroy), in NameLookup, pick.Picked);
-							}
-							else if (target.HasActionType(ActionType.Search))
-							{
-								controller.SetPrimaryAction(target.ToActionData(ActionType.Search), in NameLookup, Entity.Null);
-							}
-							else if (target.HasActionType(ActionType.Push))
-							{
-								controller.SetPrimaryAction(target.ToActionData(ActionType.Push), in NameLookup, Entity.Null);
-							}
-
+							
 							// secondary
+							// for now, secondary is hard-coded pick/drop
 							if (!controller.HasSecondaryAction && target.HasActionType(ActionType.Pick))
 							{
 								controller.SetSecondaryAction(target.ToActionData(ActionType.Pick), in NameLookup, Entity.Null);

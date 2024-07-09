@@ -9,8 +9,8 @@ namespace U0071
 	public struct ActionInfo
 	{
 		public ActionData Data;
-		public FixedString32Bytes Name;
-		public FixedString32Bytes SecondaryName;
+		public FixedString32Bytes TargetName;
+		public FixedString32Bytes DeviceName;
 		public KeyCode Key;
 		public bool IsPressed;
 
@@ -22,6 +22,7 @@ namespace U0071
 		public void Reset()
 		{
 			Data.Target = Entity.Null;
+			Data.Type = 0;
 		}
 	}
 
@@ -49,15 +50,15 @@ namespace U0071
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		private void SetAction(ref ActionInfo action, in ActionData data, in ComponentLookup<NameComponent> nameLookup, Entity usedItem)
+		private void SetAction(ref ActionInfo action, in ActionData data, in ComponentLookup<NameComponent> nameLookup, Entity carried)
 		{
 			action.Data = data;
-			action.Name = 
-				data.Type != ActionType.Pick && data.Type != ActionType.Drop && data.Type != ActionType.Eat && data.Type != ActionType.Search ? nameLookup[data.Target].Value :
+			action.TargetName =
+				data.HasActionType(ActionType.Pick | ActionType.Search) ? nameLookup[data.Target].Value :
+				Utilities.RequireCarriedItem(data.Type) && carried != Entity.Null ? nameLookup[carried].Value :
 				new FixedString32Bytes();
-			action.SecondaryName =
-				data.Type == ActionType.Pick || data.Type == ActionType.Search ? nameLookup[data.Target].Value :
-				usedItem != Entity.Null ? nameLookup[usedItem].Value :
+			action.DeviceName = 
+				!data.HasActionType(ActionType.Pick | ActionType.Drop | ActionType.Eat | ActionType.Search) ? nameLookup[data.Target].Value :
 				new FixedString32Bytes();
 		}
 

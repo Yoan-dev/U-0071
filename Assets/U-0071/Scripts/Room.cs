@@ -68,6 +68,31 @@ namespace U0071
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public bool Evaluate(ActionType current, ActionType filter, bool isCarryingItem, out ActionType selected)
+		{
+			// TODO: send carried item flags
+
+			// retrieve eligible action in priority order
+			return
+				EvaluateActionType(ActionType.Store, current, filter, isCarryingItem, out selected) ||
+				EvaluateActionType(ActionType.Destroy, current, filter, isCarryingItem, out selected) ||
+				EvaluateActionType(ActionType.Collect, current, filter, isCarryingItem, out selected) ||
+				EvaluateActionType(ActionType.Search, current, filter, isCarryingItem, out selected) ||
+				EvaluateActionType(ActionType.Pick, current, filter, isCarryingItem, out selected) ||
+				EvaluateActionType(ActionType.Push, current, filter, isCarryingItem, out selected);
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		private bool EvaluateActionType(ActionType checkedType, ActionType current, ActionType filter, bool isCarryingItem, out ActionType selected)
+		{
+			selected =
+				checkedType >= current && // >= to search closest
+				(ActionFlags & filter & checkedType) != 0 &&
+				(isCarryingItem || !Utilities.RequireCarriedItem(checkedType)) ? checkedType : 0;
+			return selected != 0;
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public bool HasActionType(ActionType inType)
 		{
 			return Utilities.HasActionType(ActionFlags, inType);

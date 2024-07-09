@@ -8,17 +8,16 @@ namespace U0071
 	[Flags]
 	public enum ActionType
 	{
-		// actions
-		Pick = 1 << 0,
-		Drop = 1 << 1,
-		Destroy = 1 << 2,
-		Store = 1 << 3,
+		// sorted by priority
+		Eat = 1 << 0,
+		Push = 1 << 1,
+		Pick = 1 << 2,
+		Search = 1 << 3,
 		Collect = 1 << 4,
-		Process = 1 << 5,
-		Eat = 1 << 6,
-		Search = 1 << 7,
-		Push = 1 << 8,
-		AllActions = Pick | Destroy | Store | Collect | Process | Eat | Search | Push,
+		Destroy = 1 << 5,
+		Store = 1 << 6,
+		Drop = 1 << 7,
+		Process = 1 << 8,
 		
 		// companion-flags (ex: Collect + RefEat => buy meal)
 		RefTrash = 1 << 9,
@@ -49,7 +48,7 @@ namespace U0071
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public bool HasType(ActionType inType)
+		public bool HasActionType(ActionType inType)
 		{
 			return Utilities.HasActionType(Type, inType);
 		}
