@@ -7,7 +7,7 @@ namespace U0071
 {
 	// note to reader: this is an attempt of a room-based partitioning system (see Room.cs for the components/singleton)
 	// the goal is to ease detection by only iterating the elements in the same room of the enquiring process
-	// at the beginning of the frame, objects that move or change room will queue an update for the related room entities (addition, deletion, cache update)
+	// at the beginning of the frame, objects that move or change will queue an update for the related room entities (addition, deletion, cache update)
 	// rooms can be queried afterwards in order to retrieve their elements
 	// room elements can also be modified outside of this system (example in ActionSystem.cs)
 
@@ -134,8 +134,12 @@ namespace U0071
 			[ReadOnly]
 			public NativeParallelMultiHashMap<Entity, RoomUpdateEvent> Updates;
 
-			public void Execute(Entity entity, ref DynamicBuffer<RoomElementBufferElement> elements)
+			public void Execute(Entity entity, ref RoomComponent room, ref DynamicBuffer<RoomElementBufferElement> elements)
 			{
+				// TODO: set room capacity during init
+				// TODO: keep track of population with room updates
+				// TODO: trigger wandering goal when AI unit if in crowded room and want to work
+
 				if (Updates.TryGetFirstValue(entity, out RoomUpdateEvent update, out var it))
 				{
 					do

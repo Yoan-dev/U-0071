@@ -11,6 +11,7 @@ namespace U0071
 		public NativeArray<float2> FoodLevelZero;
 		public NativeArray<float2> DestroyLevelZero;
 		public NativeArray<float2> WorkLevelZero;
+		public NativeArray<float2> WanderLevelZero;
 		public int2 Dimensions;
 
 		public Flowfield(int2 dimensions)
@@ -19,6 +20,7 @@ namespace U0071
 			FoodLevelZero = new NativeArray<float2>(dimensions.x * dimensions.y, Allocator.Persistent);
 			DestroyLevelZero = new NativeArray<float2>(dimensions.x * dimensions.y, Allocator.Persistent);
 			WorkLevelZero = new NativeArray<float2>(dimensions.x * dimensions.y, Allocator.Persistent);
+			WanderLevelZero = new NativeArray<float2>(dimensions.x * dimensions.y, Allocator.Persistent);
 		}
 
 		public void Dispose()
@@ -26,6 +28,7 @@ namespace U0071
 			FoodLevelZero.Dispose();
 			DestroyLevelZero.Dispose();
 			WorkLevelZero.Dispose();
+			WanderLevelZero.Dispose();
 		}
 
 		public float2 GetDirection(AIGoal goal, float2 position)
@@ -68,13 +71,13 @@ namespace U0071
 		private int offsetS => -Dimensions.x;
 		private int offsetSE => -Dimensions.x + 1;
 
-		public FlowfieldBuilder(NativeArray<float2> flowfield, ActionFlag actionFlag, ItemFlag itemFlag, bool worldFlag, in Partition partition)
+		public FlowfieldBuilder(NativeArray<float2> flowfield, ActionFlag actionFlag, ItemFlag itemFlag, in Partition partition, bool workFlag = false)
 		{
 			Flowfield = flowfield;
 			Dimensions = partition.Dimensions;
 			ActionFlag = actionFlag;
 			ItemFlag = itemFlag;
-			WorkFlag = worldFlag;
+			WorkFlag = workFlag;
 			Queue = new NativeQueue<FlowfieldBuilderCell>(Allocator.Persistent);
 			Cells = new NativeArray<FlowfieldBuilderCell>(flowfield.Length, Allocator.Persistent);
 			for (int i = 0; i < Cells.Length; i++)
@@ -143,14 +146,15 @@ namespace U0071
 			while (Queue.Count > 0)
 			{
 				FlowfieldBuilderCell cell = Queue.Dequeue();
-				FlowfieldBuilderCell cellNW = Cells[cell.Index + offsetNW];
-				FlowfieldBuilderCell cellN = Cells[cell.Index + offsetN];
-				FlowfieldBuilderCell cellNE = Cells[cell.Index + offsetNE];
-				FlowfieldBuilderCell cellW = Cells[cell.Index - 1];
-				FlowfieldBuilderCell cellE = Cells[cell.Index + 1];
-				FlowfieldBuilderCell cellSW = Cells[cell.Index + offsetSW];
-				FlowfieldBuilderCell cellS = Cells[cell.Index + offsetS];
-				FlowfieldBuilderCell cellSE = Cells[cell.Index + offsetSE];
+
+				FlowfieldBuilderCell cellNW = GetCellSafe(cell.Index + offsetNW);
+				FlowfieldBuilderCell cellN = GetCellSafe(cell.Index + offsetN);
+				FlowfieldBuilderCell cellNE = GetCellSafe(cell.Index + offsetNE);
+				FlowfieldBuilderCell cellW = GetCellSafe(cell.Index - 1);
+				FlowfieldBuilderCell cellE = GetCellSafe(cell.Index + 1);
+				FlowfieldBuilderCell cellSW = GetCellSafe(cell.Index + offsetSW);
+				FlowfieldBuilderCell cellS = GetCellSafe(cell.Index + offsetS);
+				FlowfieldBuilderCell cellSE = GetCellSafe(cell.Index + offsetSE);
 
 				// adjacents
 				TryEnqueueCell(in cell, cellN);

@@ -29,6 +29,7 @@ namespace U0071
 		private bool _debugFoodLevelZero;
 		private bool _debugDestroyLevelZero;
 		private bool _debugWorkLevelZero;
+		private bool _debugWanderLevelZero;
 
 		[BurstCompile]
 		public void OnCreate(ref SystemState state)
@@ -89,6 +90,16 @@ namespace U0071
 				{
 					Flowfield flowfield = SystemAPI.GetSingleton<Flowfield>();
 					DebugFlowfield(in flowfield.WorkLevelZero, flowfield.Dimensions);
+				}
+				else DebugManager.Instance.ClearFlowfieldElements();
+			}
+			if (Input.GetKey(KeyCode.LeftControl) && Input.GetKeyDown(KeyCode.Alpha4))
+			{
+				_debugWanderLevelZero = !_debugWanderLevelZero;
+				if (_debugWanderLevelZero)
+				{
+					Flowfield flowfield = SystemAPI.GetSingleton<Flowfield>();
+					DebugFlowfield(in flowfield.WanderLevelZero, flowfield.Dimensions);
 				}
 				else DebugManager.Instance.ClearFlowfieldElements();
 			}
