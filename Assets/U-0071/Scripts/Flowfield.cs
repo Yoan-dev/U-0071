@@ -28,6 +28,13 @@ namespace U0071
 			WorkLevelZero.Dispose();
 		}
 
+		public float2 GetDirection(AIGoal goal, float2 position)
+		{
+			int index = GetIndex(position);
+			return goal == AIGoal.Eat ? FoodLevelZero[index] : WorkLevelZero[index];
+			// TODO: the rest
+		}
+
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public int GetIndex(float2 position)
 		{

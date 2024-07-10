@@ -51,23 +51,23 @@ namespace U0071
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public bool Evaluate(ActionFlag current, ActionFlag filter, ItemFlag itemFlag, out ActionFlag selected, bool canDestroyAll = false)
+		public bool Evaluate(ActionFlag current, ActionFlag actionFilter, ItemFlag carriedFlag, out ActionFlag selected, bool canDestroyAll = false, bool pickHavePriority = false)
 		{
 			// retrieve eligible action in priority order
 			return
-				EvaluateActionFlag(ActionFlag.Store, current, filter, itemFlag, out selected) ||
-				EvaluateActionFlag(ActionFlag.Destroy, current, filter, canDestroyAll ? ItemFlag.All : itemFlag, out selected) ||
-				EvaluateActionFlag(ActionFlag.Collect, current, filter, itemFlag, out selected) ||
-				EvaluateActionFlag(ActionFlag.Search, current, filter, itemFlag, out selected) ||
-				EvaluateActionFlag(ActionFlag.Pick, current, filter, itemFlag, out selected) ||
-				EvaluateActionFlag(ActionFlag.Push, current, filter, itemFlag, out selected);
+				EvaluateActionFlag(ActionFlag.Store, current, actionFilter, carriedFlag, out selected) ||
+				EvaluateActionFlag(ActionFlag.Destroy, current, actionFilter, canDestroyAll ? ItemFlag.All : carriedFlag, out selected) ||
+				EvaluateActionFlag(ActionFlag.Collect, current, actionFilter, carriedFlag, out selected) ||
+				EvaluateActionFlag(ActionFlag.Search, current, actionFilter, carriedFlag, out selected) ||
+				EvaluateActionFlag(ActionFlag.Pick, current, actionFilter, carriedFlag, out selected, pickHavePriority) ||
+				EvaluateActionFlag(ActionFlag.Push, current, actionFilter, carriedFlag, out selected);
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		private bool EvaluateActionFlag(ActionFlag checkedType, ActionFlag current, ActionFlag filter, ItemFlag itemFlag, out ActionFlag selected)
+		private bool EvaluateActionFlag(ActionFlag checkedType, ActionFlag current, ActionFlag filter, ItemFlag itemFlag, out ActionFlag selected, bool hasPriority = false)
 		{
 			selected = 
-				checkedType >= current && 
+				(hasPriority || checkedType >= current) && 
 				(ActionFlags & filter & checkedType) != 0 && 
 				(!Utilities.RequireItem(checkedType) || HasItemFlag(itemFlag)) ? checkedType : 0;
 			return selected != 0;

@@ -6,22 +6,32 @@ namespace U0071
 	public static class Const
 	{
 		public const int ParallelForCount = 256;
+
+		// AI
 		public const float AITick = 0.1f;
+		public const float AIGoalReassessmentTime = 10f;
+		public const float AIRoomPathingTime = 5f;
+		public const float AILightHungerRatio = 0.75f;
+		public const float AIStarvingRatio = 0.15f;
+		public const int AIDesiredCreditsToEat = 10;
+		public const int AIDesiredCreditsPerLevel = 50;
+		public const float AIRelaxWeight = 0.25f;
+		public const float AIWanderWeight = 0f;
+
+		// used for Y sorting
 		public const float DeviceYOffset = 0.1f;
 		public const float PickableYOffset = 0.4f;
 		public const float CharacterYOffset = 0.7f;
 		public const float CarriedYOffset = 0.001f;
-
-		// used for Y sorting
 		public const float YOffsetRatioX = 0.05f;
 		public const float YOffsetRatioY = 0.2f;
-
 		public const float CarriedOffsetX = 0.225f;
 		public const float CarriedOffsetY = 0.125f;
 		public const float CorpseCarriedOffsetZ = 0f;
 		public const float DropOffsetX = 0.35f;
 		public const float DropOffsetY = 0f;
 
+		// miscellaneous
 		public const int LootCreditsCount = 10;
 		public const float PushedTimer = 0.35f;
 		public const float PushedSpeed = 3.75f;

@@ -37,15 +37,26 @@ namespace U0071
 				if (carry.Picked != Entity.Null)
 				{
 					// drop item on death/pushed
-					controller.Action = new ActionData(carry.Picked, ActionFlag.Drop, position.Value + Const.GetDropOffset(orientation.Value), 0f, 0f, 0);
-					controller.Start();
-					isActing.ValueRW = true;
+					QueueDropAction(ref controller, ref orientation, in position, in carry, isActing);
 				}
 				return true;
 			}
 
 			// cannot act if not in partition or already acting
 			return partition.CurrentRoom == Entity.Null || controller.IsResolving;
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static void QueueDropAction(
+			ref ActionController controller,
+			ref Orientation orientation,
+			in PositionComponent position,
+			in CarryComponent carry,
+			EnabledRefRW<IsActing> isActing)
+		{
+			controller.Action = new ActionData(carry.Picked, ActionFlag.Drop, position.Value + Const.GetDropOffset(orientation.Value), 0f, 0f, 0);
+			controller.Start();
+			isActing.ValueRW = true;
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
