@@ -31,7 +31,7 @@ namespace U0071
 		public float SpawnOffset;
 		public int StartingCapacity;
 		public float GrowTime = -1f;
-		public int GrowStageCount;
+		public int VisualStageCount;
 		public bool AutoSpawner;
 
 		[Header("Storage")]
@@ -110,12 +110,17 @@ namespace U0071
 						AddComponent(entity, new GrowComponent
 						{
 							Time = authoring.GrowTime,
-							StageCount = authoring.GrowStageCount,
+							StageCount = authoring.VisualStageCount,
 						});
-						if (!authoring.Animated)
+					}
+					if (authoring.VisualStageCount > 0 && !authoring.Animated)
+					{
+						// growing/capacity stages
+						AddComponent(entity, new TextureArrayIndex());
+
+						if (authoring.GrowTime <= 0f)
 						{
-							// growing stages
-							AddComponent(entity, new TextureArrayIndex());
+							AddComponent(entity, new CapacityFeedbackComponent { StageCount = authoring.VisualStageCount });
 						}
 					}
 					if (authoring.AutoSpawner)

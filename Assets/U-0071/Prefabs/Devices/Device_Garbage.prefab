@@ -107,10 +107,10 @@ MonoBehaviour:
   Trash: 1
   Prefab: {fileID: 1708813368808323750, guid: ff480b50c1114404987c62b3b6751912, type: 3}
   VariantPrefab: {fileID: 0}
-  SpawnOffset: 0.5
+  SpawnOffset: 0.9
   StartingCapacity: 0
   GrowTime: -1
-  GrowStageCount: 0
+  VisualStageCount: 0
   AutoSpawner: 1
   Destination: {fileID: 0}
   SecondaryDestination: {fileID: 0}

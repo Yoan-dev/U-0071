@@ -1,6 +1,7 @@
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Mathematics;
 
 namespace U0071
 {
@@ -30,6 +31,8 @@ namespace U0071
 			{
 				DeltaTime = SystemAPI.Time.DeltaTime,
 			}.ScheduleParallel(state.Dependency);
+
+			state.Dependency = new CapacityFeedbackJob().ScheduleParallel(state.Dependency);
 
 			state.Dependency = new AutoSpawnJob
 			{
@@ -66,6 +69,15 @@ namespace U0071
 				{
 					index.Value = (int)((grow.StageCount - 1) * grow.Timer / grow.Time);
 				}
+			}
+		}
+
+		[BurstCompile]
+		public partial struct CapacityFeedbackJob : IJobEntity
+		{
+			public void Execute(in SpawnerComponent spawner, in CapacityFeedbackComponent capacityFeedback, ref TextureArrayIndex index)
+			{
+				index.Value = math.clamp(spawner.Capacity, 0, capacityFeedback.StageCount - 1);
 			}
 		}
 

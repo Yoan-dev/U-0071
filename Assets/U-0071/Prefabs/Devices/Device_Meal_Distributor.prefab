@@ -11,9 +11,9 @@ GameObject:
   - component: {fileID: 2435885625723915274}
   - component: {fileID: 8213487279518831875}
   - component: {fileID: 4575550971128346084}
-  - component: {fileID: 1738353421476021029}
+  - component: {fileID: 3815755158628794256}
   m_Layer: 0
-  m_Name: Device_Autoponics
+  m_Name: Device_Meal_Distributor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -62,7 +62,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: a66cc7372e43e034985d51e64c6d46c0, type: 2}
+  - {fileID: 2100000, guid: d69f00550e24aa8409f4b7a641e7dab5, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -84,7 +84,7 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!114 &1738353421476021029
+--- !u!114 &3815755158628794256
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -96,21 +96,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f31f27170626c2c468cc12af570e0ac3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Name: Autoponics
-  ActionName: Harvest
-  Range: 0.75
+  Name: Meal Distributor
+  ActionName: Buy
+  Range: 1
   Time: 0.5
-  Cost: 0
+  Cost: 10
   DestroyAction: 0
-  RawFood: 1
-  Food: 0
+  RawFood: 0
+  Food: 1
   Trash: 0
-  Prefab: {fileID: 1708813368808323750, guid: 0dc4e0c974808174bb9f93a57620d2cf, type: 3}
+  Prefab: {fileID: 1708813368808323750, guid: 4f09a7b8018e3c54cbd6329c0998ba1d, type: 3}
   VariantPrefab: {fileID: 0}
-  SpawnOffset: 0
+  SpawnOffset: 0.5
   StartingCapacity: 0
-  GrowTime: 5
-  VisualStageCount: 5
+  GrowTime: -1
+  VisualStageCount: 8
   AutoSpawner: 0
   Destination: {fileID: 0}
   SecondaryDestination: {fileID: 0}
@@ -119,6 +119,6 @@ MonoBehaviour:
   Animated: 0
   Animation:
     StartIndex: 0
-    Duration: 0
-    FrameTime: 0
-    Looping: 0
+    Duration: 3
+    FrameTime: 0.2
+    Looping: 1

@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 4575550971128346084}
   - component: {fileID: 3815755158628794256}
   m_Layer: 0
-  m_Name: Device_Distributor
+  m_Name: Device_Food_Processor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -62,7 +62,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: a2c2d94ace259444681d8dd8c695f755, type: 2}
+  - {fileID: 2100000, guid: 4c54bcf3e49e49d40a0bdc4d1f0a6d18, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -96,29 +96,29 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f31f27170626c2c468cc12af570e0ac3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Name: Distributor
-  ActionName: Take
+  Name: Food Processor
+  ActionName: Process
   Range: 1
-  Time: 0.5
-  Cost: 0
-  RawFood: 0
+  Time: 3
+  Cost: -5
+  DestroyAction: 0
+  RawFood: 1
   Food: 0
   Trash: 0
-  DestroyAction: 0
-  DeathType: 0
-  HazardRange: 0
   Prefab: {fileID: 0}
   VariantPrefab: {fileID: 0}
   SpawnOffset: 0.5
   StartingCapacity: 0
   GrowTime: -1
-  GrowStageCount: 0
+  VisualStageCount: 0
   AutoSpawner: 0
   Destination: {fileID: 0}
   SecondaryDestination: {fileID: 0}
+  DeathType: 0
+  HazardRange: 0
   Animated: 1
   Animation:
     StartIndex: 0
-    Duration: 3
-    FrameTime: 0.2
+    Duration: 6
+    FrameTime: 0.12
     Looping: 1

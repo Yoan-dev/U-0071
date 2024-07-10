@@ -11,9 +11,9 @@ GameObject:
   - component: {fileID: 2435885625723915274}
   - component: {fileID: 8213487279518831875}
   - component: {fileID: 4575550971128346084}
-  - component: {fileID: 1738353421476021029}
+  - component: {fileID: -3459662849375650362}
   m_Layer: 0
-  m_Name: Device_Autoponics
+  m_Name: Device_Potato_Collector
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -62,7 +62,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: a66cc7372e43e034985d51e64c6d46c0, type: 2}
+  - {fileID: 2100000, guid: 1c8fc9bc0bd189c47b3a40d2ce6bf2d5, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -84,7 +84,7 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!114 &1738353421476021029
+--- !u!114 &-3459662849375650362
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -96,21 +96,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f31f27170626c2c468cc12af570e0ac3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Name: Autoponics
-  ActionName: Harvest
-  Range: 0.75
+  Name: Potato Collector
+  ActionName: Store
+  Range: 1
   Time: 0.5
-  Cost: 0
+  Cost: -3
   DestroyAction: 0
   RawFood: 1
   Food: 0
   Trash: 0
-  Prefab: {fileID: 1708813368808323750, guid: 0dc4e0c974808174bb9f93a57620d2cf, type: 3}
+  Prefab: {fileID: 0}
   VariantPrefab: {fileID: 0}
-  SpawnOffset: 0
+  SpawnOffset: 0.25
   StartingCapacity: 0
-  GrowTime: 5
-  VisualStageCount: 5
+  GrowTime: -1
+  VisualStageCount: 0
   AutoSpawner: 0
   Destination: {fileID: 0}
   SecondaryDestination: {fileID: 0}
@@ -119,6 +119,6 @@ MonoBehaviour:
   Animated: 0
   Animation:
     StartIndex: 0
-    Duration: 0
-    FrameTime: 0
-    Looping: 0
+    Duration: 12
+    FrameTime: 0.2
+    Looping: 1

@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: M_Processor
+  m_Name: M_Meal_Distributor
   m_Shader: {fileID: -6465566751694194690, guid: ce2717a3edb5d1644af242a66cb27e85,
     type: 3}
   m_Parent: {fileID: 0}
@@ -29,7 +29,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _TextureArray:
-        m_Texture: {fileID: 18700000, guid: 829fb1e83cdf02c47abd4d6da8c78fa9, type: 3}
+        m_Texture: {fileID: 18700000, guid: 620975ec68d8e8740832c4beb596a05e, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - unity_Lightmaps:

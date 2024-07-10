@@ -41,6 +41,11 @@ namespace U0071
 		public FixedString32Bytes Value;
 	}
 
+	public struct CapacityFeedbackComponent : IComponentData
+	{
+		public int StageCount;
+	}
+
 	public struct AutoSpawnTag : IComponentData { }
 
 	public struct DeviceTag : IComponentData { }

@@ -206,7 +206,7 @@ namespace U0071
 							target.HasActionFlag(actionFilter) &&
 							(itemFilter == 0 || target.HasItemFlag(itemFilter)) &&
 							(target.Cost <= 0f || target.Cost <= credits.Value) &&
-							target.Evaluate(actionController.Action.ActionFlag, actionFilter, carry.Flags, out ActionFlag selectedActionFlag, false, eatGoal))
+							target.Evaluate(actionController.Action.ActionFlag, actionFilter, carry.Flags, out ActionFlag selectedActionFlag, destroyGoal, eatGoal))
 						{
 							float magn = math.lengthsq(position.Value - target.Position);
 
