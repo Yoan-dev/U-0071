@@ -80,7 +80,7 @@ public class DebugManager : MonoBehaviour
 		{
 			Vector3 from = new Vector3(info.Position.x, 0.5f, info.Position.y);
 			Gizmos.color = Color.red;
-			Gizmos.DrawLine(from, from + new Vector3(info.Value.x, 0.5f, info.Value.y) / 2f);
+			Gizmos.DrawLine(from, from + new Vector3(info.Value.x, 0f, info.Value.y) / 2f);
 		}
 	}
 

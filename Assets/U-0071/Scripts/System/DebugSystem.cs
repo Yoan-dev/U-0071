@@ -32,6 +32,7 @@ namespace U0071
 		private bool _debugDestroy;
 		private bool _debugWorkLevelZero;
 		private bool _debugNoWork;
+		private bool _debugWander;
 
 		[BurstCompile]
 		public void OnCreate(ref SystemState state)
@@ -65,46 +66,45 @@ namespace U0071
 				roomInfos.Dispose();
 			}
 
-			if (Input.GetKey(KeyCode.LeftControl) && Input.GetKeyDown(KeyCode.Alpha1))
+			if (CheckDebugFlowfield(KeyCode.Alpha1, ref _debugFoodLevelZero))
 			{
-				_debugFoodLevelZero = !_debugFoodLevelZero;
-				if (_debugFoodLevelZero)
-				{
-					Flowfield flowfield = SystemAPI.GetSingleton<Flowfield>();
-					DebugFlowfield(in flowfield.FoodLevelZero, flowfield.Dimensions);
-				}
-				else DebugManager.Instance.ClearFlowfieldElements();
+				Flowfield flowfield = SystemAPI.GetSingleton<Flowfield>();
+				DebugFlowfield(in flowfield.FoodLevelZero, flowfield.Dimensions);
 			}
-			if (Input.GetKey(KeyCode.LeftControl) && Input.GetKeyDown(KeyCode.Alpha2))
+			if (CheckDebugFlowfield(KeyCode.Alpha2, ref _debugDestroy))
 			{
-				_debugDestroy = !_debugDestroy;
-				if (_debugDestroy)
-				{
-					Flowfield flowfield = SystemAPI.GetSingleton<Flowfield>();
-					DebugFlowfield(in flowfield.Destroy, flowfield.Dimensions);
-				}
-				else DebugManager.Instance.ClearFlowfieldElements();
+				Flowfield flowfield = SystemAPI.GetSingleton<Flowfield>();
+				DebugFlowfield(in flowfield.Destroy, flowfield.Dimensions);
 			}
-			if (Input.GetKey(KeyCode.LeftControl) && Input.GetKeyDown(KeyCode.Alpha3))
+			if (CheckDebugFlowfield(KeyCode.Alpha3, ref _debugWorkLevelZero))
 			{
-				_debugWorkLevelZero = !_debugWorkLevelZero;
-				if (_debugWorkLevelZero)
-				{
-					Flowfield flowfield = SystemAPI.GetSingleton<Flowfield>();
-					DebugFlowfield(in flowfield.WorkLevelZero, flowfield.Dimensions);
-				}
-				else DebugManager.Instance.ClearFlowfieldElements();
+				Flowfield flowfield = SystemAPI.GetSingleton<Flowfield>();
+				DebugFlowfield(in flowfield.WorkLevelZero, flowfield.Dimensions);
 			}
-			if (Input.GetKey(KeyCode.LeftControl) && Input.GetKeyDown(KeyCode.Alpha4))
+			if (CheckDebugFlowfield(KeyCode.Alpha4, ref _debugNoWork))
 			{
-				_debugNoWork = !_debugNoWork;
-				if (_debugNoWork)
-				{
-					Flowfield flowfield = SystemAPI.GetSingleton<Flowfield>();
-					DebugFlowfield(in flowfield.NoWork, flowfield.Dimensions);
-				}
-				else DebugManager.Instance.ClearFlowfieldElements();
+				Flowfield flowfield = SystemAPI.GetSingleton<Flowfield>();
+				DebugFlowfield(in flowfield.NoWork, flowfield.Dimensions);
 			}
+			if (CheckDebugFlowfield(KeyCode.Alpha5, ref _debugWander))
+			{
+				Flowfield flowfield = SystemAPI.GetSingleton<Flowfield>();
+				DebugFlowfield(in flowfield.Wander, flowfield.Dimensions);
+			}
+		}
+
+		private bool CheckDebugFlowfield(KeyCode key, ref bool value)
+		{
+			if (Input.GetKey(KeyCode.LeftControl) && Input.GetKeyDown(key))
+			{
+				value = !value;
+				if (!value)
+				{
+					DebugManager.Instance.ClearFlowfieldElements();
+				}
+				return value;
+			}
+			return false;
 		}
 
 		private void DebugFlowfield(in NativeArray<float2> flowfield, float2 dimensions)

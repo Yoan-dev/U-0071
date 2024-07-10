@@ -1,9 +1,13 @@
+using System;
+using System.Collections;
+using System.Runtime.CompilerServices;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Transforms;
+using UnityEditor;
 
 namespace U0071
 {
@@ -39,21 +43,40 @@ namespace U0071
 			// (isolated cell indexes)
 			// (otherwise map is wrong)
 
+			int size = config.WorldDimensions.x * config.WorldDimensions.y;
+			NativeArray<bool> wanderCells = new NativeArray<bool>(size, Allocator.TempJob);
+			NativeQueue<WandererComponent> wanderers = new NativeQueue<WandererComponent>(Allocator.TempJob);
+
 			// partition/rooms init
 
 			new RoomInitJob
 			{
 				Partition = partition,
+				WanderCells = wanderCells,
 			}.ScheduleParallel(state.Dependency).Complete();
 
 			new RoomLinkJob
 			{
 				Partition = partition,
+				WanderCells = wanderCells,
 			}.ScheduleParallel(state.Dependency).Complete();
 
-			// flowfields init
+			// wander path
 
-			int size = config.WorldDimensions.x * config.WorldDimensions.y;
+			state.Dependency = new GetWanderersJob
+			{
+				Wanderers = wanderers.AsParallelWriter(),
+			}.Schedule(state.Dependency);
+
+			state.Dependency = new WanderPathJob
+			{
+				WanderCells = wanderCells,
+				WanderPath = flowfield.Wander,
+				Wanderers = wanderers,
+				Dimensions = partition.Dimensions,
+			}.Schedule(state.Dependency);
+
+			// flowfields init
 
 			// do not use ActionFlag.Collect (not set if starting capacity != 0)
 			FlowfieldBuilder foodLevelZeroBuilder = new FlowfieldBuilder(flowfield.FoodLevelZero, 0, ItemFlag.Food, in partition);
@@ -86,6 +109,8 @@ namespace U0071
 			destroyBuilder.Dispose();
 			workLevelZeroBuilder.Dispose();
 			noWorkBuilder.Dispose();
+			wanderCells.Dispose();
+			wanderers.Dispose();
 
 			state.EntityManager.AddComponentData(state.SystemHandle, partition);
 			state.EntityManager.AddComponentData(state.SystemHandle, flowfield);
@@ -95,8 +120,8 @@ namespace U0071
 		[BurstCompile]
 		public partial struct RoomInitJob : IJobEntity
 		{
-			[NativeDisableParallelForRestriction]
-			public Partition Partition;
+			[NativeDisableParallelForRestriction] public Partition Partition;
+			[NativeDisableParallelForRestriction] public NativeArray<bool> WanderCells;
 
 			public void Execute(Entity entity, in PositionComponent position, in RoomComponent room)
 			{
@@ -104,6 +129,8 @@ namespace U0071
 				{
 					for (int x = 0; x < room.Dimensions.x; x++)
 					{
+						int index = Partition.GetIndex(new float2(position.x + x - room.Dimensions.x / 2f, position.y + y - room.Dimensions.y / 2f));
+
 						Partition.SetCellData(
 							true,
 							new RoomData
@@ -112,7 +139,12 @@ namespace U0071
 								Position = position.Value,
 								Room = room,
 							},
-							new float2(position.x + x - room.Dimensions.x / 2f, position.y + y - room.Dimensions.y / 2f));
+							index);
+
+						if (room.IsWanderPath && index >= 0 && index < WanderCells.Length)
+						{
+							WanderCells[index] = true;
+						}
 					}
 				}
 			}
@@ -121,8 +153,8 @@ namespace U0071
 		[BurstCompile]
 		public partial struct RoomLinkJob : IJobEntity
 		{
-			[NativeDisableParallelForRestriction]
-			public Partition Partition;
+			[NativeDisableParallelForRestriction] public Partition Partition;
+			[NativeDisableParallelForRestriction] public NativeArray<bool> WanderCells;
 
 			public void Execute(in RoomLinkComponent link)
 			{
@@ -140,13 +172,88 @@ namespace U0071
 					room2 = Partition.GetRoomData(new float2(link.Position.x, link.Position.y + 1));
 				}
 
-				// TODO: owned by higher autorisation level (if closed)
-				// TODO: owned by the one with working station (if any) or non-corridor, then
-				// room link is "owned" by the biggest room
-				Partition.SetCellData(true, room1.Size >= room2.Size ? room1 : room2, link.Position);
+				int index = Partition.GetIndex(link.Position);
+
+				// TODO:
+				// owned by non-wanderpath (corridor), or
+				// owned by higher autorisation level (if closed), or
+				// owned by the one with working station (if any) or
+				// owned by the biggest room
+				Partition.SetCellData(true, room1.Size >= room2.Size ? room1 : room2, index);
+
+				if (link.IsWanderPath && index >= 0 && index < WanderCells.Length)
+				{
+					WanderCells[index] = true;
+				}
 			}
 		}
 
+		[BurstCompile]
+		public partial struct GetWanderersJob : IJobEntity
+		{
+			public NativeQueue<WandererComponent>.ParallelWriter Wanderers;
+
+			public void Execute(in WandererComponent wanderer)
+			{
+				Wanderers.Enqueue(wanderer);
+			}
+		}
+
+		[BurstCompile]
+		public partial struct WanderPathJob : IJob
+		{
+			[NativeDisableParallelForRestriction] public NativeArray<bool> WanderCells;
+			[NativeDisableParallelForRestriction] public NativeArray<float2> WanderPath;
+			public NativeQueue<WandererComponent> Wanderers;
+			public int2 Dimensions;
+
+			public void Execute()
+			{
+				while (Wanderers.Count > 0)
+				{
+					WandererComponent wanderer = Wanderers.Dequeue();
+					float2 direction = float2.zero;
+					if (!TryWander(in wanderer, new float2(wanderer.Direction.y, -wanderer.Direction.x), ref direction) && // right
+						!TryWander(in wanderer, wanderer.Direction, ref direction)) // front
+					{
+						TryWander(in wanderer, new float2(-wanderer.Direction.y, wanderer.Direction.x), ref direction); // left
+					}
+					WanderPath[GetIndex(wanderer.Position)] = direction;
+				}
+			}
+
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
+			private bool TryWander(in WandererComponent wanderer, float2 newDirection, ref float2 bestDirection)
+			{
+				float2 newPosition = wanderer.Position + newDirection;
+				int newIndex = GetIndex(newPosition);
+				if (WanderCells[newIndex])
+				{
+					if (WanderPath[newIndex].Equals(float2.zero))
+					{
+						bestDirection = newDirection;
+						Wanderers.Enqueue(new WandererComponent
+						{
+							Position = newPosition,
+							Direction = newDirection,
+						});
+						return true;
+					}
+					else if (bestDirection.Equals(float2.zero))
+					{
+						bestDirection = newDirection;
+					}
+				}
+				return false;
+			}
+
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
+			private int GetIndex(float2 position)
+			{
+				return (int)(position.x + Dimensions.x / 2) + (int)(position.y + Dimensions.y / 2) * Dimensions.x;
+			}
+		}
+			
 		[BurstCompile]
 		[WithAll(typeof(DeviceTag))]
 		public partial struct DeviceFlowfieldInitJob : IJobEntity

@@ -70,9 +70,8 @@ namespace U0071
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void SetCellData(bool pathable, RoomData room, float2 position)
+		public void SetCellData(bool pathable, RoomData room, int index)
 		{
-			int index = GetIndex(position);
 			if (index >= 0 && index < Rooms.Length)
 			{
 				Rooms[index] = room;

@@ -7,8 +7,7 @@ namespace U0071
 	[DisallowMultipleComponent]
 	public class RoomLinkAuthoring : MonoBehaviour
 	{
-		[Header("Room Link")]
-		public bool Open;
+		public bool IsWanderPath;
 
 		public class Baker : Baker<RoomLinkAuthoring>
 		{
@@ -21,7 +20,7 @@ namespace U0071
 				AddComponent(entity, new RoomLinkComponent
 				{
 					Position = new float2(position.x, position.z),
-					Open = authoring.Open,
+					IsWanderPath = authoring.IsWanderPath,
 				});
 			}
 		}

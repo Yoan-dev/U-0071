@@ -9,12 +9,13 @@ namespace U0071
 		public int2 Dimensions;
 		public int Capacity; // amount of possible workers
 		public int Population; // current amount of units in room
+		public bool IsWanderPath;
 	}
 
 	public struct RoomLinkComponent : IComponentData
 	{
 		public float2 Position;
-		public bool Open;
+		public bool IsWanderPath;
 	}
 
 	[InternalBufferCapacity(32)]

@@ -2,13 +2,14 @@ using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Rendering;
 using UnityEngine;
-using static U0071.DebugSystem;
 
 namespace U0071
 {
 	[DisallowMultipleComponent]
 	public class RoomAuthoring : MonoBehaviour
 	{
+		public bool IsWanderPath;
+
 		public class Baker : Baker<RoomAuthoring>
 		{
 			public override void Bake(RoomAuthoring authoring)
@@ -25,6 +26,7 @@ namespace U0071
 				AddComponent(entity, new RoomComponent
 				{
 					Dimensions = transform.rotation.eulerAngles.y == 0f || transform.rotation.eulerAngles.y == 180f ? new int2((int)scale.x, (int)scale.y) : new int2((int)scale.y, (int)scale.x),
+					IsWanderPath = authoring.IsWanderPath,
 				});
 				AddComponent<RoomInitTag>(entity);
 

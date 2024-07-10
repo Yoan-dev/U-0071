@@ -6,12 +6,19 @@ using Unity.Mathematics;
 
 namespace U0071
 {
+	public struct WandererComponent : IComponentData
+	{
+		public float2 Position;
+		public float2 Direction;
+	}
+
 	public struct Flowfield : IComponentData, IDisposable
 	{
 		public NativeArray<float2> FoodLevelZero;
 		public NativeArray<float2> WorkLevelZero;
 		public NativeArray<float2> Destroy;
 		public NativeArray<float2> NoWork;
+		public NativeArray<float2> Wander; // TODO: per autorisation level (ensure loop in every area)
 		public int2 Dimensions;
 
 		public Flowfield(int2 dimensions)
@@ -21,14 +28,16 @@ namespace U0071
 			Destroy = new NativeArray<float2>(dimensions.x * dimensions.y, Allocator.Persistent);
 			WorkLevelZero = new NativeArray<float2>(dimensions.x * dimensions.y, Allocator.Persistent);
 			NoWork = new NativeArray<float2>(dimensions.x * dimensions.y, Allocator.Persistent);
+			Wander = new NativeArray<float2>(dimensions.x * dimensions.y, Allocator.Persistent);
 		}
 
 		public void Dispose()
 		{
 			FoodLevelZero.Dispose();
-			Destroy.Dispose();
 			WorkLevelZero.Dispose();
+			Destroy.Dispose();
 			NoWork.Dispose();
+			Wander.Dispose();
 		}
 
 		public float2 GetDirection(AIGoal goal, float2 position)
@@ -38,7 +47,17 @@ namespace U0071
 				goal == AIGoal.Eat ? FoodLevelZero[index] : 
 				goal == AIGoal.Destroy ? Destroy[index] :
 				goal == AIGoal.Work ? WorkLevelZero[index] : 
-				NoWork[index]; // TODO: the rest / autorisation level
+				goal == AIGoal.Wander && ShouldUseWanderPath(index, out float2 direction) ? direction :
+				NoWork[index];
+			
+			// TODO: the rest / autorisation level
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		private bool ShouldUseWanderPath(int index, out float2 direction)
+		{
+			direction = Wander[index];
+			return direction.Equals(float2.zero);
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
