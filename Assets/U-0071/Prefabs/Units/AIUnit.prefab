@@ -100,17 +100,9 @@ MonoBehaviour:
   Name: U-0000
   Speed: 3
   Hunger: 5
-  Credits: 0
+  Credits: 30
   Range: 0.5
   Time: 1
-  IsRandom: 1
-  MinSkinColor: {r: 0.5568628, g: 0.42745098, b: 0.32941177, a: 1}
-  MaxSkinColor: {r: 0.93333334, g: 0.78431374, b: 0.63529414, a: 1}
-  MinHairColor: {r: 0.21568628, g: 0.1882353, b: 0.15686275, a: 1}
-  MaxHairColor: {r: 0.8627451, g: 0.8509804, b: 0.5882353, a: 1}
-  ChanceOfShortHair: 0.8
-  ChanceOfLongHair: 0.6
-  ChanceOfBeard: 0.2
   ShirtColor: {r: 0.60784316, g: 0.6784314, b: 0.7176471, a: 1}
   SkinColor: {r: 0.9333334, g: 0.76470596, b: 0.6039216, a: 1}
   ShortHairColor: {r: 0.56078434, g: 0.3372549, b: 0.23137257, a: 1}

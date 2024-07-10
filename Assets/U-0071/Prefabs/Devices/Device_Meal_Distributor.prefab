@@ -108,7 +108,7 @@ MonoBehaviour:
   Prefab: {fileID: 1708813368808323750, guid: 4f09a7b8018e3c54cbd6329c0998ba1d, type: 3}
   VariantPrefab: {fileID: 0}
   SpawnOffset: 0.5
-  StartingCapacity: 0
+  StartingCapacity: 2
   GrowTime: -1
   VisualStageCount: 8
   AutoSpawner: 0
