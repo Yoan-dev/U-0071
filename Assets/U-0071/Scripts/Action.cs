@@ -101,6 +101,12 @@ namespace U0071
 		{
 			return Utilities.HasItemFlag(ItemFlags, inFlag);
 		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public bool IsWorkingStation()
+		{
+			return HasActionFlag(ActionFlag.Collect) && HasItemFlag(ItemFlag.Trash | ItemFlag.RawFood);
+		}
 	}
 
 	public struct CarryComponent : IComponentData, IEnableableComponent
