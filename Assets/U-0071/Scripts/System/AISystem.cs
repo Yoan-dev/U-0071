@@ -13,6 +13,7 @@ namespace U0071
 	public partial struct AIControllerSystem : ISystem
 	{
 		private BufferLookup<RoomElementBufferElement> _roomElementLookup;
+		private ComponentLookup<RoomComponent> _roomLookup;
 		private ComponentLookup<InteractableComponent> _interactableLookup;
 		private ComponentLookup<PickableComponent> _pickableLookup;
 		private EntityQuery _query;
@@ -32,6 +33,7 @@ namespace U0071
 				.Build();
 
 			_roomElementLookup = state.GetBufferLookup<RoomElementBufferElement>(true);
+			_roomLookup = state.GetComponentLookup<RoomComponent>(true);
 			_interactableLookup = state.GetComponentLookup<InteractableComponent>(true);
 			_pickableLookup = state.GetComponentLookup<PickableComponent>(true);
 		}
@@ -47,12 +49,14 @@ namespace U0071
 
 				_roomElementLookup.Update(ref state);
 				_interactableLookup.Update(ref state);
+				_roomLookup.Update(ref state);
 				_pickableLookup.Update(ref state);
 
 				state.Dependency = new AIActionJob
 				{
 					RoomElementBufferLookup = _roomElementLookup,
 					InteractableLookup = _interactableLookup,
+					RoomLookup = _roomLookup,
 					PickableLookup = _pickableLookup,
 					DeltaTime = Const.AITick,
 				}.ScheduleParallel(_query, state.Dependency);
@@ -70,6 +74,8 @@ namespace U0071
 		{
 			[ReadOnly]
 			public BufferLookup<RoomElementBufferElement> RoomElementBufferLookup;
+			[ReadOnly]
+			public ComponentLookup<RoomComponent> RoomLookup;
 			[ReadOnly]
 			public ComponentLookup<PickableComponent> PickableLookup;
 			[ReadOnly]
@@ -137,8 +143,6 @@ namespace U0071
 				}
 				else if (controller.ShouldReassess(hungerRatio, carry.HasItem))
 				{
-					controller.ReassessmentTimer = Const.AIGoalReassessmentTime;
-
 					controller.EatWeight = hungerRatio <= Const.AILightHungerRatio && credits.Value >= Const.AIDesiredCreditsToEat ?
 						1f - math.unlerp(Const.AIStarvingRatio, Const.AILightHungerRatio, hungerRatio) : 0f;
 
@@ -146,11 +150,9 @@ namespace U0071
 					int creditsTarget = Const.AIDesiredCreditsPerLevel;
 					controller.WorkWeight = credits.Value < creditsTarget ? (1f - credits.Value / creditsTarget) : 0f;
 
-					// TODO boredom factor
 					controller.RelaxWeight = Const.AIRelaxWeight;
-					controller.WanderWeight = Const.AIWanderWeight;
 
-					controller.ChooseGoal(carry.HasItem);
+					controller.ChooseGoal(carry.HasItem, in RoomLookup, partition.CurrentRoom);
 				}
 
 				if (controller.Goal == AIGoal.Relax)

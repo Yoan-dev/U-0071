@@ -12,12 +12,6 @@ namespace U0071
 		public bool IsWanderPath;
 	}
 
-	public struct RoomLinkComponent : IComponentData
-	{
-		public float2 Position;
-		public bool IsWanderPath;
-	}
-
 	[InternalBufferCapacity(32)]
 	public struct RoomElementBufferElement : IBufferElementData
 	{
@@ -117,5 +111,11 @@ namespace U0071
 		}
 	}
 
+	public struct CorridorOverrideComponent : IComponentData
+	{
+		public float2 Position;
+		public int2 Dimensions;
+	}
+	
 	public struct RoomInitTag : IComponentData, IEnableableComponent { }
 }

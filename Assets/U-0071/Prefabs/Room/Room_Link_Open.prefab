@@ -11,8 +11,7 @@ GameObject:
   - component: {fileID: 2235203845590944929}
   - component: {fileID: 582785706820479527}
   - component: {fileID: 925351416181226250}
-  - component: {fileID: 7929523195482847265}
-  - component: {fileID: 5192469095005012865}
+  - component: {fileID: 6028835489293189894}
   m_Layer: 0
   m_Name: Room_Link_Open
   m_TagString: Untagged
@@ -87,7 +86,7 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!114 &7929523195482847265
+--- !u!114 &6028835489293189894
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -96,22 +95,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 1351476759501994997}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ef889741be91da24e888850093fc8af8, type: 3}
+  m_Script: {fileID: 11500000, guid: cb60002a0c6bb8e4ca381165a6bfec3f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &5192469095005012865
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1351476759501994997}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 21417eee0139f764faad9f972d9a5f84, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  Open: 1
+  IsWanderPath: 0
 --- !u!1001 &2427594241189840914
 PrefabInstance:
   m_ObjectHideFlags: 0

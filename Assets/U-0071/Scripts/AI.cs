@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
 using Unity.Entities;
 
@@ -23,7 +24,6 @@ namespace U0071
 		public float EatWeight;
 		public float WorkWeight;
 		public float RelaxWeight;
-		public float WanderWeight;
 
 		// pathing
 		public bool IsPathing;
@@ -40,17 +40,32 @@ namespace U0071
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void ChooseGoal(bool hasItem)
+		public void ChooseGoal(bool hasItem, in ComponentLookup<RoomComponent> roomLookup, Entity currentRoom)
 		{
 			AIGoal newGoal =
-				EatWeight > WorkWeight && EatWeight > RelaxWeight && EatWeight > WanderWeight ? AIGoal.Eat :
-				WorkWeight > RelaxWeight && WorkWeight > WanderWeight ? AIGoal.Work :
-				RelaxWeight > WanderWeight ? AIGoal.Relax :
-				AIGoal.Wander;
+				EatWeight > WorkWeight && EatWeight > RelaxWeight ? AIGoal.Eat :
+				WorkWeight > RelaxWeight ? AIGoal.Work :
+				AIGoal.Relax;
 
-			if (Goal == AIGoal.Destroy && hasItem && !IsCriticalGoal(newGoal)) return; // keep going for destroy
+			if (Goal == AIGoal.Destroy && hasItem && !IsCriticalGoal(newGoal))
+			{
+				// keep going for destroy
+				Goal = AIGoal.Destroy; 
+			}
+
+			if (Goal == AIGoal.Work)
+			{
+				// verify that we are not in a crowded workplace
+				RoomComponent room = roomLookup[currentRoom];
+				if (room.Capacity > 0 && room.Population > room.Capacity)
+				{
+					// look for new opportunities
+					newGoal = AIGoal.Wander;
+				}
+			}
 
 			Goal = newGoal;
+			ReassessmentTimer = Const.GetReassessmentTimer(newGoal);
 
 			// flee goal will be set outside of controller
 		}

@@ -9,13 +9,11 @@ namespace U0071
 
 		// AI
 		public const float AITick = 0.1f;
-		public const float AIGoalReassessmentTime = 10f;
 		public const float AILightHungerRatio = 0.75f;
 		public const float AIStarvingRatio = 0.15f;
 		public const int AIDesiredCreditsToEat = 10;
 		public const int AIDesiredCreditsPerLevel = 50;
 		public const float AIRelaxWeight = 0.25f;
-		public const float AIWanderWeight = 0f;
 
 		// used for Y sorting
 		public const float DeviceYOffset = 0.1f;
@@ -50,6 +48,21 @@ namespace U0071
 				ActionFlag.Drop => 0f,
 				ActionFlag.Push => 0.25f,
 				_ => baseTime,
+			};
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static float GetReassessmentTimer(AIGoal goal)
+		{
+			return goal switch
+			{
+				AIGoal.Eat => 10f,
+				AIGoal.Work => 5f,
+				AIGoal.Relax => 20f,
+				AIGoal.Wander => 15f,
+				AIGoal.Flee => 5f,
+				AIGoal.Destroy => 10f,
+				_ => 10f,
 			};
 		}
 

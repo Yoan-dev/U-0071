@@ -14,11 +14,12 @@ namespace U0071
 
 	public struct Flowfield : IComponentData, IDisposable
 	{
+		// TODO: per autorisation level
+		// TODO: ensure loop in every area for wander
 		public NativeArray<float2> FoodLevelZero;
 		public NativeArray<float2> WorkLevelZero;
 		public NativeArray<float2> Destroy;
-		public NativeArray<float2> NoWork;
-		public NativeArray<float2> Wander; // TODO: per autorisation level (ensure loop in every area)
+		public NativeArray<float2> Wander;
 		public int2 Dimensions;
 
 		public Flowfield(int2 dimensions)
@@ -27,7 +28,6 @@ namespace U0071
 			FoodLevelZero = new NativeArray<float2>(dimensions.x * dimensions.y, Allocator.Persistent);
 			Destroy = new NativeArray<float2>(dimensions.x * dimensions.y, Allocator.Persistent);
 			WorkLevelZero = new NativeArray<float2>(dimensions.x * dimensions.y, Allocator.Persistent);
-			NoWork = new NativeArray<float2>(dimensions.x * dimensions.y, Allocator.Persistent);
 			Wander = new NativeArray<float2>(dimensions.x * dimensions.y, Allocator.Persistent);
 		}
 
@@ -36,7 +36,6 @@ namespace U0071
 			FoodLevelZero.Dispose();
 			WorkLevelZero.Dispose();
 			Destroy.Dispose();
-			NoWork.Dispose();
 			Wander.Dispose();
 		}
 
@@ -47,17 +46,9 @@ namespace U0071
 				goal == AIGoal.Eat ? FoodLevelZero[index] : 
 				goal == AIGoal.Destroy ? Destroy[index] :
 				goal == AIGoal.Work ? WorkLevelZero[index] : 
-				goal == AIGoal.Wander && ShouldUseWanderPath(index, out float2 direction) ? direction :
-				NoWork[index];
+				goal == AIGoal.Wander ? Wander[index] : float2.zero;
 			
 			// TODO: the rest / autorisation level
-		}
-
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		private bool ShouldUseWanderPath(int index, out float2 direction)
-		{
-			direction = Wander[index];
-			return direction.Equals(float2.zero);
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -130,7 +121,7 @@ namespace U0071
 
 			if (size == 1)
 			{
-				InitDeviceCell(partition.GetIndex(position), isStartingCell);
+				InitStartingCell(partition.GetIndex(position), isStartingCell);
 			}
 			else
 			{
@@ -138,14 +129,14 @@ namespace U0071
 				{
 					for (int x = 0; x < size; x++)
 					{
-						InitDeviceCell(partition.GetIndex(new float2(position.x + x - size / 2f, position.y + y - size / 2f)), isStartingCell);
+						InitStartingCell(partition.GetIndex(new float2(position.x + x - size / 2f, position.y + y - size / 2f)), isStartingCell);
 					}
 				}
 			}
 		}
 		
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		private void InitDeviceCell(int index, bool isStartingCell)
+		public void InitStartingCell(int index, bool isStartingCell)
 		{
 			FlowfieldBuilderCell cell = Cells[index];
 			if (isStartingCell)
@@ -250,6 +241,12 @@ namespace U0071
 		private FlowfieldBuilderCell GetCellSafe(int index)
 		{
 			return index >= 0 && index < Cells.Length ? Cells[index] : new FlowfieldBuilderCell { Value = int.MaxValue };
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public int GetIndex(float2 position)
+		{
+			return (int)(position.x + Dimensions.x / 2) + (int)(position.y + Dimensions.y / 2) * Dimensions.x;
 		}
 	}
 }

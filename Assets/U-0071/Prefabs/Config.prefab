@@ -44,33 +44,52 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8096dc02320a40244bf298d7cbf2882b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Config:
-    WorldDimensions:
-      x: 64
-      y: 64
-    Seed: 1
-    CharacterIdle:
-      StartIndex: 0
-      Duration: 4
-      FrameTime: 0.2
-      Looping: 1
-    CharacterWalk:
-      StartIndex: 4
-      Duration: 6
-      FrameTime: 0.1
-      Looping: 1
-    CharacterInteract:
-      StartIndex: 10
-      Duration: 4
-      FrameTime: 0.15
-      Looping: 1
-    CharacterDie:
-      StartIndex: 14
-      Duration: 6
-      FrameTime: 0.15
-      Looping: 0
-    CharacterCrushed:
-      StartIndex: 20
-      Duration: 7
-      FrameTime: 0.1
-      Looping: 0
+  WorldDimensions:
+    x: 64
+    y: 64
+  Seed: 0
+  CharacterIdle:
+    StartIndex: 0
+    Duration: 4
+    FrameTime: 0.2
+    Looping: 1
+  CharacterWalk:
+    StartIndex: 4
+    Duration: 6
+    FrameTime: 0.1
+    Looping: 1
+  CharacterInteract:
+    StartIndex: 10
+    Duration: 4
+    FrameTime: 0.15
+    Looping: 1
+  CharacterDie:
+    StartIndex: 14
+    Duration: 6
+    FrameTime: 0.15
+    Looping: 0
+  CharacterCrushed:
+    StartIndex: 20
+    Duration: 7
+    FrameTime: 0.1
+    Looping: 0
+  SkinColors:
+  - {r: 0.4433962, g: 0.3374874, b: 0.25725347, a: 1}
+  - {r: 0.5568628, g: 0.427451, b: 0.32941177, a: 1}
+  - {r: 0.7686275, g: 0.5921569, b: 0.4156863, a: 1}
+  - {r: 0.75294125, g: 0.67058825, b: 0.6, a: 1}
+  - {r: 0.8470589, g: 0.70980394, b: 0.60784316, a: 1}
+  - {r: 0.9333334, g: 0.7607844, b: 0.6, a: 1}
+  - {r: 0.9333334, g: 0.7607844, b: 0.63529414, a: 1}
+  - {r: 0.9622642, g: 0.818136, b: 0.6853863, a: 1}
+  HairColors:
+  - {r: 0.21568629, g: 0.21568629, b: 0.21568629, a: 1}
+  - {r: 0.5019608, g: 0.5019608, b: 0.5019608, a: 1}
+  - {r: 0.43529415, g: 0.34117648, b: 0.24313727, a: 1}
+  - {r: 0.80784315, g: 0.80784315, b: 0.49019608, a: 1}
+  - {r: 0.7176471, g: 0.32941177, b: 0.15686275, a: 1}
+  - {r: 0.10702207, g: 0.11743503, b: 0.122641504, a: 1}
+  - {r: 0.6792453, g: 0.47083536, b: 0.36845854, a: 1}
+  ChanceOfShortHair: 0.9
+  ChanceOfLongHair: 0.6
+  ChanceOfBeard: 0.3

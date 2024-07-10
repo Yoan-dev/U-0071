@@ -3,6 +3,7 @@ using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Rendering;
 using UnityEngine;
+using Random = Unity.Mathematics.Random;
 
 namespace U0071
 {

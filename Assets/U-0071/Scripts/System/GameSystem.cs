@@ -1,5 +1,3 @@
-using System;
-using System.Collections;
 using System.Runtime.CompilerServices;
 using Unity.Burst;
 using Unity.Collections;
@@ -7,7 +5,6 @@ using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Transforms;
-using UnityEditor;
 
 namespace U0071
 {
@@ -55,7 +52,7 @@ namespace U0071
 				WanderCells = wanderCells,
 			}.ScheduleParallel(state.Dependency).Complete();
 
-			new RoomLinkJob
+			new CorridorOverrideJob
 			{
 				Partition = partition,
 				WanderCells = wanderCells,
@@ -78,11 +75,14 @@ namespace U0071
 
 			// flowfields init
 
+			// go to wander, will be merged with wander path
+			NativeArray<float2> goToWander = new NativeArray<float2>(size, Allocator.TempJob);
+			
 			// do not use ActionFlag.Collect (not set if starting capacity != 0)
 			FlowfieldBuilder foodLevelZeroBuilder = new FlowfieldBuilder(flowfield.FoodLevelZero, 0, ItemFlag.Food, in partition);
 			FlowfieldBuilder workLevelZeroBuilder = new FlowfieldBuilder(flowfield.WorkLevelZero, 0, 0, in partition, true);
 			FlowfieldBuilder destroyBuilder = new FlowfieldBuilder(flowfield.Destroy, ActionFlag.Destroy, ItemFlag.Trash, in partition);
-			FlowfieldBuilder noWorkBuilder = new FlowfieldBuilder(flowfield.NoWork, 0, 0, in partition);
+			FlowfieldBuilder goToWanderBuilder = new FlowfieldBuilder(goToWander, 0, 0, in partition);
 
 			new DeviceFlowfieldInitJob
 			{
@@ -90,27 +90,44 @@ namespace U0071
 				FoodLevelZeroBuilder = foodLevelZeroBuilder,
 				WorkLevelZeroBuilder = workLevelZeroBuilder,
 				DestroyBuilder = destroyBuilder,
-				NoWorkBuilder = noWorkBuilder,
 			}.ScheduleParallel(state.Dependency).Complete();
+
+			new WandererFlowfieldInitJob
+			{
+				GoToWanderBuilder = goToWanderBuilder,
+			}.Schedule(state.Dependency).Complete();
 
 			state.Dependency = new FlowfieldSpreadJob { Builder = foodLevelZeroBuilder }.Schedule(state.Dependency);
 			state.Dependency = new FlowfieldSpreadJob { Builder = workLevelZeroBuilder }.Schedule(state.Dependency);
 			state.Dependency = new FlowfieldSpreadJob { Builder = destroyBuilder }.Schedule(state.Dependency);
-			state.Dependency = new FlowfieldSpreadJob { Builder = noWorkBuilder }.Schedule(state.Dependency);
+			state.Dependency = new FlowfieldSpreadJob { Builder = goToWanderBuilder }.Schedule(state.Dependency);
 
 			state.Dependency = new FlowfieldDirectionJob { Builder = foodLevelZeroBuilder }.ScheduleParallel(size, Const.ParallelForCount, state.Dependency);
 			state.Dependency = new FlowfieldDirectionJob { Builder = workLevelZeroBuilder }.ScheduleParallel(size, Const.ParallelForCount, state.Dependency);
 			state.Dependency = new FlowfieldDirectionJob { Builder = destroyBuilder }.ScheduleParallel(size, Const.ParallelForCount, state.Dependency);
-			state.Dependency = new FlowfieldDirectionJob { Builder = noWorkBuilder }.ScheduleParallel(size, Const.ParallelForCount, state.Dependency);
+			state.Dependency = new FlowfieldDirectionJob { Builder = goToWanderBuilder }.ScheduleParallel(size, Const.ParallelForCount, state.Dependency);
 
 			state.Dependency.Complete();
+
+			// overlay goToWander on wander flowfield
+			// (get out of the rooms => wander in loop)
+			for (int i = 0; i < size; i++)
+			{
+				if (flowfield.Wander[i].Equals(float2.zero))
+				{
+					flowfield.Wander[i] = goToWander[i];
+				}
+			}
 
 			foodLevelZeroBuilder.Dispose();
 			destroyBuilder.Dispose();
 			workLevelZeroBuilder.Dispose();
-			noWorkBuilder.Dispose();
+			goToWanderBuilder.Dispose();
+			goToWander.Dispose();
 			wanderCells.Dispose();
 			wanderers.Dispose();
+
+			new InitAIUnits { Config = config }.ScheduleParallel(state.Dependency).Complete();
 
 			state.EntityManager.AddComponentData(state.SystemHandle, partition);
 			state.EntityManager.AddComponentData(state.SystemHandle, flowfield);
@@ -151,39 +168,23 @@ namespace U0071
 		}
 
 		[BurstCompile]
-		public partial struct RoomLinkJob : IJobEntity
+		public partial struct CorridorOverrideJob : IJobEntity
 		{
 			[NativeDisableParallelForRestriction] public Partition Partition;
 			[NativeDisableParallelForRestriction] public NativeArray<bool> WanderCells;
 
-			public void Execute(in RoomLinkComponent link)
+			public void Execute(in CorridorOverrideComponent corridorOverride)
 			{
-				// try to retreive the two connected rooms
-				RoomData room1;
-				RoomData room2;
-				if (Partition.IsPathable(new float2(link.Position.x + 1, link.Position.y))) // horizontal
+				for (int y = 0; y < corridorOverride.Dimensions.y; y++)
 				{
-					room1 = Partition.GetRoomData(new float2(link.Position.x - 1, link.Position.y));
-					room2 = Partition.GetRoomData(new float2(link.Position.x + 1, link.Position.y));
-				}
-				else // vertical
-				{
-					room1 = Partition.GetRoomData(new float2(link.Position.x, link.Position.y - 1));
-					room2 = Partition.GetRoomData(new float2(link.Position.x, link.Position.y + 1));
-				}
-
-				int index = Partition.GetIndex(link.Position);
-
-				// TODO:
-				// owned by non-wanderpath (corridor), or
-				// owned by higher autorisation level (if closed), or
-				// owned by the one with working station (if any) or
-				// owned by the biggest room
-				Partition.SetCellData(true, room1.Size >= room2.Size ? room1 : room2, index);
-
-				if (link.IsWanderPath && index >= 0 && index < WanderCells.Length)
-				{
-					WanderCells[index] = true;
+					for (int x = 0; x < corridorOverride.Dimensions.x; x++)
+					{
+						int index = Partition.GetIndex(new float2(corridorOverride.Position.x + x - corridorOverride.Dimensions.x / 2f, corridorOverride.Position.y + y - corridorOverride.Dimensions.y / 2f));
+						if (Partition.IsPathable(index) && index >= 0 && index < WanderCells.Length)
+						{
+							WanderCells[index] = true;
+						}
+					}
 				}
 			}
 		}
@@ -253,7 +254,7 @@ namespace U0071
 				return (int)(position.x + Dimensions.x / 2) + (int)(position.y + Dimensions.y / 2) * Dimensions.x;
 			}
 		}
-			
+		
 		[BurstCompile]
 		[WithAll(typeof(DeviceTag))]
 		public partial struct DeviceFlowfieldInitJob : IJobEntity
@@ -262,7 +263,6 @@ namespace U0071
 			[NativeDisableParallelForRestriction] public FlowfieldBuilder FoodLevelZeroBuilder;
 			[NativeDisableParallelForRestriction] public FlowfieldBuilder WorkLevelZeroBuilder;
 			[NativeDisableParallelForRestriction] public FlowfieldBuilder DestroyBuilder;
-			[NativeDisableParallelForRestriction] public FlowfieldBuilder NoWorkBuilder;
 
 			public void Execute(in InteractableComponent interactable, in LocalTransform transform)
 			{
@@ -275,7 +275,18 @@ namespace U0071
 				FoodLevelZeroBuilder.ProcessDevice(in interactable, in Partition, position, size);
 				DestroyBuilder.ProcessDevice(in interactable, in Partition, position, size);
 				WorkLevelZeroBuilder.ProcessDevice(in interactable, in Partition, position, size);
-				NoWorkBuilder.ProcessDevice(in interactable, in Partition, position, size);
+			}
+		}
+
+		[BurstCompile]
+		public partial struct WandererFlowfieldInitJob : IJobEntity
+		{
+			[NativeDisableParallelForRestriction]
+			public FlowfieldBuilder GoToWanderBuilder;
+
+			public void Execute(in WandererComponent wanderer)
+			{
+				GoToWanderBuilder.InitStartingCell(GoToWanderBuilder.GetIndex(wanderer.Position), true);
 			}
 		}
 
@@ -299,6 +310,32 @@ namespace U0071
 			public void Execute(int index)
 			{
 				Builder.ProcessDirection(index);
+			}
+		}
+
+		[BurstCompile]
+		[WithAll(typeof(AIController))]
+		public partial struct InitAIUnits : IJobEntity
+		{
+			public Config Config;
+
+			public void Execute(
+				Entity entity,
+				ref SkinColor skin,
+				ref ShortHairColor shortHair,
+				ref LongHairColor longHair,
+				ref BeardColor beard)
+			{
+				Random random = new Random((uint)(entity.Index * 10000));
+
+				float4 skinColor = Config.UnitRenderingColors.Value.SkinColors[random.NextInt(Config.UnitRenderingColors.Value.SkinColors.Length)];
+				float4 hairColor = Config.UnitRenderingColors.Value.HairColors[random.NextInt(Config.UnitRenderingColors.Value.HairColors.Length)];
+
+				skin.Value = skinColor;
+				shortHair.Value = random.NextFloat() < Config.ChanceOfShortHair ? hairColor : skinColor;
+				longHair.Value = random.NextFloat() < Config.ChanceOfLongHair ? hairColor : skinColor;
+				beard.Value = random.NextFloat() < Config.ChanceOfBeard ? hairColor : skinColor;
+
 			}
 		}
 	}

@@ -29,9 +29,8 @@ namespace U0071
 		private EntityQuery _query;
 		private bool _debugRooms;
 		private bool _debugFoodLevelZero;
-		private bool _debugDestroy;
 		private bool _debugWorkLevelZero;
-		private bool _debugNoWork;
+		private bool _debugDestroy;
 		private bool _debugWander;
 
 		[BurstCompile]
@@ -81,12 +80,7 @@ namespace U0071
 				Flowfield flowfield = SystemAPI.GetSingleton<Flowfield>();
 				DebugFlowfield(in flowfield.WorkLevelZero, flowfield.Dimensions);
 			}
-			if (CheckDebugFlowfield(KeyCode.Alpha4, ref _debugNoWork))
-			{
-				Flowfield flowfield = SystemAPI.GetSingleton<Flowfield>();
-				DebugFlowfield(in flowfield.NoWork, flowfield.Dimensions);
-			}
-			if (CheckDebugFlowfield(KeyCode.Alpha5, ref _debugWander))
+			if (CheckDebugFlowfield(KeyCode.Alpha4, ref _debugWander))
 			{
 				Flowfield flowfield = SystemAPI.GetSingleton<Flowfield>();
 				DebugFlowfield(in flowfield.Wander, flowfield.Dimensions);
