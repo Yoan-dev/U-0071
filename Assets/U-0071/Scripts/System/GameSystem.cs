@@ -102,6 +102,8 @@ namespace U0071
 			state.Dependency = new FlowfieldSpreadJob { Builder = destroyBuilder }.Schedule(state.Dependency);
 			state.Dependency = new FlowfieldSpreadJob { Builder = goToWanderBuilder }.Schedule(state.Dependency);
 
+			state.Dependency.Complete();
+
 			state.Dependency = new FlowfieldDirectionJob { Builder = foodLevelZeroBuilder }.ScheduleParallel(size, Const.ParallelForCount, state.Dependency);
 			state.Dependency = new FlowfieldDirectionJob { Builder = workLevelZeroBuilder }.ScheduleParallel(size, Const.ParallelForCount, state.Dependency);
 			state.Dependency = new FlowfieldDirectionJob { Builder = destroyBuilder }.ScheduleParallel(size, Const.ParallelForCount, state.Dependency);
@@ -228,7 +230,7 @@ namespace U0071
 			{
 				float2 newPosition = wanderer.Position + newDirection;
 				int newIndex = GetIndex(newPosition);
-				if (WanderCells[newIndex])
+				if (newIndex >= 0 && newIndex < WanderCells.Length && WanderCells[newIndex])
 				{
 					if (WanderPath[newIndex].Equals(float2.zero))
 					{

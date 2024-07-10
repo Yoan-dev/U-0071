@@ -14,6 +14,9 @@ namespace U0071
 		{
 			public override void Bake(RoomAuthoring authoring)
 			{
+				// note: rooms shoudld never be rotated (not supported currently)
+				// inverse x and y scales to "rotate" it
+
 				Entity entity = GetEntity(TransformUsageFlags.Dynamic);
 
 				Transform transform = authoring.gameObject.transform;

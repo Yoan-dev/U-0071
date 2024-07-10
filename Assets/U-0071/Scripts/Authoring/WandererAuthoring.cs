@@ -1,6 +1,5 @@
 using Unity.Entities;
 using Unity.Mathematics;
-using UnityEditor.SceneManagement;
 using UnityEngine;
 
 namespace U0071
@@ -21,7 +20,7 @@ namespace U0071
 		{
 			public override void Bake(WandererAuthoring authoring)
 			{
-				Entity entity = GetEntity(TransformUsageFlags.None);
+				Entity entity = GetEntity(TransformUsageFlags.Dynamic);
 
 				Vector3 position = authoring.gameObject.transform.position;
 

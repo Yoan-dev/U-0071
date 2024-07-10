@@ -9,13 +9,8 @@ public class DebugManager : MonoBehaviour
 {
 	public static DebugManager Instance;
 
-	[Header("Runtime")]
-	public bool DebugFoodLevelZeroFlowField;
-	public bool DebugDestroyFlowField;
-
 	[Header("Miscellaneous")]	
 	public TMP_Text RoomElementPrefab;
-	public TMP_Text CellElementPrefab;
 
 	private Dictionary<Entity, TMP_Text> _roomElements;
 	private List<FlowfieldInfo> _flowfieldInfos;

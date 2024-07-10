@@ -161,14 +161,14 @@ namespace U0071
 			{
 				FlowfieldBuilderCell cell = Queue.Dequeue();
 
-				FlowfieldBuilderCell cellNW = GetCellSafe(cell.Index + offsetNW);
-				FlowfieldBuilderCell cellN = GetCellSafe(cell.Index + offsetN);
-				FlowfieldBuilderCell cellNE = GetCellSafe(cell.Index + offsetNE);
-				FlowfieldBuilderCell cellW = GetCellSafe(cell.Index - 1);
-				FlowfieldBuilderCell cellE = GetCellSafe(cell.Index + 1);
-				FlowfieldBuilderCell cellSW = GetCellSafe(cell.Index + offsetSW);
-				FlowfieldBuilderCell cellS = GetCellSafe(cell.Index + offsetS);
-				FlowfieldBuilderCell cellSE = GetCellSafe(cell.Index + offsetSE);
+				FlowfieldBuilderCell cellNW = GetCell(cell.Index + offsetNW);
+				FlowfieldBuilderCell cellN = GetCell(cell.Index + offsetN);
+				FlowfieldBuilderCell cellNE = GetCell(cell.Index + offsetNE);
+				FlowfieldBuilderCell cellW = GetCell(cell.Index - 1);
+				FlowfieldBuilderCell cellE = GetCell(cell.Index + 1);
+				FlowfieldBuilderCell cellSW = GetCell(cell.Index + offsetSW);
+				FlowfieldBuilderCell cellS = GetCell(cell.Index + offsetS);
+				FlowfieldBuilderCell cellSE = GetCell(cell.Index + offsetSE);
 
 				// adjacents
 				TryEnqueueCell(in cell, cellN);
@@ -187,7 +187,7 @@ namespace U0071
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		private void TryEnqueueCell(in FlowfieldBuilderCell cell, FlowfieldBuilderCell checkedCell)
 		{
-			if (checkedCell.Pathable && checkedCell.Value > cell.Value)
+			if (checkedCell.Pathable && checkedCell.Value > cell.Value + 1)
 			{
 				checkedCell.Value = cell.Value + 1;
 				Cells[checkedCell.Index] = checkedCell;
@@ -202,14 +202,14 @@ namespace U0071
 
 			if (!cell.Pathable) return;
 
-			FlowfieldBuilderCell cellNW = GetCellSafe(cell.Index + offsetNW);
-			FlowfieldBuilderCell cellN = GetCellSafe(cell.Index + offsetN);
-			FlowfieldBuilderCell cellNE = GetCellSafe(cell.Index + offsetNE);
-			FlowfieldBuilderCell cellW = GetCellSafe(cell.Index - 1);
-			FlowfieldBuilderCell cellE = GetCellSafe(cell.Index + 1);
-			FlowfieldBuilderCell cellSW = GetCellSafe(cell.Index + offsetSW);
-			FlowfieldBuilderCell cellS = GetCellSafe(cell.Index + offsetS);
-			FlowfieldBuilderCell cellSE = GetCellSafe(cell.Index + offsetSE);
+			FlowfieldBuilderCell cellNW = GetCell(cell.Index + offsetNW);
+			FlowfieldBuilderCell cellN = GetCell(cell.Index + offsetN);
+			FlowfieldBuilderCell cellNE = GetCell(cell.Index + offsetNE);
+			FlowfieldBuilderCell cellW = GetCell(cell.Index - 1);
+			FlowfieldBuilderCell cellE = GetCell(cell.Index + 1);
+			FlowfieldBuilderCell cellSW = GetCell(cell.Index + offsetSW);
+			FlowfieldBuilderCell cellS = GetCell(cell.Index + offsetS);
+			FlowfieldBuilderCell cellSE = GetCell(cell.Index + offsetSE);
 
 			FlowfieldBuilderCell best = cell;
 
@@ -238,9 +238,9 @@ namespace U0071
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		private FlowfieldBuilderCell GetCellSafe(int index)
+		private FlowfieldBuilderCell GetCell(int index)
 		{
-			return index >= 0 && index < Cells.Length ? Cells[index] : new FlowfieldBuilderCell { Value = int.MaxValue };
+			return index >= 0 && index < Cells.Length ? Cells[index] : new FlowfieldBuilderCell { Value = int.MaxValue, Pathable = false };
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
