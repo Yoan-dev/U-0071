@@ -105,8 +105,9 @@ namespace U0071
 		public void ProcessDevice(in InteractableComponent interactable, in Partition partition, float2 position, int size)
 		{
 			bool isStartingCell =
-				(!WorkFlag || /*interactable.Cost < 0f*/interactable.IsWorkingStation()) && 
-				(interactable.HasActionFlag(ActionFlag) && interactable.HasItemFlag(ItemFlag) || ActionFlag == 0 && ItemFlag == 0);
+				(!WorkFlag || interactable.WorkingStationFlag) && 
+				(ActionFlag == 0 || interactable.HasActionFlag(ActionFlag)) && 
+				(ItemFlag == 0 || interactable.HasItemFlag(ItemFlag));
 
 			if (size == 1)
 			{

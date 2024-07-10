@@ -72,6 +72,8 @@ namespace U0071
 			{
 				Updates = _updates,
 			}.ScheduleParallel(state.Dependency);
+
+			state.Dependency = new RoomInitJob().ScheduleParallel(state.Dependency);
 		}
 
 		[BurstCompile]
@@ -136,9 +138,7 @@ namespace U0071
 
 			public void Execute(Entity entity, ref RoomComponent room, ref DynamicBuffer<RoomElementBufferElement> elements)
 			{
-				// TODO: set room capacity during init
-				// TODO: keep track of population with room updates
-				// TODO: trigger wandering goal when AI unit if in crowded room and want to work
+				bool dirtyPopulation = false;
 
 				if (Updates.TryGetFirstValue(entity, out RoomUpdateEvent update, out var it))
 				{
@@ -147,6 +147,7 @@ namespace U0071
 						// TODO: keep an eye on perf (deletion/update)
 						if (update.Type == RoomUpdateType.Deletion)
 						{
+							dirtyPopulation = true;
 							RoomElementBufferElement.RemoveElement(ref elements, in update.Element);
 						}
 						else if (update.Type == RoomUpdateType.Update)
@@ -155,10 +156,51 @@ namespace U0071
 						}
 						else // addition
 						{
+							dirtyPopulation = true;
 							elements.Add(update.Element);
 						}
 					}
 					while (Updates.TryGetNextValue(out update, ref it));
+				}
+
+				if (dirtyPopulation)
+				{
+					// recount all (safer because of death)
+					// TODO: find a better way
+					room.Population = 0;
+					using (var element = elements.GetEnumerator())
+					{
+						while (element.MoveNext())
+						{
+							// push check is the dirty way to check for characters
+							if (element.Current.HasActionFlag(ActionFlag.Push))
+							{
+								room.Population++;
+							}
+						}
+					}
+				}
+			}
+		}
+
+		[BurstCompile]
+		public partial struct RoomInitJob : IJobEntity
+		{
+			public void Execute(ref RoomComponent room, in DynamicBuffer<RoomElementBufferElement> elements, EnabledRefRW<RoomInitTag> roomInit)
+			{
+				// wait for first partition update to run (get working devices)
+
+				roomInit.ValueRW = false; // disable
+
+				using (var element = elements.GetEnumerator())
+				{
+					while (element.MoveNext())
+					{
+						if (element.Current.Interactable.WorkingStationFlag)
+						{
+							room.Capacity++;
+						}
+					}
 				}
 			}
 		}

@@ -566,7 +566,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   DebugFoodLevelZeroFlowField: 0
-  DebugDestroyLevelZeroFlowField: 0
+  DebugDestroyFlowField: 0
   RoomElementPrefab: {fileID: 2517192555125963864, guid: b1e00b4035298b94ebb161a030503c29,
     type: 3}
   CellElementPrefab: {fileID: 8080970378164187478, guid: 8e823588a4f2abb4d8dc972de41a4a8c,

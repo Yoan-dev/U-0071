@@ -15,6 +15,8 @@ namespace U0071
 			public float2 Position;
 			public Entity Entity;
 			public int ElementCount;
+			public int Population;
+			public int Capacity;
 		}
 
 		public struct FlowfieldInfo
@@ -37,7 +39,7 @@ namespace U0071
 			//state.Enabled = false;
 
 			_query = SystemAPI.QueryBuilder()
-				.WithAll<PositionComponent, NameComponent, RoomElementBufferElement>()
+				.WithAll<PositionComponent, NameComponent, RoomElementBufferElement, RoomComponent>()
 				.Build();
 		}
 
@@ -133,7 +135,7 @@ namespace U0071
 			[WriteOnly]
 			public NativeList<RoomInfo>.ParallelWriter RoomInfos;
 
-			public void Execute(Entity entity, in PositionComponent position, in NameComponent name, in DynamicBuffer<RoomElementBufferElement> elements)
+			public void Execute(Entity entity, in RoomComponent room, in PositionComponent position, in NameComponent name, in DynamicBuffer<RoomElementBufferElement> elements)
 			{
 				// TODO: room link infos
 
@@ -143,6 +145,8 @@ namespace U0071
 					Name = name.Value,
 					Position = position.Value,
 					ElementCount = elements.Length,
+					Capacity = room.Capacity,
+					Population = room.Population,
 				});
 			}
 		}

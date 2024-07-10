@@ -55,7 +55,8 @@ namespace U0071
 
 			int size = config.WorldDimensions.x * config.WorldDimensions.y;
 
-			FlowfieldBuilder foodLevelZeroBuilder = new FlowfieldBuilder(flowfield.FoodLevelZero, ActionFlag.Collect, ItemFlag.Food, in partition);
+			// do not use ActionFlag.Collect (not set if starting capacity != 0)
+			FlowfieldBuilder foodLevelZeroBuilder = new FlowfieldBuilder(flowfield.FoodLevelZero, 0, ItemFlag.Food, in partition);
 			FlowfieldBuilder workLevelZeroBuilder = new FlowfieldBuilder(flowfield.WorkLevelZero, 0, 0, in partition, true);
 			FlowfieldBuilder destroyBuilder = new FlowfieldBuilder(flowfield.Destroy, ActionFlag.Destroy, ItemFlag.Trash, in partition);
 			FlowfieldBuilder noWorkBuilder = new FlowfieldBuilder(flowfield.NoWork, 0, 0, in partition);
@@ -78,8 +79,6 @@ namespace U0071
 			state.Dependency = new FlowfieldDirectionJob { Builder = workLevelZeroBuilder }.ScheduleParallel(size, Const.ParallelForCount, state.Dependency);
 			state.Dependency = new FlowfieldDirectionJob { Builder = destroyBuilder }.ScheduleParallel(size, Const.ParallelForCount, state.Dependency);
 			state.Dependency = new FlowfieldDirectionJob { Builder = noWorkBuilder }.ScheduleParallel(size, Const.ParallelForCount, state.Dependency);
-
-			new SpawnerInitJob().ScheduleParallel(state.Dependency).Complete();
 
 			state.Dependency.Complete();
 
@@ -193,20 +192,6 @@ namespace U0071
 			public void Execute(int index)
 			{
 				Builder.ProcessDirection(index);
-			}
-		}
-
-		[BurstCompile]
-		public partial struct SpawnerInitJob : IJobEntity
-		{
-			public void Execute(ref InteractableComponent interactable, in SpawnerComponent spawner)
-			{
-				// remove collect flag
-				// (was needed for flowfield init)
-				if (spawner.Capacity == 0)
-				{
-					interactable.ActionFlags &= ~ActionFlag.Collect;
-				}
 			}
 		}
 	}

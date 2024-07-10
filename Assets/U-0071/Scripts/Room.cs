@@ -115,4 +115,6 @@ namespace U0071
 			}
 		}
 	}
+
+	public struct RoomInitTag : IComponentData, IEnableableComponent { }
 }

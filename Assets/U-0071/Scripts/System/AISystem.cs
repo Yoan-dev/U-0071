@@ -150,7 +150,7 @@ namespace U0071
 					controller.RelaxWeight = Const.AIRelaxWeight;
 					controller.WanderWeight = Const.AIWanderWeight;
 
-					controller.ChooseGoal();
+					controller.ChooseGoal(carry.HasItem);
 				}
 
 				if (controller.Goal == AIGoal.Relax)

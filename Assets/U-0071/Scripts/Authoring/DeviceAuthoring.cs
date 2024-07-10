@@ -63,6 +63,8 @@ namespace U0071
 
 				Vector3 position = authoring.gameObject.transform.position;
 
+				bool isWorkingStation = false;
+
 				// core
 				AddComponent(entity, new DepthSorted_Tag());
 				AddComponent(entity, new NameComponent { Value = new FixedString32Bytes(authoring.Name) });
@@ -86,7 +88,15 @@ namespace U0071
 				}
 				if (authoring.Prefab != null)
 				{
-					actionFlags |= ActionFlag.Collect;
+					// working stations are spawner of working materials
+					// rather than processing station (allow better AI)
+					isWorkingStation = authoring.RawFood || authoring.Trash;
+
+					if (authoring.StartingCapacity > 0 && !authoring.AutoSpawner)
+					{
+						// usable from start
+						actionFlags |= ActionFlag.Collect;
+					}
 					AddComponent(entity, new SpawnerComponent
 					{
 						Prefab = GetEntity(authoring.Prefab, TransformUsageFlags.Dynamic),
@@ -135,6 +145,7 @@ namespace U0071
 					Range = authoring.Range,
 					Time = authoring.Time,
 					Cost = authoring.Cost,
+					WorkingStationFlag = isWorkingStation,
 				});
 
 				// miscellaneous

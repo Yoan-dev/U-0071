@@ -2,10 +2,8 @@ using System.Collections.Generic;
 using TMPro;
 using Unity.Collections;
 using Unity.Entities;
-using Unity.Mathematics;
 using UnityEngine;
 using static U0071.DebugSystem;
-using static UnityEditor.Rendering.FilterWindow;
 
 public class DebugManager : MonoBehaviour
 {
@@ -68,7 +66,7 @@ public class DebugManager : MonoBehaviour
 
 	private void SetRoomInfo(TMP_Text element, in RoomInfo info)
 	{
-		element.text = info.Name + "\n" + info.ElementCount;
+		element.text = info.Name + "\nCapacity: " + info.Capacity + "\nPopulation: " + info.Population + "\nElement count: " + info.ElementCount;
 	}
 
 	public void UpdateFlowfieldElements(in NativeArray<FlowfieldInfo> flowfieldInfos)

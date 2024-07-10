@@ -40,7 +40,7 @@ namespace U0071
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void ChooseGoal()
+		public void ChooseGoal(bool hasItem)
 		{
 			AIGoal newGoal =
 				EatWeight > WorkWeight && EatWeight > RelaxWeight && EatWeight > WanderWeight ? AIGoal.Eat :
@@ -48,7 +48,7 @@ namespace U0071
 				RelaxWeight > WanderWeight ? AIGoal.Relax :
 				AIGoal.Wander;
 
-			if (Goal == AIGoal.Destroy && !IsCriticalGoal(newGoal)) return; // keep going for destroy
+			if (Goal == AIGoal.Destroy && hasItem && !IsCriticalGoal(newGoal)) return; // keep going for destroy
 
 			Goal = newGoal;
 

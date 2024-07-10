@@ -2,6 +2,7 @@ using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Rendering;
 using UnityEngine;
+using static U0071.DebugSystem;
 
 namespace U0071
 {
@@ -25,6 +26,7 @@ namespace U0071
 				{
 					Dimensions = transform.rotation.eulerAngles.y == 0f || transform.rotation.eulerAngles.y == 180f ? new int2((int)scale.x, (int)scale.y) : new int2((int)scale.y, (int)scale.x),
 				});
+				AddComponent<RoomInitTag>(entity);
 
 				AddBuffer<RoomElementBufferElement>(entity);
 			}

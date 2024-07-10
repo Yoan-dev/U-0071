@@ -89,6 +89,7 @@ namespace U0071
 		public float Time;
 		public int Cost;
 		public bool Changed;
+		public bool WorkingStationFlag;
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public bool HasActionFlag(ActionFlag inFlag)
@@ -100,12 +101,6 @@ namespace U0071
 		public bool HasItemFlag(ItemFlag inFlag)
 		{
 			return Utilities.HasItemFlag(ItemFlags, inFlag);
-		}
-
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public bool IsWorkingStation()
-		{
-			return HasActionFlag(ActionFlag.Collect) && HasItemFlag(ItemFlag.Trash | ItemFlag.RawFood);
 		}
 	}
 
