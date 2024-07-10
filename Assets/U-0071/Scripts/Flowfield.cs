@@ -9,33 +9,36 @@ namespace U0071
 	public struct Flowfield : IComponentData, IDisposable
 	{
 		public NativeArray<float2> FoodLevelZero;
-		public NativeArray<float2> DestroyLevelZero;
 		public NativeArray<float2> WorkLevelZero;
-		public NativeArray<float2> WanderLevelZero;
+		public NativeArray<float2> Destroy;
+		public NativeArray<float2> NoWork;
 		public int2 Dimensions;
 
 		public Flowfield(int2 dimensions)
 		{
 			Dimensions = dimensions;
 			FoodLevelZero = new NativeArray<float2>(dimensions.x * dimensions.y, Allocator.Persistent);
-			DestroyLevelZero = new NativeArray<float2>(dimensions.x * dimensions.y, Allocator.Persistent);
+			Destroy = new NativeArray<float2>(dimensions.x * dimensions.y, Allocator.Persistent);
 			WorkLevelZero = new NativeArray<float2>(dimensions.x * dimensions.y, Allocator.Persistent);
-			WanderLevelZero = new NativeArray<float2>(dimensions.x * dimensions.y, Allocator.Persistent);
+			NoWork = new NativeArray<float2>(dimensions.x * dimensions.y, Allocator.Persistent);
 		}
 
 		public void Dispose()
 		{
 			FoodLevelZero.Dispose();
-			DestroyLevelZero.Dispose();
+			Destroy.Dispose();
 			WorkLevelZero.Dispose();
-			WanderLevelZero.Dispose();
+			NoWork.Dispose();
 		}
 
 		public float2 GetDirection(AIGoal goal, float2 position)
 		{
 			int index = GetIndex(position);
-			return goal == AIGoal.Eat ? FoodLevelZero[index] : WorkLevelZero[index];
-			// TODO: the rest
+			return 
+				goal == AIGoal.Eat ? FoodLevelZero[index] : 
+				goal == AIGoal.Destroy ? Destroy[index] :
+				goal == AIGoal.Work ? WorkLevelZero[index] : 
+				NoWork[index]; // TODO: the rest / autorisation level
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]

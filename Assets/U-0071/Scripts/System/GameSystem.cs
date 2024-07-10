@@ -56,37 +56,37 @@ namespace U0071
 			int size = config.WorldDimensions.x * config.WorldDimensions.y;
 
 			FlowfieldBuilder foodLevelZeroBuilder = new FlowfieldBuilder(flowfield.FoodLevelZero, ActionFlag.Collect, ItemFlag.Food, in partition);
-			FlowfieldBuilder destroyLevelZeroBuilder = new FlowfieldBuilder(flowfield.DestroyLevelZero, ActionFlag.Destroy, ItemFlag.Trash, in partition);
 			FlowfieldBuilder workLevelZeroBuilder = new FlowfieldBuilder(flowfield.WorkLevelZero, 0, 0, in partition, true);
-			FlowfieldBuilder wanderLevelZeroBuilder = new FlowfieldBuilder(flowfield.WanderLevelZero, 0, 0, in partition);
+			FlowfieldBuilder destroyBuilder = new FlowfieldBuilder(flowfield.Destroy, ActionFlag.Destroy, ItemFlag.Trash, in partition);
+			FlowfieldBuilder noWorkBuilder = new FlowfieldBuilder(flowfield.NoWork, 0, 0, in partition);
 
 			new DeviceFlowfieldInitJob
 			{
 				Partition = partition,
 				FoodLevelZeroBuilder = foodLevelZeroBuilder,
-				DestroyLevelZeroBuilder = destroyLevelZeroBuilder,
 				WorkLevelZeroBuilder = workLevelZeroBuilder,
-				WanderLevelZeroBuilder = wanderLevelZeroBuilder,
+				DestroyBuilder = destroyBuilder,
+				NoWorkBuilder = noWorkBuilder,
 			}.ScheduleParallel(state.Dependency).Complete();
 
 			state.Dependency = new FlowfieldSpreadJob { Builder = foodLevelZeroBuilder }.Schedule(state.Dependency);
-			state.Dependency = new FlowfieldSpreadJob { Builder = destroyLevelZeroBuilder }.Schedule(state.Dependency);
 			state.Dependency = new FlowfieldSpreadJob { Builder = workLevelZeroBuilder }.Schedule(state.Dependency);
-			state.Dependency = new FlowfieldSpreadJob { Builder = wanderLevelZeroBuilder }.Schedule(state.Dependency);
+			state.Dependency = new FlowfieldSpreadJob { Builder = destroyBuilder }.Schedule(state.Dependency);
+			state.Dependency = new FlowfieldSpreadJob { Builder = noWorkBuilder }.Schedule(state.Dependency);
 
 			state.Dependency = new FlowfieldDirectionJob { Builder = foodLevelZeroBuilder }.ScheduleParallel(size, Const.ParallelForCount, state.Dependency);
-			state.Dependency = new FlowfieldDirectionJob { Builder = destroyLevelZeroBuilder }.ScheduleParallel(size, Const.ParallelForCount, state.Dependency);
 			state.Dependency = new FlowfieldDirectionJob { Builder = workLevelZeroBuilder }.ScheduleParallel(size, Const.ParallelForCount, state.Dependency);
-			state.Dependency = new FlowfieldDirectionJob { Builder = wanderLevelZeroBuilder }.ScheduleParallel(size, Const.ParallelForCount, state.Dependency);
+			state.Dependency = new FlowfieldDirectionJob { Builder = destroyBuilder }.ScheduleParallel(size, Const.ParallelForCount, state.Dependency);
+			state.Dependency = new FlowfieldDirectionJob { Builder = noWorkBuilder }.ScheduleParallel(size, Const.ParallelForCount, state.Dependency);
 
 			new SpawnerInitJob().ScheduleParallel(state.Dependency).Complete();
 
 			state.Dependency.Complete();
 
 			foodLevelZeroBuilder.Dispose();
-			destroyLevelZeroBuilder.Dispose();
+			destroyBuilder.Dispose();
 			workLevelZeroBuilder.Dispose();
-			wanderLevelZeroBuilder.Dispose();
+			noWorkBuilder.Dispose();
 
 			state.EntityManager.AddComponentData(state.SystemHandle, partition);
 			state.EntityManager.AddComponentData(state.SystemHandle, flowfield);
@@ -141,6 +141,8 @@ namespace U0071
 					room2 = Partition.GetRoomData(new float2(link.Position.x, link.Position.y + 1));
 				}
 
+				// TODO: owned by higher autorisation level (if closed)
+				// TODO: owned by the one with working station (if any) or non-corridor, then
 				// room link is "owned" by the biggest room
 				Partition.SetCellData(true, room1.Size >= room2.Size ? room1 : room2, link.Position);
 			}
@@ -152,9 +154,9 @@ namespace U0071
 		{
 			[ReadOnly] public Partition Partition;
 			[NativeDisableParallelForRestriction] public FlowfieldBuilder FoodLevelZeroBuilder;
-			[NativeDisableParallelForRestriction] public FlowfieldBuilder DestroyLevelZeroBuilder;
 			[NativeDisableParallelForRestriction] public FlowfieldBuilder WorkLevelZeroBuilder;
-			[NativeDisableParallelForRestriction] public FlowfieldBuilder WanderLevelZeroBuilder;
+			[NativeDisableParallelForRestriction] public FlowfieldBuilder DestroyBuilder;
+			[NativeDisableParallelForRestriction] public FlowfieldBuilder NoWorkBuilder;
 
 			public void Execute(in InteractableComponent interactable, in LocalTransform transform)
 			{
@@ -165,9 +167,9 @@ namespace U0071
 				int size = (int)transform.Scale;
 
 				FoodLevelZeroBuilder.ProcessDevice(in interactable, in Partition, position, size);
-				DestroyLevelZeroBuilder.ProcessDevice(in interactable, in Partition, position, size);
+				DestroyBuilder.ProcessDevice(in interactable, in Partition, position, size);
 				WorkLevelZeroBuilder.ProcessDevice(in interactable, in Partition, position, size);
-				WanderLevelZeroBuilder.ProcessDevice(in interactable, in Partition, position, size);
+				NoWorkBuilder.ProcessDevice(in interactable, in Partition, position, size);
 			}
 		}
 

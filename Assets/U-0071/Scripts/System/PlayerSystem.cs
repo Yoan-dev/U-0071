@@ -136,7 +136,7 @@ namespace U0071
 				// retrieve relevant action types
 				ActionFlag primaryFilter = ActionFlag.Store | ActionFlag.Destroy | ActionFlag.Collect | ActionFlag.Search | ActionFlag.Push;
 
-				if (carry.Picked != Entity.Null)
+				if (carry.HasItem)
 				{
 					// consider carried item actions
 					if (Utilities.HasItemFlag(carry.Flags, ItemFlag.Food))
@@ -160,7 +160,7 @@ namespace U0071
 							// primary
 							// (override carried item action)
 							if (Utilities.HasActionFlag(target.ActionFlags, primaryFilter) &&
-								target.Evaluate(controller.PrimaryAction.Type, primaryFilter, carry.Flags, out ActionFlag selectedActionFlag, carry.Picked != Entity.Null))
+								target.Evaluate(controller.PrimaryAction.Type, primaryFilter, carry.Flags, out ActionFlag selectedActionFlag, carry.HasItem))
 							{
 								controller.SetPrimaryAction(target.ToActionData(selectedActionFlag), in NameLookup, in ActionNameLookup, carry.Picked);
 							}

@@ -10,7 +10,6 @@ namespace U0071
 		// AI
 		public const float AITick = 0.1f;
 		public const float AIGoalReassessmentTime = 10f;
-		public const float AIRoomPathingTime = 5f;
 		public const float AILightHungerRatio = 0.75f;
 		public const float AIStarvingRatio = 0.15f;
 		public const int AIDesiredCreditsToEat = 10;

@@ -34,7 +34,7 @@ namespace U0071
 
 			if (death.ValueRO || pushed.ValueRO)
 			{
-				if (carry.Picked != Entity.Null)
+				if (carry.HasItem)
 				{
 					// drop item on death/pushed
 					QueueDropAction(ref controller, ref orientation, in position, in carry, isActing);

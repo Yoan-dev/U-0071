@@ -116,6 +116,8 @@ namespace U0071
 		public ItemFlag Flags;
 		public float YOffset;
 		public float Time;
+
+		public bool HasItem => Picked != Entity.Null;
 	}
 
 	public struct PickableComponent : IComponentData, IEnableableComponent

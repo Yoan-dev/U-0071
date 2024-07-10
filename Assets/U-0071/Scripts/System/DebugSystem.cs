@@ -27,9 +27,9 @@ namespace U0071
 		private EntityQuery _query;
 		private bool _debugRooms;
 		private bool _debugFoodLevelZero;
-		private bool _debugDestroyLevelZero;
+		private bool _debugDestroy;
 		private bool _debugWorkLevelZero;
-		private bool _debugWanderLevelZero;
+		private bool _debugNoWork;
 
 		[BurstCompile]
 		public void OnCreate(ref SystemState state)
@@ -75,11 +75,11 @@ namespace U0071
 			}
 			if (Input.GetKey(KeyCode.LeftControl) && Input.GetKeyDown(KeyCode.Alpha2))
 			{
-				_debugDestroyLevelZero = !_debugDestroyLevelZero;
-				if (_debugDestroyLevelZero)
+				_debugDestroy = !_debugDestroy;
+				if (_debugDestroy)
 				{
 					Flowfield flowfield = SystemAPI.GetSingleton<Flowfield>();
-					DebugFlowfield(in flowfield.DestroyLevelZero, flowfield.Dimensions);
+					DebugFlowfield(in flowfield.Destroy, flowfield.Dimensions);
 				}
 				else DebugManager.Instance.ClearFlowfieldElements();
 			}
@@ -95,11 +95,11 @@ namespace U0071
 			}
 			if (Input.GetKey(KeyCode.LeftControl) && Input.GetKeyDown(KeyCode.Alpha4))
 			{
-				_debugWanderLevelZero = !_debugWanderLevelZero;
-				if (_debugWanderLevelZero)
+				_debugNoWork = !_debugNoWork;
+				if (_debugNoWork)
 				{
 					Flowfield flowfield = SystemAPI.GetSingleton<Flowfield>();
-					DebugFlowfield(in flowfield.WanderLevelZero, flowfield.Dimensions);
+					DebugFlowfield(in flowfield.NoWork, flowfield.Dimensions);
 				}
 				else DebugManager.Instance.ClearFlowfieldElements();
 			}

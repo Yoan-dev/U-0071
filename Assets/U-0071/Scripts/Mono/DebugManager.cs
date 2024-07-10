@@ -13,7 +13,7 @@ public class DebugManager : MonoBehaviour
 
 	[Header("Runtime")]
 	public bool DebugFoodLevelZeroFlowField;
-	public bool DebugDestroyLevelZeroFlowField;
+	public bool DebugDestroyFlowField;
 
 	[Header("Miscellaneous")]	
 	public TMP_Text RoomElementPrefab;

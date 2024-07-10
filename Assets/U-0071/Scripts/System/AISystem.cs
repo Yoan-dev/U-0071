@@ -123,13 +123,6 @@ namespace U0071
 					}
 				}
 
-				if (controller.RoomPathingTimer > 0f)
-				{
-					// take time to move to another room
-					controller.RoomPathingTimer -= DeltaTime;
-					return;
-				}
-
 				// attempt at a rough mid-term goal AI
 				float hungerRatio = hunger.Value / Const.MaxHunger;
 				if (hungerRatio <= Const.AIStarvingRatio)
@@ -137,12 +130,12 @@ namespace U0071
 					// starving
 					// go to closest eating space and buy or hope for a meal drop
 					controller.Goal = AIGoal.Eat;
-					if (carry.Picked != Entity.Null && !Utilities.HasItemFlag(carry.Flags, ItemFlag.Food))
+					if (carry.HasItem && !Utilities.HasItemFlag(carry.Flags, ItemFlag.Food))
 					{
 						Utilities.QueueDropAction(ref actionController, ref orientation, in position, in carry, isActing);
 					}
 				}
-				else if (controller.ShouldReassess(hungerRatio))
+				else if (controller.ShouldReassess(hungerRatio, carry.HasItem))
 				{
 					controller.ReassessmentTimer = Const.AIGoalReassessmentTime;
 
@@ -157,7 +150,7 @@ namespace U0071
 					controller.RelaxWeight = Const.AIRelaxWeight;
 					controller.WanderWeight = Const.AIWanderWeight;
 
-					controller.ChoseGoal();
+					controller.ChooseGoal();
 				}
 
 				if (controller.Goal == AIGoal.Relax)
@@ -169,14 +162,21 @@ namespace U0071
 
 				// look for new target
 
+				bool eatGoal = controller.Goal == AIGoal.Eat;
+				bool workGoal = controller.Goal == AIGoal.Work;
+				bool destroyGoal = controller.Goal == AIGoal.Destroy;
+
 				// retrieve relevant action types
 				ActionFlag actionFilter =
-					controller.Goal == AIGoal.Eat ? ActionFlag.Pick | ActionFlag.Eat | ActionFlag.Collect :
-					controller.Goal == AIGoal.Work ? ActionFlag.Pick | ActionFlag.Store | ActionFlag.Destroy | ActionFlag.Collect | ActionFlag.Search :
+					eatGoal ? ActionFlag.Pick | ActionFlag.Eat | ActionFlag.Collect :
+					workGoal ? ActionFlag.Pick | ActionFlag.Store | ActionFlag.Destroy | ActionFlag.Collect | ActionFlag.Search :
+					destroyGoal ? ActionFlag.Destroy :
 					ActionFlag.Search;
-				ItemFlag itemFilter = controller.Goal == AIGoal.Eat ? ItemFlag.Food : 0;
+				ItemFlag itemFilter =
+					eatGoal ? ItemFlag.Food :
+					workGoal ? ItemFlag.RawFood | ItemFlag.Trash : 0;
 
-				if (carry.Picked != Entity.Null)
+				if (carry.HasItem)
 				{
 					actionFilter &= ~ActionFlag.Pick;
 
@@ -195,7 +195,6 @@ namespace U0071
 				// look for target
 				DynamicBuffer<RoomElementBufferElement> elements = RoomElementBufferLookup[partition.CurrentRoom];
 				float minMagn = float.MaxValue;
-				bool eatGoal = controller.Goal == AIGoal.Eat;
 				using (var enumerator = elements.GetEnumerator())
 				{
 					while (enumerator.MoveNext())
@@ -216,13 +215,17 @@ namespace U0071
 							{
 								minMagn = magn;
 								actionController.Action = target.ToActionData(selectedActionFlag);
+
+								// found something to do
+								controller.IsPathing = false;
 							}
 							// lower prio would have been filtered in target.Evaluate
 						}
 					}
 				}
 
-				if (actionController.HasTarget && carry.Picked != Entity.Null && actionController.Action.ActionFlag == ActionFlag.Collect)
+				if (actionController.HasTarget && carry.HasItem && 
+					actionController.Action.HasActionFlag(ActionFlag.Collect | ActionFlag.Pick))
 				{
 					// will not be able to interact with target
 					// drop item to be able on next tick
@@ -238,8 +241,13 @@ namespace U0071
 
 				if (!actionController.HasTarget)
 				{
-					// move to another room (flowfield)
-					controller.RoomPathingTimer = Const.AIRoomPathingTime;
+					if (carry.HasItem && !controller.HasCriticalGoal)
+					{
+						controller.Goal = AIGoal.Destroy;
+					}
+
+					// start/continue pathing (flowfield)
+					controller.IsPathing = true;
 				}
 			}
 		}
@@ -255,13 +263,13 @@ namespace U0071
 
 			public void Execute(ref MovementComponent movement, ref AIController controller, in PositionComponent position, in ActionController actionController)
 			{
-				if (controller.RoomPathingTimer > 0f)
+				if (controller.IsPathing)
 				{
 					movement.Input = Flowfield.GetDirection(controller.Goal, position.Value);
 					if (movement.Input.Equals(float2.zero))
 					{
 						// arrived
-						controller.RoomPathingTimer = 0f;
+						controller.IsPathing = false;
 					}
 				}
 				else if (!actionController.IsResolving && actionController.HasTarget)
