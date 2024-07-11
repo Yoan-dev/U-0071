@@ -11,3 +11,37 @@
     padding-bottom: 0;
     padding-left: 0;
 }
+
+.jam-label-codepad {
+    -unity-font-definition: url("project://database/Assets/Thaleah_PixelFont/ThaleahFat_TTF%20SDF%20text.asset?fileID=11400000&guid=daaad5ec03582fd4c8442316979a9926&type=2#ThaleahFat_TTF SDF text");
+    color: rgb(74, 118, 197);
+    font-size: 44.7px;
+    margin-top: 0;
+    margin-right: 0;
+    margin-bottom: 0;
+    margin-left: 0;
+    padding-top: 0;
+    padding-right: 0;
+    padding-bottom: 0;
+    padding-left: 0;
+    flex-shrink: 0;
+}
+
+.jam-button-codepad {
+    flex-grow: 0;
+    position: absolute;
+    left: 26.5625%;
+    top: 32.8125%;
+    flex-shrink: 0;
+    width: 14.0625%;
+    height: 14.0625%;
+    margin-top: 0;
+    margin-right: 0;
+    margin-bottom: 0;
+    margin-left: 0;
+    padding-top: 0;
+    padding-right: 0;
+    padding-bottom: 0;
+    padding-left: 0;
+    background-image: url("project://database/Assets/U-0071/Textures/UI/T_codepad_7.png?fileID=2800000&guid=268ca19005106b648a2d440c311a156e&type=3#T_codepad_7");
+}
