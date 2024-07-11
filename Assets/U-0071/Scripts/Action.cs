@@ -87,6 +87,7 @@ namespace U0071
 		public ItemFlag ItemFlags; // type for items, requirement for devices
 		public float Range;
 		public float Time;
+		public float CollisionRadius; // cached here to have access in partition (meh)
 		public int Cost;
 		public bool Changed;
 		public bool WorkingStationFlag;

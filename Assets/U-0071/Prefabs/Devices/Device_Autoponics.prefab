@@ -100,6 +100,7 @@ MonoBehaviour:
   ActionName: Harvest
   Range: 0.75
   Time: 0.5
+  CollisionRadius: 0.25
   Cost: 0
   DestroyAction: 0
   RawFood: 1
@@ -107,7 +108,7 @@ MonoBehaviour:
   Trash: 0
   Prefab: {fileID: 1708813368808323750, guid: 0dc4e0c974808174bb9f93a57620d2cf, type: 3}
   VariantPrefab: {fileID: 0}
-  SpawnOffset: 0
+  SpawnOffset: 0.25
   StartingCapacity: 0
   GrowTime: 5
   VisualStageCount: 5

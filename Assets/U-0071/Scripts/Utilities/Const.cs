@@ -36,6 +36,7 @@ namespace U0071
 		public const float MaxHunger = 10f;
 		public const float HungerDepleteRate = 0.1f;
 		public const float DeathSkinToneOffset = 0.15f;
+		public const float DecollisionStrength = 0.6f;
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static float GetActionTime(ActionFlag type, float baseTime)

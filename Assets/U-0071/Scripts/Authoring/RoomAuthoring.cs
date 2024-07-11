@@ -8,6 +8,7 @@ namespace U0071
 	[DisallowMultipleComponent]
 	public class RoomAuthoring : MonoBehaviour
 	{
+		public int CapacityModifier;
 		public bool IsWanderPath;
 
 		public class Baker : Baker<RoomAuthoring>
@@ -30,6 +31,7 @@ namespace U0071
 				{
 					Dimensions = transform.rotation.eulerAngles.y == 0f || transform.rotation.eulerAngles.y == 180f ? new int2((int)scale.x, (int)scale.y) : new int2((int)scale.y, (int)scale.x),
 					IsWanderPath = authoring.IsWanderPath,
+					Capacity = authoring.CapacityModifier,
 				});
 				AddComponent<RoomInitTag>(entity);
 

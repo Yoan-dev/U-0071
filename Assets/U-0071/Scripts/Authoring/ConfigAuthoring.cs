@@ -60,6 +60,7 @@ namespace U0071
 					hairColorArrayBuilder[i] = authoring.HairColors[i].linear.ToFloat4();
 				}
 				config.UnitRenderingColors = builder.CreateBlobAssetReference<UnitRenderingColors>(Allocator.Persistent);
+				builder.Dispose();
 
 				AddComponent(entity, config);
 			}

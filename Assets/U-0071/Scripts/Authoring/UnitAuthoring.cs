@@ -18,6 +18,7 @@ namespace U0071
 		[Header("Interactable")]
 		public float Range = 0.5f;
 		public float Time = 1f;
+		public float CollisionRadius = 0.2f;
 
 		[Header("Render")]
 		public Color ShirtColor;
@@ -52,6 +53,7 @@ namespace U0071
 					Range = authoring.Range,
 					Time = authoring.Time,
 					ActionFlags = ActionFlag.Push,
+					CollisionRadius = authoring.CollisionRadius,
 				});
 				AddComponent(entity, new CreditsComponent { Value = authoring.Credits });
 				AddComponent(entity, new CarryComponent());

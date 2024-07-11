@@ -100,6 +100,7 @@ MonoBehaviour:
   ActionName: Destroy
   Range: 1.25
   Time: 1
+  CollisionRadius: 0
   Cost: -2
   DestroyAction: 1
   RawFood: 0

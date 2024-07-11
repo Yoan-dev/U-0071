@@ -1,8 +1,14 @@
+using System.Collections.Concurrent;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
+using static UnityEngine.GraphicsBuffer;
+using UnityEngine.UIElements;
+using NUnit.Framework.Interfaces;
+using static UnityEngine.EventSystems.EventTrigger;
+using System;
 
 namespace U0071
 {
@@ -10,6 +16,7 @@ namespace U0071
 	public partial struct MovementSystem : ISystem
 	{
 		private ComponentLookup<CarryComponent> _pickLookup;
+		private BufferLookup<RoomElementBufferElement> _roomElementLookup;
 
 		[BurstCompile]
 		public void OnCreate(ref SystemState state)
@@ -17,12 +24,14 @@ namespace U0071
 			state.RequireForUpdate<Partition>();
 
 			_pickLookup = SystemAPI.GetComponentLookup<CarryComponent>(true);
+			_roomElementLookup = state.GetBufferLookup<RoomElementBufferElement>(true);
 		}
 
 		[BurstCompile]
 		public void OnUpdate(ref SystemState state)
 		{
 			_pickLookup.Update(ref state);
+			_roomElementLookup.Update(ref state);
 
 			Partition partition = SystemAPI.GetSingleton<Partition>();
 
@@ -43,6 +52,12 @@ namespace U0071
 			state.Dependency = new PickablePositionJob
 			{
 				PickLookup = _pickLookup,
+			}.ScheduleParallel(state.Dependency);
+
+			state.Dependency = new DecollisionJob
+			{
+				Partition = partition,
+				RoomElementBufferLookup = _roomElementLookup,
 			}.ScheduleParallel(state.Dependency);
 		}
 
@@ -96,6 +111,56 @@ namespace U0071
 				if (pushed.Timer <= 0f)
 				{
 					pushedRef.ValueRW = false;
+				}
+			}
+		}
+
+		[BurstCompile]
+		[WithNone(typeof(DeathComponent))]
+		[WithAll(typeof(MovementComponent))]
+		public partial struct DecollisionJob : IJobEntity
+		{
+			[ReadOnly]
+			public Partition Partition;
+			[ReadOnly]
+			public BufferLookup<RoomElementBufferElement> RoomElementBufferLookup;
+
+			public void Execute(Entity entity, ref PositionComponent position, in PartitionComponent partition, in InteractableComponent interactable)
+			{
+				// rough decollision to avoid characters stacking on each others / on devices
+				// will not trigger between rooms
+
+				float2 decollision = float2.zero;
+
+				DynamicBuffer<RoomElementBufferElement> elements = RoomElementBufferLookup[partition.CurrentRoom];
+				using (var enumerator = elements.GetEnumerator())
+				{
+					while (enumerator.MoveNext())
+					{
+						if (enumerator.Current.Entity != entity && enumerator.Current.Interactable.CollisionRadius > 0f)
+						{
+							float2 difference = position.Value - enumerator.Current.Position;
+							float radiusSum = interactable.CollisionRadius + enumerator.Current.Interactable.CollisionRadius;
+
+							// circle to circle check
+							if (math.lengthsq(difference) <= math.pow(radiusSum, 2f))
+							{
+								// decollision
+								float distance = math.length(difference);
+								if (distance > 0f)
+								{
+									decollision += difference * (radiusSum - distance) / distance * Const.DecollisionStrength;
+								}
+							}
+						}
+					}
+				}
+
+				float2 newPosition = position.Value + decollision;
+				if (Partition.IsPathable(newPosition))
+				{
+					position.Value = newPosition;
+					position.MovedFlag = position.MovedFlag || !decollision.Equals(float2.zero);
 				}
 			}
 		}

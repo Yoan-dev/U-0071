@@ -100,6 +100,7 @@ MonoBehaviour:
   ActionName: Buy
   Range: 1
   Time: 0.5
+  CollisionRadius: 0.25
   Cost: 10
   DestroyAction: 0
   RawFood: 0

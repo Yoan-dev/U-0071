@@ -15,6 +15,7 @@ namespace U0071
 		[Header("Interactable")]
 		public float Range = 1f;
 		public float Time = 0.5f;
+		public float CollisionRadius = 0.25f;
 		public int Cost;
 
 		[Header("Action Flags")]
@@ -150,6 +151,7 @@ namespace U0071
 					Range = authoring.Range,
 					Time = authoring.Time,
 					Cost = authoring.Cost,
+					CollisionRadius = authoring.CollisionRadius,
 					WorkingStationFlag = isWorkingStation,
 				});
 
