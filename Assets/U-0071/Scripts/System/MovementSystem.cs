@@ -61,6 +61,7 @@ namespace U0071
 
 		[BurstCompile]
 		[WithNone(typeof(DeathComponent))]
+		[WithNone(typeof(PushedComponent))]
 		public partial struct MovementJob : IJobEntity
 		{
 			[ReadOnly]
