@@ -84,25 +84,23 @@ namespace U0071
 			FlowfieldBuilder destroyBuilder = new FlowfieldBuilder(flowfield.Destroy, ActionFlag.Destroy, ItemFlag.Trash, in partition);
 			FlowfieldBuilder goToWanderBuilder = new FlowfieldBuilder(goToWander, 0, 0, in partition);
 
-			new DeviceFlowfieldInitJob
+			state.Dependency = new DeviceFlowfieldInitJob
 			{
 				Partition = partition,
 				FoodLevelZeroBuilder = foodLevelZeroBuilder,
 				WorkLevelZeroBuilder = workLevelZeroBuilder,
 				DestroyBuilder = destroyBuilder,
-			}.ScheduleParallel(state.Dependency).Complete();
+			}.ScheduleParallel(state.Dependency);
 
-			new WandererFlowfieldInitJob
+			state.Dependency = new WandererFlowfieldInitJob
 			{
 				GoToWanderBuilder = goToWanderBuilder,
-			}.Schedule(state.Dependency).Complete();
+			}.Schedule(state.Dependency);
 
 			state.Dependency = new FlowfieldSpreadJob { Builder = foodLevelZeroBuilder }.Schedule(state.Dependency);
 			state.Dependency = new FlowfieldSpreadJob { Builder = workLevelZeroBuilder }.Schedule(state.Dependency);
 			state.Dependency = new FlowfieldSpreadJob { Builder = destroyBuilder }.Schedule(state.Dependency);
 			state.Dependency = new FlowfieldSpreadJob { Builder = goToWanderBuilder }.Schedule(state.Dependency);
-
-			state.Dependency.Complete();
 
 			state.Dependency = new FlowfieldDirectionJob { Builder = foodLevelZeroBuilder }.ScheduleParallel(size, Const.ParallelForCount, state.Dependency);
 			state.Dependency = new FlowfieldDirectionJob { Builder = workLevelZeroBuilder }.ScheduleParallel(size, Const.ParallelForCount, state.Dependency);
@@ -128,8 +126,6 @@ namespace U0071
 			goToWander.Dispose();
 			wanderCells.Dispose();
 			wanderers.Dispose();
-
-			new InitAIUnits { Config = config }.ScheduleParallel(state.Dependency).Complete();
 
 			state.EntityManager.AddComponentData(state.SystemHandle, partition);
 			state.EntityManager.AddComponentData(state.SystemHandle, flowfield);
@@ -312,32 +308,6 @@ namespace U0071
 			public void Execute(int index)
 			{
 				Builder.ProcessDirection(index);
-			}
-		}
-
-		[BurstCompile]
-		[WithAll(typeof(AIController))]
-		public partial struct InitAIUnits : IJobEntity
-		{
-			public Config Config;
-
-			public void Execute(
-				Entity entity,
-				ref SkinColor skin,
-				ref ShortHairColor shortHair,
-				ref LongHairColor longHair,
-				ref BeardColor beard)
-			{
-				Random random = new Random((uint)(entity.Index * 10000));
-
-				float4 skinColor = Config.UnitRenderingColors.Value.SkinColors[random.NextInt(Config.UnitRenderingColors.Value.SkinColors.Length)];
-				float4 hairColor = Config.UnitRenderingColors.Value.HairColors[random.NextInt(Config.UnitRenderingColors.Value.HairColors.Length)];
-
-				skin.Value = skinColor;
-				shortHair.Value = random.NextFloat() < Config.ChanceOfShortHair ? hairColor : skinColor;
-				longHair.Value = random.NextFloat() < Config.ChanceOfLongHair ? hairColor : skinColor;
-				beard.Value = random.NextFloat() < Config.ChanceOfBeard ? hairColor : skinColor;
-
 			}
 		}
 	}

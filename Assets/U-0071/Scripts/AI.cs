@@ -76,4 +76,6 @@ namespace U0071
 			return goal == AIGoal.Eat || goal == AIGoal.Flee;
 		}
 	}
+
+	public struct AIUnitInitTag : IComponentData, IEnableableComponent { }
 }

@@ -4,6 +4,7 @@ using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
+using Random = Unity.Mathematics.Random;
 
 namespace U0071
 {
@@ -64,6 +65,11 @@ namespace U0071
 				state.Dependency = new AIMovementJob
 				{
 					Flowfield = SystemAPI.GetSingleton<Flowfield>(),
+				}.ScheduleParallel(state.Dependency);
+
+				state.Dependency = new AIUnitInitJob
+				{
+					Config = SystemAPI.GetSingleton<Config>(),
 				}.ScheduleParallel(state.Dependency);
 			}
 		}
@@ -285,6 +291,35 @@ namespace U0071
 				}
 			}
 		}
+	}
 
+	[BurstCompile]
+	[WithAll(typeof(AIController))]
+	public partial struct AIUnitInitJob : IJobEntity
+	{
+		public Config Config;
+
+		public void Execute(
+			Entity entity,
+			ref SkinColor skin,
+			ref ShortHairColor shortHair,
+			ref LongHairColor longHair,
+			ref BeardColor beard,
+			EnabledRefRW<AIUnitInitTag> initTag)
+		{
+			initTag.ValueRW = false;
+
+			// TODO: init name
+
+			Random random = new Random((uint)(entity.Index * 10000));
+
+			float4 skinColor = Config.UnitRenderingColors.Value.SkinColors[random.NextInt(Config.UnitRenderingColors.Value.SkinColors.Length)];
+			float4 hairColor = Config.UnitRenderingColors.Value.HairColors[random.NextInt(Config.UnitRenderingColors.Value.HairColors.Length)];
+
+			skin.Value = skinColor;
+			shortHair.Value = random.NextFloat() < Config.ChanceOfShortHair ? hairColor : skinColor;
+			longHair.Value = random.NextFloat() < Config.ChanceOfLongHair ? hairColor : skinColor;
+			beard.Value = random.NextFloat() < Config.ChanceOfBeard ? hairColor : skinColor;
+		}
 	}
 }

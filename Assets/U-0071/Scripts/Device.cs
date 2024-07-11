@@ -48,5 +48,7 @@ namespace U0071
 
 	public struct AutoSpawnTag : IComponentData { }
 
+	public struct AutoDestroyTag : IComponentData { }
+
 	public struct DeviceTag : IComponentData { }
 }

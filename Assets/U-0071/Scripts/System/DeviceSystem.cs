@@ -39,6 +39,11 @@ namespace U0071
 				Ecb = ecbs.CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter(),
 			}.ScheduleParallel(state.Dependency);
 
+			state.Dependency = new AutoDestroyJob
+			{
+				Ecb = ecbs.CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter(),
+			}.ScheduleParallel(state.Dependency);
+
 			state.Dependency = new HazardJob
 			{
 				Ecb = ecbs.CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter(),
@@ -87,7 +92,7 @@ namespace U0071
 		{
 			public EntityCommandBuffer.ParallelWriter Ecb;
 
-			public void Execute([ChunkIndexInQuery] int chunkIndex, ref SpawnerComponent spawner, in PositionComponent position, ref InteractableComponent interactable)
+			public void Execute([ChunkIndexInQuery] int chunkIndex, ref SpawnerComponent spawner, in PositionComponent position)
 			{
 				if (spawner.VariantCapacity > 0)
 				{
@@ -106,6 +111,21 @@ namespace U0071
 						Value = position.Value + spawner.Offset,
 						BaseYOffset = Const.PickableYOffset,
 					});
+				}
+			}
+		}
+
+		[BurstCompile]
+		[WithAll(typeof(AutoDestroyTag))]
+		public partial struct AutoDestroyJob : IJobEntity
+		{
+			public EntityCommandBuffer.ParallelWriter Ecb;
+
+			public void Execute([ChunkIndexInQuery] int chunkIndex, Entity entity, in SpawnerComponent spawner)
+			{
+				if (spawner.Capacity == 0 && spawner.VariantCapacity == 0)
+				{
+					Ecb.DestroyEntity(chunkIndex, entity);
 				}
 			}
 		}

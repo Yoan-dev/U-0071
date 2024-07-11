@@ -20,7 +20,7 @@ namespace U0071
 		{
 			public override void Bake(WandererAuthoring authoring)
 			{
-				Entity entity = GetEntity(TransformUsageFlags.Dynamic);
+				Entity entity = GetEntity(TransformUsageFlags.None);
 
 				Vector3 position = authoring.gameObject.transform.position;
 
