@@ -170,12 +170,14 @@ namespace U0071
 
 				// look for new target
 
+				bool fleeGoal = controller.Goal == AIGoal.Flee;
 				bool eatGoal = controller.Goal == AIGoal.Eat;
 				bool workGoal = controller.Goal == AIGoal.Work;
 				bool destroyGoal = controller.Goal == AIGoal.Destroy;
 
 				// retrieve relevant action types
 				ActionFlag actionFilter =
+					fleeGoal ? 0 :
 					eatGoal ? ActionFlag.Pick | ActionFlag.Eat | ActionFlag.Collect :
 					workGoal ? ActionFlag.Pick | ActionFlag.Store | ActionFlag.Destroy | ActionFlag.Collect | ActionFlag.Search :
 					destroyGoal ? ActionFlag.Destroy :
@@ -276,6 +278,8 @@ namespace U0071
 
 			public void Execute(ref MovementComponent movement, ref AIController controller, in PositionComponent position, in ActionController actionController)
 			{
+				movement.IsRunning = controller.Goal == AIGoal.Flee;
+
 				if (controller.IsPathing)
 				{
 					movement.Input = Flowfield.GetDirection(controller.Goal, position.Value);

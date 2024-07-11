@@ -45,7 +45,14 @@ namespace U0071
 				}
 				else if (!movement.Input.Equals(float2.zero))
 				{
-					if (!controller.IsPlaying(in Config.CharacterWalk))
+					if (movement.IsRunning)
+					{
+						if (!controller.IsPlaying(in Config.CharacterFlee))
+						{
+							controller.StartAnimation(in Config.CharacterFlee);
+						}
+					}
+					else if (!controller.IsPlaying(in Config.CharacterWalk))
 					{
 						controller.StartAnimation(in Config.CharacterWalk);
 					}

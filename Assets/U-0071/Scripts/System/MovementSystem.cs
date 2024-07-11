@@ -1,14 +1,8 @@
-using System.Collections.Concurrent;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
-using static UnityEngine.GraphicsBuffer;
-using UnityEngine.UIElements;
-using NUnit.Framework.Interfaces;
-using static UnityEngine.EventSystems.EventTrigger;
-using System;
 
 namespace U0071
 {

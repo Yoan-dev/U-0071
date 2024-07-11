@@ -46,8 +46,9 @@ namespace U0071
 				goal == AIGoal.Eat ? FoodLevelZero[index] : 
 				goal == AIGoal.Destroy ? Destroy[index] :
 				goal == AIGoal.Work ? WorkLevelZero[index] : 
-				goal == AIGoal.Wander ? Wander[index] : float2.zero;
+				goal == AIGoal.Wander || goal == AIGoal.Flee ? Wander[index] : float2.zero;
 			
+			// TODO: flee field usage (go to their level)
 			// TODO: the rest / autorisation level
 		}
 

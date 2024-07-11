@@ -1,6 +1,10 @@
+using System.Collections.Concurrent;
+using System.Linq;
 using Unity.Burst;
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
+using UnityEngine;
 
 namespace U0071
 {
@@ -8,15 +12,24 @@ namespace U0071
 	[UpdateAfter(typeof(ActionSystem))]
 	public partial struct HealthSystem : ISystem
 	{
+		private BufferLookup<RoomElementBufferElement> _roomElementLookup;
+		private ComponentLookup<AIController> _aiLookup;
+
 		[BurstCompile]
 		public void OnCreate(ref SystemState state)
 		{
 			state.RequireForUpdate<Config>();
+
+			_roomElementLookup = state.GetBufferLookup<RoomElementBufferElement>(true);
+			_aiLookup = SystemAPI.GetComponentLookup<AIController>(true);
 		}
 
 		[BurstCompile]
 		public void OnUpdate(ref SystemState state)
 		{
+			_roomElementLookup.Update(ref state);
+			_aiLookup.Update(ref state);
+
 			var ecbs = SystemAPI.GetSingleton<EndFixedStepSimulationEntityCommandBufferSystem.Singleton>();
 
 			float deltaTime = SystemAPI.Time.DeltaTime;
@@ -35,6 +48,8 @@ namespace U0071
 			state.Dependency = new DeathJob
 			{
 				Ecb = ecbs.CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter(),
+				RoomElementBufferLookup = _roomElementLookup,
+				AILookup = _aiLookup,
 				Config = SystemAPI.GetSingleton<Config>(),
 			}.ScheduleParallel(state.Dependency);
 		}
@@ -61,6 +76,10 @@ namespace U0071
 		[BurstCompile]
 		public partial struct DeathJob : IJobEntity
 		{
+			[ReadOnly]
+			public BufferLookup<RoomElementBufferElement> RoomElementBufferLookup;
+			[ReadOnly]
+			public ComponentLookup<AIController> AILookup;
 			public EntityCommandBuffer.ParallelWriter Ecb;
 			public Config Config;
 
@@ -79,6 +98,7 @@ namespace U0071
 				ref BeardColor beard,
 				in CreditsComponent credits,
 				in PilosityComponent pilosity,
+				in PartitionComponent partition,
 				EnabledRefRW<ResolveDeathTag> resolveDeath)
 			{
 				resolveDeath.ValueRW = false;
@@ -120,6 +140,23 @@ namespace U0071
 				if (!pilosity.HasLongHair) longHair.Value += deathColorOffset;
 				if (!pilosity.HasBeard) beard.Value += deathColorOffset;
 				skin.Value += deathColorOffset;
+
+				// trigger flee behavior
+				DynamicBuffer<RoomElementBufferElement> elements = RoomElementBufferLookup[partition.CurrentRoom];
+				using (var enumerator = elements.GetEnumerator())
+				{
+					while (enumerator.MoveNext())
+					{
+						// push check will filter all items and devices
+						if (enumerator.Current.Entity != entity && enumerator.Current.HasActionFlag(ActionFlag.Push) && AILookup.HasComponent(enumerator.Current.Entity))
+						{
+							AIController aiController = AILookup[enumerator.Current.Entity];
+							aiController.Goal = AIGoal.Flee;
+							aiController.ReassessmentTimer = Const.GetReassessmentTimer(AIGoal.Flee);
+							Ecb.SetComponent(chunkIndex, enumerator.Current.Entity, aiController);
+						}
+					}
+				}
 			}
 		}
 

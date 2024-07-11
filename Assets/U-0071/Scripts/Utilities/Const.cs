@@ -9,11 +9,11 @@ namespace U0071
 
 		// AI
 		public const float AITick = 0.1f;
-		public const float AILightHungerRatio = 0.75f;
-		public const float AIStarvingRatio = 0.15f;
+		public const float AILightHungerRatio = 0.8f;
+		public const float AIStarvingRatio = 0.2f;
 		public const int AIDesiredCreditsToEat = 10;
 		public const int AIDesiredCreditsPerLevel = 50;
-		public const float AIRelaxWeight = 0.25f;
+		public const float AIRelaxWeight = 0.2f;
 
 		// used for Y sorting
 		public const float DeviceYOffset = 0.1f;
