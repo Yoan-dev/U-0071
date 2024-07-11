@@ -38,6 +38,13 @@ namespace U0071
 		public const float DeathSkinToneOffset = 0.15f;
 		public const float DecollisionStrength = 0.6f;
 
+		// sickness
+		public const float ContaminatedEatingHungerLoss = 3f;
+		public const float SickSkinToneOffset = 0.1f;
+		public const float SickSpeedMultiplier = 0.66f;
+		public const float SickHungerDepleteRate = 0.1f;
+		public const float SickTime = 10f;
+
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static float GetActionTime(ActionFlag type, float baseTime)
 		{

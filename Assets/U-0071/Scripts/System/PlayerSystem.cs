@@ -160,9 +160,9 @@ namespace U0071
 							// primary
 							// (override carried item action)
 							if (Utilities.HasActionFlag(target.ActionFlags, primaryFilter) &&
-								target.Evaluate(controller.PrimaryAction.Type, primaryFilter, carry.Flags, out ActionFlag selectedActionFlag, carry.HasItem, false, true))
+								target.Evaluate(controller.PrimaryAction.Type, primaryFilter, carry.Flags, out ActionFlag selectedActionFlag, carry.HasItem, false, true, true))
 							{
-								// hack
+								// pose as a storage
 								if (selectedActionFlag == ActionFlag.Store && target.Interactable.HasActionFlag(ActionFlag.Teleport))
 								{
 									selectedActionFlag = ActionFlag.Teleport;

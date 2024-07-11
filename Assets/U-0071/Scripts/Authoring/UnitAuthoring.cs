@@ -64,6 +64,8 @@ namespace U0071
 				SetComponentEnabled<DeathComponent>(entity, false);
 				AddComponent(entity, new PushedComponent());
 				SetComponentEnabled<PushedComponent>(entity, false);
+				AddComponent(entity, new SickComponent());
+				SetComponentEnabled<SickComponent>(entity, false);
 
 				// render
 				AddComponent(entity, new TextureArrayIndex { Value = 0f });

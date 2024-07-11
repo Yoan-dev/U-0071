@@ -19,10 +19,17 @@ namespace U0071
 		{
 			var ecbs = SystemAPI.GetSingleton<EndFixedStepSimulationEntityCommandBufferSystem.Singleton>();
 
+			float deltaTime = SystemAPI.Time.DeltaTime;
+
+			state.Dependency = new SickJob
+			{
+				DeltaTime = deltaTime,
+			}.ScheduleParallel(state.Dependency);
+
 			state.Dependency = new HungerJob
 			{
 				Ecb = ecbs.CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter(),
-				DeltaTime = SystemAPI.Time.DeltaTime,
+				DeltaTime = deltaTime,
 			}.ScheduleParallel(state.Dependency);
 
 			state.Dependency = new DeathJob
@@ -60,7 +67,7 @@ namespace U0071
 			public void Execute(
 				[ChunkIndexInQuery] int chunkIndex,
 				Entity entity,
-				ref DeathComponent Death,
+				ref DeathComponent death,
 				ref MovementComponent movement,
 				ref PositionComponent position,
 				ref ActionController controller,
@@ -74,9 +81,9 @@ namespace U0071
 				in PilosityComponent pilosity)
 			{
 				// TODO: filter from job afterwards
-				if (!Death.IsResolved)
+				if (!death.IsResolved)
 				{
-					Death.IsResolved = true;
+					death.IsResolved = true;
 					movement.Input = float2.zero;
 					position.BaseYOffset = Const.PickableYOffset;
 					controller.Stop();
@@ -91,7 +98,7 @@ namespace U0071
 					interactable.Changed = true;
 					interactable.ActionFlags &= ~ActionFlag.Push;
 
-					if (Death.Context == DeathType.Crushed)
+					if (death.Context == DeathType.Crushed)
 					{
 						animation.StartAnimation(in Config.CharacterCrushed);
 					}
@@ -114,6 +121,53 @@ namespace U0071
 					if (!pilosity.HasLongHair) longHair.Value += deathColorOffset;
 					if (!pilosity.HasBeard) beard.Value += deathColorOffset;
 					skin.Value += deathColorOffset;
+				}
+			}
+		}
+
+		[BurstCompile]
+		[WithNone(typeof(DeathComponent))]
+		public partial struct SickJob : IJobEntity
+		{
+			public float DeltaTime;
+
+			public void Execute(
+				ref SickComponent sick,
+				ref MovementComponent movement,
+				ref SkinColor skin,
+				ref ShortHairColor shortHair,
+				ref LongHairColor longHair,
+				ref BeardColor beard,
+				ref HungerComponent hunger,
+				in PilosityComponent pilosity,
+				EnabledRefRW<SickComponent> sickRef)
+			{
+				if (!sick.IsResolved)
+				{
+					sick.IsResolved = true;
+					movement.Speed *= Const.SickSpeedMultiplier;
+
+					float4 sickColorOffset = new float4(0f, Const.SickSkinToneOffset, 0f, 0f);
+					if (!pilosity.HasShortHair) shortHair.Value += sickColorOffset;
+					if (!pilosity.HasLongHair) longHair.Value += sickColorOffset;
+					if (!pilosity.HasBeard) beard.Value += sickColorOffset;
+					skin.Value += sickColorOffset;
+				}
+
+				hunger.Value -= DeltaTime * Const.SickHungerDepleteRate;
+
+				sick.Timer += DeltaTime;
+				if (sick.Timer > Const.SickTime)
+				{
+					sickRef.ValueRW = false;
+					sick.IsResolved = false;
+					movement.Speed /= Const.SickSpeedMultiplier;
+
+					float4 sickColorOffset = new float4(0f, Const.SickSkinToneOffset, 0f, 0f);
+					if (!pilosity.HasShortHair) shortHair.Value -= sickColorOffset;
+					if (!pilosity.HasLongHair) longHair.Value -= sickColorOffset;
+					if (!pilosity.HasBeard) beard.Value -= sickColorOffset;
+					skin.Value -= sickColorOffset;
 				}
 			}
 		}

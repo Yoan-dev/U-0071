@@ -48,9 +48,9 @@ namespace U0071
 		public bool Animated;
 		public Animation Animation;
 
-		public float2 GetFacingDirection()
+		public float2 GetFacingDirection(GameObject gameObject)
 		{
-			float yaw = transform.rotation.eulerAngles.y;
+			float yaw = gameObject.transform.rotation.eulerAngles.y;
 			return
 				yaw == 0f ? new float2(0f, -1f) :
 				yaw == 90f ? new float2(-1f, 0f) :
@@ -103,7 +103,7 @@ namespace U0071
 					{
 						Prefab = GetEntity(authoring.Prefab, TransformUsageFlags.Dynamic),
 						VariantPrefab = authoring.VariantPrefab != null ? GetEntity(authoring.VariantPrefab, TransformUsageFlags.Dynamic) : Entity.Null,
-						Offset = authoring.SpawnOffset * authoring.GetFacingDirection(),
+						Offset = authoring.SpawnOffset * authoring.GetFacingDirection(authoring.gameObject),
 						Capacity = authoring.StartingCapacity,
 						Immutable = authoring.AutoSpawner,
 					});
@@ -146,10 +146,9 @@ namespace U0071
 					Vector3 destination = authoring.Destination.transform.position;
 					AddComponent(entity, new TeleporterComponent
 					{
-						Destination = new float2(destination.x, destination.z),
+						Destination = new float2(destination.x, destination.z) + authoring.SpawnOffset * authoring.GetFacingDirection(authoring.Destination.gameObject),
 					});
 				}
-
 
 				// interactable
 				ItemFlag itemFlags = 0;

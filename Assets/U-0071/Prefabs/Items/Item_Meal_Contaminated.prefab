@@ -102,3 +102,4 @@ MonoBehaviour:
   RawFood: 0
   Food: 1
   Trash: 0
+  Contaminated: 1

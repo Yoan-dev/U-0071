@@ -134,6 +134,7 @@ namespace U0071
 
 			state.Dependency = new ResolveActionJob
 			{
+				Ecb = ecbs.CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter(),
 				PushEvents = _pushEvents.AsParallelWriter(),
 				CreditsEvents = _creditsEvents.AsParallelWriter(),
 				PickDropEvents = _pickDropEvents.AsParallelWriter(),
@@ -203,6 +204,7 @@ namespace U0071
 		[WithAll(typeof(IsActing))]
 		public partial struct ResolveActionJob : IJobEntity
 		{
+			public EntityCommandBuffer.ParallelWriter Ecb;
 			public NativeQueue<PushEvent>.ParallelWriter PushEvents;
 			public NativeQueue<CreditsEvent>.ParallelWriter CreditsEvents;
 			public NativeQueue<PickDropEvent>.ParallelWriter PickDropEvents;
@@ -213,6 +215,7 @@ namespace U0071
 			public float DeltaTime;
 
 			public void Execute(
+				[ChunkIndexInQuery] int chunkIndex,
 				Entity entity,
 				ref ActionController controller,
 				ref HungerComponent hunger,
@@ -230,7 +233,15 @@ namespace U0071
 
 					if (controller.Action.ActionFlag == ActionFlag.Eat)
 					{
-						hunger.Value = math.min(Const.MaxHunger, hunger.Value + Const.EatingHungerGain);
+						if (Utilities.HasItemFlag(controller.Action.UsedItemFlags, ItemFlag.Contaminated))
+						{
+							hunger.Value -= Const.ContaminatedEatingHungerLoss;
+							Ecb.SetComponentEnabled<SickComponent>(chunkIndex, entity, true);
+						}
+						else
+						{
+							hunger.Value = math.min(Const.MaxHunger, hunger.Value + Const.EatingHungerGain);
+						}
 					}
 					else if (controller.Action.ActionFlag == ActionFlag.Push)
 					{
@@ -397,8 +408,8 @@ namespace U0071
 						{
 							// clamp value to source credits and decrease source credits
 
-							ref CreditsComponent credits = ref CreditsLookup.GetRefRW(creditsEvent.Target).ValueRW;
-							value = math.min(math.max(0, credits.Value), value);
+							ref CreditsComponent credits = ref CreditsLookup.GetRefRW(creditsEvent.Source).ValueRW;
+							value = math.min(math.max(0, credits.Value), Const.LootCreditsCount);
 							credits.Value -= value;
 
 							if (credits.Value <= 0f)

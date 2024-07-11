@@ -27,5 +27,9 @@ namespace U0071
 		public bool IsResolved;
 	}
 
-	public struct IsSickTag : IComponentData, IEnableableComponent { }
+	public struct SickComponent : IComponentData, IEnableableComponent
+	{
+		public float Timer;
+		public bool IsResolved;
+	}
 }
