@@ -157,9 +157,17 @@ namespace U0071
 						RoomElementBufferElement target = enumerator.Current;
 						if (target.Entity != entity && position.IsInRange(target.Position, target.Range))
 						{
+							// door opening is always ok
+							if (target.HasActionFlag(ActionFlag.Open))
+							{
+								// TODO: infinite interaction if need to enter code
+								// + trigger UI and track
+								controller.SetPrimaryAction(target.ToActionData(ActionFlag.Open, target.ItemFlags, carry.Flags), in NameLookup, in ActionNameLookup, carry.Picked);
+								break;
+							}
 							// primary
 							// (override carried item action)
-							if (Utilities.HasActionFlag(target.ActionFlags, primaryFilter) &&
+							else if (Utilities.HasActionFlag(target.ActionFlags, primaryFilter) &&
 								target.Evaluate(controller.PrimaryAction.Type, primaryFilter, carry.Flags, out ActionFlag selectedActionFlag, carry.HasItem, false, true, true))
 							{
 								// pose as a storage
@@ -169,10 +177,9 @@ namespace U0071
 								}
 								controller.SetPrimaryAction(target.ToActionData(selectedActionFlag, target.ItemFlags, carry.Flags), in NameLookup, in ActionNameLookup, carry.Picked);
 							}
-							
 							// secondary
 							// for now, secondary is hard-coded pick/drop
-							if (!controller.HasSecondaryAction && target.HasActionFlag(ActionFlag.Pick))
+							else if (!controller.HasSecondaryAction && target.HasActionFlag(ActionFlag.Pick))
 							{
 								controller.SetSecondaryAction(target.ToActionData(ActionFlag.Pick, target.ItemFlags, carry.Flags), in NameLookup, in ActionNameLookup, Entity.Null);
 							}

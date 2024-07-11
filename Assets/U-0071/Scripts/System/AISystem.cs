@@ -3,6 +3,7 @@ using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
+using UnityEngine.Rendering.Universal;
 using Random = Unity.Mathematics.Random;
 
 namespace U0071
@@ -16,6 +17,7 @@ namespace U0071
 		private ComponentLookup<RoomComponent> _roomLookup;
 		private ComponentLookup<InteractableComponent> _interactableLookup;
 		private ComponentLookup<PickableComponent> _pickableLookup;
+		private ComponentLookup<DoorComponent> _doorLookup;
 		private EntityQuery _query;
 		private float _timer;
 
@@ -37,6 +39,7 @@ namespace U0071
 			_roomLookup = state.GetComponentLookup<RoomComponent>(true);
 			_interactableLookup = state.GetComponentLookup<InteractableComponent>(true);
 			_pickableLookup = state.GetComponentLookup<PickableComponent>(true);
+			_doorLookup = state.GetComponentLookup<DoorComponent>(true);
 		}
 
 		[BurstCompile]
@@ -52,6 +55,7 @@ namespace U0071
 				_interactableLookup.Update(ref state);
 				_roomLookup.Update(ref state);
 				_pickableLookup.Update(ref state);
+				_doorLookup.Update(ref state);
 
 				state.Dependency = new AIUnitInitJob
 				{
@@ -65,6 +69,7 @@ namespace U0071
 					InteractableLookup = _interactableLookup,
 					RoomLookup = _roomLookup,
 					PickableLookup = _pickableLookup,
+					DoorLookup = _doorLookup,
 					DeltaTime = Const.AITick,
 				}.ScheduleParallel(_query, state.Dependency);
 
@@ -87,6 +92,8 @@ namespace U0071
 			public ComponentLookup<PickableComponent> PickableLookup;
 			[ReadOnly]
 			public ComponentLookup<InteractableComponent> InteractableLookup;
+			[ReadOnly]
+			public ComponentLookup<DoorComponent> DoorLookup;
 			public float DeltaTime;
 
 			public void Execute(
@@ -211,6 +218,27 @@ namespace U0071
 					while (enumerator.MoveNext())
 					{
 						RoomElementBufferElement target = enumerator.Current;
+
+						if (target.HasActionFlag(ActionFlag.Open))
+						{
+							DoorComponent door = DoorLookup[target.Entity];
+							bool shouldEnterCode =
+								controller.LastMovementInput.x == -door.CodeRequirementDirection.x ||
+								controller.LastMovementInput.y == -door.CodeRequirementDirection.y;
+							if (shouldEnterCode ||
+								controller.LastMovementInput.x == door.CodeRequirementDirection.x ||
+								controller.LastMovementInput.y == door.CodeRequirementDirection.y)
+							{
+								actionController.Action = target.ToActionData(ActionFlag.Open, target.ItemFlags, carry.Flags);
+								if (shouldEnterCode)
+								{
+									// override time if needs to enter code
+									// TODO: start other stuff
+									actionController.Action.Time = Const.AIUnitEnterCodeTime;
+								}
+								break;
+							}
+						}
 						if (target.Entity != entity &&
 							target.HasActionFlag(actionFilter) &&
 							(itemFilter == 0 || target.HasItemFlag(itemFilter)) &&
@@ -299,6 +327,8 @@ namespace U0071
 				{
 					movement.Input = float2.zero;
 				}
+
+				controller.LastMovementInput = movement.Input;
 			}
 		}
 	}

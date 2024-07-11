@@ -70,8 +70,10 @@ namespace U0071
 		}
 	}
 
-	public struct Flowfield : /*IComponentData, ISharedComponentData,*/ IDisposable
+	public struct Flowfield : /*IComponentData, ISharedComponentData,*/IDisposable
 	{
+		// TBD: could be a component shared by same-authorization entities ?
+
 		public NativeArray<FlowfieldCell> Cells;
 		public int2 Dimensions;
 

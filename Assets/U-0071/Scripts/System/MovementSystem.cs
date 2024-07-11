@@ -57,7 +57,6 @@ namespace U0071
 
 		[BurstCompile]
 		[WithNone(typeof(DeathComponent))]
-		[WithNone(typeof(PickableComponent))]
 		public partial struct MovementJob : IJobEntity
 		{
 			[ReadOnly]
@@ -200,6 +199,7 @@ namespace U0071
 		}
 
 		[BurstCompile]
+		[WithNone(typeof(DeviceTag))]
 		public partial struct TransformUpdateJob : IJobEntity
 		{
 			public void Execute(ref LocalTransform transform, in PositionComponent position)

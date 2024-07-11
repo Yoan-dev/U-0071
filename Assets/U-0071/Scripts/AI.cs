@@ -1,5 +1,6 @@
 using System.Runtime.CompilerServices;
 using Unity.Entities;
+using Unity.Mathematics;
 
 namespace U0071
 {
@@ -15,6 +16,7 @@ namespace U0071
 
 	public struct AIController : IComponentData
 	{
+		public float2 LastMovementInput;
 		public AIGoal Goal;
 		public float ReassessmentTimer;
 		public float BoredomValue;

@@ -18,6 +18,10 @@ namespace U0071
 		public float CollisionRadius = 0.25f;
 		public int Cost;
 
+		[Header("Door")]
+		public AreaAuthorization AreaFlag;
+		public float DoorSize;
+
 		[Header("Action Flags")]
 		public bool DestroyAction;
 		public bool Teleporter;
@@ -57,6 +61,15 @@ namespace U0071
 				yaw == 180f ? new float2(0f, 1f) : new float2(1f, 0f);
 		}
 
+		public float2 GetDoorCollision()
+		{
+			float yaw = gameObject.transform.rotation.eulerAngles.y;
+			float scale = gameObject.transform.lossyScale.x; // assumed uniform
+			return yaw == 0f || yaw == 180f ?
+				new float2(scale, scale * DoorSize) :
+				new float2(scale * DoorSize, scale);
+		}
+
 		public class Baker : Baker<DeviceAuthoring>
 		{
 			public override void Bake(DeviceAuthoring authoring)
@@ -77,7 +90,7 @@ namespace U0071
 				AddComponent(entity, new PositionComponent
 				{
 					Value = new float2(position.x, position.z),
-					BaseYOffset = Const.DeviceYOffset,
+					BaseYOffset = authoring.AreaFlag != 0 ? Const.DoorYOffset : Const.DeviceYOffset, // doors are above items
 				});
 				AddComponent(entity, new DeviceTag());
 				AddComponent(entity, new PartitionComponent());
@@ -148,6 +161,18 @@ namespace U0071
 					{
 						Destination = new float2(destination.x, destination.z) + authoring.SpawnOffset * authoring.GetFacingDirection(authoring.Destination.gameObject),
 					});
+				}
+				if (authoring.AreaFlag != 0)
+				{
+					actionFlags |= ActionFlag.Open;
+					AddComponent(entity, new DoorComponent
+					{
+						AreaFlag = authoring.AreaFlag,
+						StageCount = authoring.VisualStageCount,
+						Collision = authoring.GetDoorCollision(),
+						CodeRequirementDirection = authoring.GetFacingDirection(authoring.gameObject), // can always open on exit
+					});
+					AddComponent(entity, new TextureArrayIndex());
 				}
 
 				// interactable

@@ -7,7 +7,7 @@ namespace U0071
 	{
 		public const int ParallelForCount = 256;
 
-		// AI
+		// AI goal
 		public const float AITick = 0.1f;
 		public const float AILightHungerRatio = 0.8f;
 		public const float AIStarvingRatio = 0.2f;
@@ -15,10 +15,15 @@ namespace U0071
 		public const int AIDesiredCreditsPerLevel = 50;
 		public const float AIRelaxWeight = 0.2f;
 
+		// doors
+		public const float AIUnitEnterCodeTime = 3f;
+		public const float CodePeekingAngleCheck = math.PI / 4f;
+
 		// used for Y sorting
 		public const float DeviceYOffset = 0.1f;
 		public const float PickableYOffset = 0.4f;
-		public const float CharacterYOffset = 0.7f;
+		public const float DoorYOffset = 0.7f;
+		public const float CharacterYOffset = 1.0f;
 		public const float CarriedYOffset = 0.001f;
 		public const float YOffsetRatioX = 0.05f;
 		public const float YOffsetRatioY = 0.2f;

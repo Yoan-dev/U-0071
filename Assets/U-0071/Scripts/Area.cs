@@ -1,5 +1,6 @@
 using System;
 using Unity.Entities;
+using Unity.Mathematics;
 
 namespace U0071
 {
@@ -18,5 +19,16 @@ namespace U0071
 	{
 		public AreaAuthorization AreaFlag;
 		public int CurrentCode;
+	}
+
+	public struct DoorComponent : IComponentData
+	{
+		public AreaAuthorization AreaFlag;
+		public float2 Collision;
+		public float2 CodeRequirementDirection;
+		public float OpenTimer;
+		public int StageCount;
+
+		public bool IsOpen => OpenTimer > 0f;
 	}
 }

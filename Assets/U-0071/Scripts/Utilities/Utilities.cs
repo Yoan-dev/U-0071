@@ -2,6 +2,8 @@ using System.Runtime.CompilerServices;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
+using static UnityEngine.GraphicsBuffer;
+using UnityEngine.UIElements;
 
 namespace U0071
 {
@@ -108,6 +110,15 @@ namespace U0071
 		public static bool IsInCircle(float2 point, float2 center, float radius)
 		{
 			return math.lengthsq(point - center) <= math.pow(radius, 2f);
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static bool IsDirectionTowards(float2 from, float2 direction, float2 to, float angle)
+		{
+			float2 toDirection = math.normalizesafe(to - from);
+			float dotProduct = math.dot(direction, toDirection);
+			float threshold = math.cos(angle / 2);
+			return dotProduct > threshold;
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]

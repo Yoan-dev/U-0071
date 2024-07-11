@@ -18,6 +18,7 @@ namespace U0071
 		Destroy = 1 << 6,
 		Store = 1 << 7,
 		Teleport = 1 << 8,
+		Open = 1 << 9,
 	}
 
 	public struct ActionData
