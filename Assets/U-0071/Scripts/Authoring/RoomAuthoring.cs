@@ -8,7 +8,7 @@ namespace U0071
 	[DisallowMultipleComponent]
 	public class RoomAuthoring : MonoBehaviour
 	{
-		public AreaAuthorisation Area;
+		public AreaAuthorization Area;
 		public int CapacityModifier;
 		public bool IsWanderPath;
 

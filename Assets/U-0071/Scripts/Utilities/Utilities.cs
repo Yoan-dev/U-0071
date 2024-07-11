@@ -72,17 +72,30 @@ namespace U0071
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static bool HasAuthorization(AreaAuthorisation flag, AreaAuthorisation check)
+		public static bool HasAuthorization(AreaAuthorization flag, AreaAuthorization check)
 		{
 			return (flag & check) != 0;
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static bool CompareAuthorization(AreaAuthorisation area1, AreaAuthorisation area2)
+		public static bool CompareAuthorization(AreaAuthorization area1, AreaAuthorization area2)
 		{
 			// admin areas should exclude each other but this check will be enough
 			// (level design will have admin areas as dead ends)
 			return area1 >= area2;
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static AreaAuthorization GetLowestAuthorization(AreaAuthorization areaFlags)
+		{
+			// return by inverse-priority (meh bitwise magic to use ?)
+			return
+				HasAuthorization(areaFlags, AreaAuthorization.LevelOne) ? AreaAuthorization.LevelOne :
+				HasAuthorization(areaFlags, AreaAuthorization.LevelTwo) ? AreaAuthorization.LevelTwo :
+				HasAuthorization(areaFlags, AreaAuthorization.LevelThree) ? AreaAuthorization.LevelThree :
+				HasAuthorization(areaFlags, AreaAuthorization.Red) ? AreaAuthorization.Red :
+				HasAuthorization(areaFlags, AreaAuthorization.Blue) ? AreaAuthorization.Blue :
+				HasAuthorization(areaFlags, AreaAuthorization.Yellow) ? AreaAuthorization.Yellow : 0;
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]

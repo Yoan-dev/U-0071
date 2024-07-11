@@ -1,5 +1,4 @@
 using System;
-using System.Runtime.CompilerServices;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
@@ -24,6 +23,7 @@ namespace U0071
 		public void OnCreate(ref SystemState state)
 		{
 			state.RequireForUpdate<Partition>();
+			state.RequireForUpdate<FlowfieldCollection>();
 
 			_query = SystemAPI.QueryBuilder()
 				.WithAllRW<AIController>()
@@ -53,6 +53,12 @@ namespace U0071
 				_roomLookup.Update(ref state);
 				_pickableLookup.Update(ref state);
 
+				state.Dependency = new AIUnitInitJob
+				{
+					Partition = SystemAPI.GetSingleton<Partition>(),
+					Config = SystemAPI.GetSingleton<Config>(),
+				}.ScheduleParallel(state.Dependency);
+
 				state.Dependency = new AIActionJob
 				{
 					RoomElementBufferLookup = _roomElementLookup,
@@ -65,11 +71,6 @@ namespace U0071
 				state.Dependency = new AIMovementJob
 				{
 					FlowfieldCollection = SystemAPI.GetSingleton<FlowfieldCollection>(),
-				}.ScheduleParallel(state.Dependency);
-
-				state.Dependency = new AIUnitInitJob
-				{
-					Config = SystemAPI.GetSingleton<Config>(),
 				}.ScheduleParallel(state.Dependency);
 			}
 		}
@@ -306,20 +307,27 @@ namespace U0071
 	[WithAll(typeof(AIController))]
 	public partial struct AIUnitInitJob : IJobEntity
 	{
+		[ReadOnly]
+		public Partition Partition;
 		public Config Config;
 
 		public void Execute(
 			Entity entity,
+			ref AuthorisationComponent authorization,
 			ref SkinColor skin,
 			ref ShortHairColor shortHair,
 			ref LongHairColor longHair,
 			ref BeardColor beard,
 			ref PilosityComponent pilosity,
+			in PositionComponent position,
 			EnabledRefRW<AIUnitInitTag> initTag)
 		{
 			initTag.ValueRW = false;
 
-			// TODO: init name
+			authorization.AreaFlag = Utilities.GetLowestAuthorization(Partition.GetAuthorization(position.Value));
+			// TODO: starting code
+
+			// TODO: name U-XXXX
 
 			Random random = new Random((uint)(entity.Index * 10000));
 

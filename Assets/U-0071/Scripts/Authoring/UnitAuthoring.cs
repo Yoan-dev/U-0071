@@ -13,7 +13,7 @@ namespace U0071
 		public string Name;
 		public float Speed;
 		public float Hunger = 10f;
-		public AreaAuthorisation Authorisation;
+		public AreaAuthorization Authorisation;
 		public int Credits;
 		
 		[Header("Interactable")]

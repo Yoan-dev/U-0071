@@ -44,9 +44,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bf351af86532294428e2c4c19c4d79f8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  DebugFoodLevelZeroFlowField: 0
-  DebugDestroyFlowField: 0
+  ShowRed: 1
+  ShowGreen: 1
+  ShowBlue: 1
+  ShowYellow: 1
+  ShowCyan: 1
   RoomElementPrefab: {fileID: 2517192555125963864, guid: b1e00b4035298b94ebb161a030503c29,
-    type: 3}
-  CellElementPrefab: {fileID: 8080970378164187478, guid: 8e823588a4f2abb4d8dc972de41a4a8c,
     type: 3}

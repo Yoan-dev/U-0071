@@ -115,7 +115,7 @@ namespace U0071
 					FlowfieldCell cell = flowfield.Cells[i];
 					flowfieldInfos[i] = new FlowfieldInfo
 					{
-						Position = new float2(i % flowfield.Dimensions.x - flowfield.Dimensions.x / 2f + 0.5f, i / flowfield.Dimensions.x - flowfield.Dimensions.y / 2f),
+						Position = new float2(i % flowfield.Dimensions.x - flowfield.Dimensions.x / 2f + 0.5f, i / flowfield.Dimensions.x + 0.5f - flowfield.Dimensions.y / 2f),
 						Red = cell.ToDestroy,
 						Green = cell.ToFood,
 						Blue = cell.ToWork,
@@ -139,7 +139,7 @@ namespace U0071
 				{
 					flowfieldInfos[i] = new FlowfieldInfo
 					{
-						Position = new float2(i % partition.Dimensions.x - partition.Dimensions.x / 2f + 0.5f, i / partition.Dimensions.x - partition.Dimensions.y / 2f),
+						Position = new float2(i % partition.Dimensions.x - partition.Dimensions.x / 2f + 0.5f, i / partition.Dimensions.x + 0.5f - partition.Dimensions.y / 2f),
 						Red = flowfieldCollection.ToRedAdmin[i],
 						Blue = flowfieldCollection.ToBlueAdmin[i],
 						Yellow = flowfieldCollection.ToYellowAdmin[i],

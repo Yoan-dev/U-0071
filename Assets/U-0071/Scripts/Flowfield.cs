@@ -1,4 +1,5 @@
 using System;
+using System.CodeDom.Compiler;
 using System.Runtime.CompilerServices;
 using Unity.Collections;
 using Unity.Entities;
@@ -54,16 +55,16 @@ namespace U0071
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public float2 GetDirection(AreaAuthorisation areaFlag, AIGoal goal, float2 position)
+		public float2 GetDirection(AreaAuthorization areaFlag, AIGoal goal, float2 position)
 		{
 			return areaFlag switch
 			{
-				AreaAuthorisation.LevelOne => LevelOne.GetDirection(goal, position),
-				AreaAuthorisation.LevelTwo => LevelTwo.GetDirection(goal, position),
-				AreaAuthorisation.LevelThree => LevelThree.GetDirection(goal, position),
-				AreaAuthorisation.Red => LevelThree.GetDirection(goal, position),
-				AreaAuthorisation.Blue => LevelThree.GetDirection(goal, position),
-				AreaAuthorisation.Yellow => LevelThree.GetDirection(goal, position),
+				AreaAuthorization.LevelOne => LevelOne.GetDirection(goal, position),
+				AreaAuthorization.LevelTwo => LevelTwo.GetDirection(goal, position),
+				AreaAuthorization.LevelThree => LevelThree.GetDirection(goal, position),
+				AreaAuthorization.Red => LevelThree.GetDirection(goal, position),
+				AreaAuthorization.Blue => LevelThree.GetDirection(goal, position),
+				AreaAuthorization.Yellow => LevelThree.GetDirection(goal, position),
 				_ => float2.zero,
 			};
 		}
@@ -88,9 +89,7 @@ namespace U0071
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public float2 GetDirection(AIGoal goal, float2 position)
 		{
-			int index = GetIndex(position);
-			FlowfieldCell cell = Cells[index];
-
+			FlowfieldCell cell = GetCell(position);
 			return goal switch
 			{
 				AIGoal.Eat => cell.ToFood,
@@ -104,6 +103,13 @@ namespace U0071
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public FlowfieldCell GetCell(float2 position)
+		{
+			int index = GetIndex(position);
+			return index >= 0 && index < Cells.Length ? Cells[index] : new FlowfieldCell();
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public int GetIndex(float2 position)
 		{
 			return (int)(position.x + Dimensions.x / 2) + (int)(position.y + Dimensions.y / 2) * Dimensions.x;
@@ -113,7 +119,7 @@ namespace U0071
 	public struct FlowfieldBuilderCell
 	{
 		public float2 Position;
-		public AreaAuthorisation Area;
+		public AreaAuthorization AreaFlag;
 		public int Index;
 		public int Value;
 		public bool Pathable;
@@ -125,7 +131,7 @@ namespace U0071
 		public NativeArray<float2> Flowfield;
 		public NativeArray<FlowfieldBuilderCell> Cells;
 		public NativeQueue<FlowfieldBuilderCell> Queue;
-		public AreaAuthorisation AreaFlag;
+		public AreaAuthorization AreaFlag;
 		public ActionFlag ActionFlag;
 		public ItemFlag ItemFlag;
 		public bool WorkFlag;
@@ -138,7 +144,7 @@ namespace U0071
 		private int offsetS => -Dimensions.x;
 		private int offsetSE => -Dimensions.x + 1;
 
-		public FlowfieldBuilder(AreaAuthorisation areaFlag, ActionFlag actionFlag, ItemFlag itemFlag, in Partition partition, bool workFlag = false)
+		public FlowfieldBuilder(AreaAuthorization areaFlag, ActionFlag actionFlag, ItemFlag itemFlag, in Partition partition, bool workFlag = false)
 		{
 			// lone flag because we will do < comparisons
 			AreaFlag = areaFlag;
@@ -152,10 +158,11 @@ namespace U0071
 			Cells = new NativeArray<FlowfieldBuilderCell>(Dimensions.x * Dimensions.y, Allocator.TempJob);
 			for (int i = 0; i < Cells.Length; i++)
 			{
+				AreaAuthorization areaFlags = partition.GetAuthorization(i);
 				Cells[i] = new FlowfieldBuilderCell
 				{
-					Position = new float2(i % Dimensions.x, i / Dimensions.x), // only need relative pos to each other
-					Area = partition.GetAuthorization(i),
+					Position = new float2(i % Dimensions.x - Dimensions.x / 2, i / Dimensions.x - Dimensions.y / 2),
+					AreaFlag = Utilities.GetLowestAuthorization(areaFlags),
 					Index = i,
 					Value = int.MaxValue,
 					Pathable = partition.IsPathable(i),
@@ -174,15 +181,16 @@ namespace U0071
 		public void ProcessDevice(in InteractableComponent interactable, in Partition partition, float2 position, int size)
 		{
 			// flowfield starts from:
-			// - working stations if work flag
+			// - same area working stations if work flag
 			// - devices with no action/item flags or required ones
 			// - authorized areas
 			int index = GetIndex(position);
+			AreaAuthorization lowestCellAuthorization = Utilities.GetLowestAuthorization(partition.GetRoomData(index).AreaFlag);
 			bool isStartingCell =
-				(!WorkFlag || interactable.WorkingStationFlag) && 
-				(ActionFlag == 0 || interactable.HasActionFlag(ActionFlag)) && 
+				(!WorkFlag || (interactable.WorkingStationFlag && AreaFlag == lowestCellAuthorization)) &&
+				(ActionFlag == 0 || interactable.HasActionFlag(ActionFlag)) &&
 				(ItemFlag == 0 || interactable.HasItemFlag(ItemFlag)) &&
-				Utilities.HasAuthorization(AreaFlag, partition.GetRoomData(index).AreaFlag);
+				Utilities.CompareAuthorization(AreaFlag, lowestCellAuthorization);
 
 			if (size == 1)
 			{
@@ -249,10 +257,12 @@ namespace U0071
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		private void TryEnqueueCell(in FlowfieldBuilderCell cell, FlowfieldBuilderCell checkedCell)
 		{
-			// flow can go from low to high authorization but not the opposite
+			// flow can go from low to high authorization but not the opposite,
+			// except if we start from high authorization
 			// allows for all cells to have a value (can go back to authorized if lost somehow)
-			// but never path to an un-authorized cell
-			if (checkedCell.Pathable && checkedCell.Value > cell.Value + 1 && Utilities.CompareAuthorization(checkedCell.Area, cell.Area))
+			// but never path to an un-authorized cell (in the case of a loop / go through room)
+			if (checkedCell.Pathable && checkedCell.Value > cell.Value + 1 && 
+				(Utilities.CompareAuthorization(checkedCell.AreaFlag, cell.AreaFlag) || Utilities.CompareAuthorization(AreaFlag, checkedCell.AreaFlag)))
 			{
 				checkedCell.Value = cell.Value + 1;
 				Cells[checkedCell.Index] = checkedCell;

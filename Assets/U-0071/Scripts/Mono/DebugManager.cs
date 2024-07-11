@@ -10,6 +10,13 @@ public class DebugManager : MonoBehaviour
 {
 	public static DebugManager Instance;
 
+	[Header("Flowfield")]
+	public bool ShowRed;
+	public bool ShowGreen;
+	public bool ShowBlue;
+	public bool ShowYellow;
+	public bool ShowCyan;
+
 	[Header("Miscellaneous")]	
 	public TMP_Text RoomElementPrefab;
 
@@ -75,11 +82,11 @@ public class DebugManager : MonoBehaviour
 		foreach (var info in _flowfieldInfos)
 		{
 			Vector3 from = new Vector3(info.Position.x, 0.5f, info.Position.y);
-			TryDraw(Color.red, from, info.Red);
-			TryDraw(Color.green, from, info.Green);
-			TryDraw(Color.blue, from, info.Blue);
-			TryDraw(Color.yellow, from, info.Yellow);
-			TryDraw(Color.cyan, from, info.Cyan);
+			if (ShowRed) TryDraw(Color.red, from, info.Red);
+			if (ShowGreen) TryDraw(Color.green, from, info.Green);
+			if (ShowBlue) TryDraw(Color.blue, from, info.Blue);
+			if (ShowYellow) TryDraw(Color.yellow, from, info.Yellow);
+			if (ShowCyan) TryDraw(Color.cyan, from, info.Cyan);
 		}
 	}
 

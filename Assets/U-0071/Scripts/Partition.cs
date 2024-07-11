@@ -18,7 +18,7 @@ namespace U0071
 		public Entity Entity;
 		
 		public int Size => Room.Dimensions.x * Room.Dimensions.y;
-		public AreaAuthorisation AreaFlag => Room.Area;
+		public AreaAuthorization AreaFlag => Room.Area;
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public float2 GetRoomRatio(float2 position)
@@ -53,15 +53,19 @@ namespace U0071
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public RoomData GetRoomData(float2 position)
 		{
-			int index = GetIndex(position);
+			return GetRoomData(GetIndex(position));
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public RoomData GetRoomData(int index)
+		{
 			return index >= 0 && index < RoomCells.Length ? RoomCells[index] : new RoomData();
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public bool IsPathable(float2 position)
 		{
-			int index = GetIndex(position);
-			return IsPathable(index);
+			return IsPathable(GetIndex(position));
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -71,7 +75,13 @@ namespace U0071
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public AreaAuthorisation GetAuthorization(int index)
+		public AreaAuthorization GetAuthorization(float2 position)
+		{
+			return GetAuthorization(GetIndex(position));
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public AreaAuthorization GetAuthorization(int index)
 		{
 			return index >= 0 && index < RoomCells.Length ? RoomCells[index].AreaFlag : 0;
 		}

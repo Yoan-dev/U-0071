@@ -82,12 +82,13 @@ namespace U0071
 
 			// flowfields init
 			// run sequentially but each call run its jobs in parallel
-			ProcessFlowfield(ref state, ref flowfieldCollection.LevelOne, AreaAuthorisation.LevelOne, in wanderPath, in partition);
-			ProcessFlowfield(ref state, ref flowfieldCollection.LevelTwo, AreaAuthorisation.LevelTwo, in wanderPath, in partition);
-			ProcessFlowfield(ref state, ref flowfieldCollection.LevelThree, AreaAuthorisation.LevelThree, in wanderPath, in partition);
+			ProcessFlowfield(ref state, ref flowfieldCollection.LevelOne, AreaAuthorization.LevelOne, in wanderPath, in partition);
+			ProcessFlowfield(ref state, ref flowfieldCollection.LevelTwo, AreaAuthorization.LevelTwo, in wanderPath, in partition);
+			ProcessFlowfield(ref state, ref flowfieldCollection.LevelThree, AreaAuthorization.LevelThree, in wanderPath, in partition);
 			ProcessAdminFlowfields(ref state, ref flowfieldCollection, in partition);
 
 			wanderCells.Dispose();
+			wanderPath.Dispose();
 			wanderers.Dispose();
 
 			state.EntityManager.AddComponentData(state.SystemHandle, partition);
@@ -99,7 +100,7 @@ namespace U0071
 		private void ProcessFlowfield(
 			ref SystemState state, 
 			ref Flowfield flowfield, 
-			AreaAuthorisation areaFlag, 
+			AreaAuthorization areaFlag, 
 			in NativeArray<float2> wanderPath, 
 			in Partition partition)
 		{
@@ -109,7 +110,7 @@ namespace U0071
 			// do not use ActionFlag.Collect (not set if distributor starting capacity != 0)
 			// (hack: WorkingStationgFlag is used instead)
 			FlowfieldBuilder toFood = new FlowfieldBuilder(areaFlag, 0, ItemFlag.Food, in partition);
-			FlowfieldBuilder toWork = new FlowfieldBuilder(areaFlag, 0, ItemFlag.Food, in partition);
+			FlowfieldBuilder toWork = new FlowfieldBuilder(areaFlag, 0, 0, in partition, true);
 			FlowfieldBuilder toDestroy = new FlowfieldBuilder(areaFlag, ActionFlag.Destroy, ItemFlag.Trash, in partition);
 			FlowfieldBuilder toWander = new FlowfieldBuilder(areaFlag, 0, 0, in partition);
 			FlowfieldBuilder toRelax = new FlowfieldBuilder(areaFlag, 0, 0, in partition); // TODO
@@ -171,9 +172,9 @@ namespace U0071
 		{
 			int size = partition.Dimensions.x * partition.Dimensions.y;
 
-			FlowfieldBuilder toRed = new FlowfieldBuilder(AreaAuthorisation.Red, 0, 0, in partition);
-			FlowfieldBuilder toBlue = new FlowfieldBuilder(AreaAuthorisation.Blue, 0, 0, in partition);
-			FlowfieldBuilder toYellow = new FlowfieldBuilder(AreaAuthorisation.Yellow, 0, 0, in partition);
+			FlowfieldBuilder toRed = new FlowfieldBuilder(AreaAuthorization.Red, 0, 0, in partition);
+			FlowfieldBuilder toBlue = new FlowfieldBuilder(AreaAuthorization.Blue, 0, 0, in partition);
+			FlowfieldBuilder toYellow = new FlowfieldBuilder(AreaAuthorization.Yellow, 0, 0, in partition);
 
 			// TODO retrieve starting cell(s) for each admin area
 
