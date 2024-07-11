@@ -92,7 +92,6 @@ namespace U0071
 				AddComponent(entity, new PositionComponent
 				{
 					Value = new float2(position.x, position.z),
-					BaseYOffset = authoring.AreaFlag != 0 ? Const.DoorYOffset : Const.DeviceYOffset, // doors are above items
 				});
 				AddComponent(entity, new DeviceTag());
 				AddComponent(entity, new PartitionComponent());
