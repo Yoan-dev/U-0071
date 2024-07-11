@@ -26,6 +26,9 @@ namespace U0071
 		public float ChanceOfLongHair;
 		public float ChanceOfBeard;
 
+		[Header("Miscellaneous")]
+		public GameObject OrganicWastePrefab;
+
 		public class Baker : Baker<ConfigAuthoring>
 		{
 			public override void Bake(ConfigAuthoring authoring)
@@ -44,6 +47,7 @@ namespace U0071
 					ChanceOfShortHair = authoring.ChanceOfShortHair,
 					ChanceOfLongHair = authoring.ChanceOfLongHair,
 					ChanceOfBeard = authoring.ChanceOfBeard,
+					OrganicWastePrefab = GetEntity(authoring.OrganicWastePrefab, TransformUsageFlags.Dynamic),
 				};
 
 				var builder = new BlobBuilder(Allocator.Temp);

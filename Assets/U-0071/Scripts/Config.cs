@@ -20,6 +20,7 @@ namespace U0071
 		public Animation CharacterCrushed;
 		public int2 WorldDimensions;
 		public BlobAssetReference<UnitRenderingColors> UnitRenderingColors;
+		public Entity OrganicWastePrefab;
 		public float ChanceOfLongHair;
 		public float ChanceOfShortHair;
 		public float ChanceOfBeard;

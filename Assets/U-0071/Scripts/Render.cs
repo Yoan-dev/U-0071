@@ -21,6 +21,13 @@ namespace U0071
 		}
 	}
 
+	public struct PilosityComponent : IComponentData
+	{
+		public bool HasShortHair;
+		public bool HasLongHair;
+		public bool HasBeard;
+	}
+
 	[MaterialProperty("_ShirtColor")]
 	public struct ShirtColor : IComponentData
 	{

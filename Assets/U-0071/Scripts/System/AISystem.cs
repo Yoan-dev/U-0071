@@ -305,6 +305,7 @@ namespace U0071
 			ref ShortHairColor shortHair,
 			ref LongHairColor longHair,
 			ref BeardColor beard,
+			ref PilosityComponent pilosity,
 			EnabledRefRW<AIUnitInitTag> initTag)
 		{
 			initTag.ValueRW = false;
@@ -313,13 +314,17 @@ namespace U0071
 
 			Random random = new Random((uint)(entity.Index * 10000));
 
+			pilosity.HasShortHair = random.NextFloat() < Config.ChanceOfShortHair;
+			pilosity.HasLongHair = random.NextFloat() < Config.ChanceOfLongHair;
+			pilosity.HasBeard = random.NextFloat() < Config.ChanceOfBeard;
+
 			float4 skinColor = Config.UnitRenderingColors.Value.SkinColors[random.NextInt(Config.UnitRenderingColors.Value.SkinColors.Length)];
 			float4 hairColor = Config.UnitRenderingColors.Value.HairColors[random.NextInt(Config.UnitRenderingColors.Value.HairColors.Length)];
 
 			skin.Value = skinColor;
-			shortHair.Value = random.NextFloat() < Config.ChanceOfShortHair ? hairColor : skinColor;
-			longHair.Value = random.NextFloat() < Config.ChanceOfLongHair ? hairColor : skinColor;
-			beard.Value = random.NextFloat() < Config.ChanceOfBeard ? hairColor : skinColor;
+			shortHair.Value = pilosity.HasShortHair ? hairColor : skinColor;
+			longHair.Value = pilosity.HasLongHair ? hairColor : skinColor;
+			beard.Value = pilosity.HasBeard ? hairColor : skinColor;
 		}
 	}
 }

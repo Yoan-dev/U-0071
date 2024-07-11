@@ -153,6 +153,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cb60002a0c6bb8e4ca381165a6bfec3f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  CapacityModifier: 0
   IsWanderPath: 0
 --- !u!23 &27401782
 MeshRenderer:
@@ -399,6 +400,31 @@ PrefabInstance:
         type: 3}
       propertyPath: Hunger
       value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 6182060189481554560, guid: a153a4c14592d0646afb9e802275efe5,
+        type: 3}
+      propertyPath: HairColor.a
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6182060189481554560, guid: a153a4c14592d0646afb9e802275efe5,
+        type: 3}
+      propertyPath: HairColor.b
+      value: 0.16078432
+      objectReference: {fileID: 0}
+    - target: {fileID: 6182060189481554560, guid: a153a4c14592d0646afb9e802275efe5,
+        type: 3}
+      propertyPath: HairColor.g
+      value: 0.32941177
+      objectReference: {fileID: 0}
+    - target: {fileID: 6182060189481554560, guid: a153a4c14592d0646afb9e802275efe5,
+        type: 3}
+      propertyPath: HairColor.r
+      value: 0.7176471
+      objectReference: {fileID: 0}
+    - target: {fileID: 6182060189481554560, guid: a153a4c14592d0646afb9e802275efe5,
+        type: 3}
+      propertyPath: HasLongHair
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6182060189481554560, guid: a153a4c14592d0646afb9e802275efe5,
         type: 3}
@@ -664,6 +690,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cb60002a0c6bb8e4ca381165a6bfec3f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  CapacityModifier: 0
   IsWanderPath: 0
 --- !u!23 &515428006
 MeshRenderer:
@@ -874,6 +901,31 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6182060189481554560, guid: a153a4c14592d0646afb9e802275efe5,
         type: 3}
+      propertyPath: HairColor.a
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6182060189481554560, guid: a153a4c14592d0646afb9e802275efe5,
+        type: 3}
+      propertyPath: HairColor.b
+      value: 0.14901961
+      objectReference: {fileID: 0}
+    - target: {fileID: 6182060189481554560, guid: a153a4c14592d0646afb9e802275efe5,
+        type: 3}
+      propertyPath: HairColor.g
+      value: 0.19215688
+      objectReference: {fileID: 0}
+    - target: {fileID: 6182060189481554560, guid: a153a4c14592d0646afb9e802275efe5,
+        type: 3}
+      propertyPath: HairColor.r
+      value: 0.227451
+      objectReference: {fileID: 0}
+    - target: {fileID: 6182060189481554560, guid: a153a4c14592d0646afb9e802275efe5,
+        type: 3}
+      propertyPath: HasLongHair
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6182060189481554560, guid: a153a4c14592d0646afb9e802275efe5,
+        type: 3}
       propertyPath: SkinColor.b
       value: 0.41963333
       objectReference: {fileID: 0}
@@ -901,6 +953,11 @@ PrefabInstance:
         type: 3}
       propertyPath: BeardColor.r
       value: 0.7725491
+      objectReference: {fileID: 0}
+    - target: {fileID: 6182060189481554560, guid: a153a4c14592d0646afb9e802275efe5,
+        type: 3}
+      propertyPath: HasShortHair
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6182060189481554560, guid: a153a4c14592d0646afb9e802275efe5,
         type: 3}
@@ -935,17 +992,17 @@ PrefabInstance:
     - target: {fileID: 6182060189481554560, guid: a153a4c14592d0646afb9e802275efe5,
         type: 3}
       propertyPath: ShortHairColor.b
-      value: 0.1505874
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6182060189481554560, guid: a153a4c14592d0646afb9e802275efe5,
         type: 3}
       propertyPath: ShortHairColor.g
-      value: 0.19360559
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6182060189481554560, guid: a153a4c14592d0646afb9e802275efe5,
         type: 3}
       propertyPath: ShortHairColor.r
-      value: 0.2264151
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -1057,6 +1114,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cb60002a0c6bb8e4ca381165a6bfec3f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  CapacityModifier: 0
   IsWanderPath: 0
 --- !u!23 &821435020
 MeshRenderer:
@@ -1193,6 +1251,36 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6182060189481554560, guid: a153a4c14592d0646afb9e802275efe5,
         type: 3}
+      propertyPath: HasBeard
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6182060189481554560, guid: a153a4c14592d0646afb9e802275efe5,
+        type: 3}
+      propertyPath: HairColor.a
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6182060189481554560, guid: a153a4c14592d0646afb9e802275efe5,
+        type: 3}
+      propertyPath: HairColor.b
+      value: 0.5921569
+      objectReference: {fileID: 0}
+    - target: {fileID: 6182060189481554560, guid: a153a4c14592d0646afb9e802275efe5,
+        type: 3}
+      propertyPath: HairColor.g
+      value: 0.854902
+      objectReference: {fileID: 0}
+    - target: {fileID: 6182060189481554560, guid: a153a4c14592d0646afb9e802275efe5,
+        type: 3}
+      propertyPath: HairColor.r
+      value: 0.86666673
+      objectReference: {fileID: 0}
+    - target: {fileID: 6182060189481554560, guid: a153a4c14592d0646afb9e802275efe5,
+        type: 3}
+      propertyPath: HasLongHair
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6182060189481554560, guid: a153a4c14592d0646afb9e802275efe5,
+        type: 3}
       propertyPath: SkinColor.b
       value: 0.64760596
       objectReference: {fileID: 0}
@@ -1220,6 +1308,11 @@ PrefabInstance:
         type: 3}
       propertyPath: BeardColor.r
       value: 0.86666673
+      objectReference: {fileID: 0}
+    - target: {fileID: 6182060189481554560, guid: a153a4c14592d0646afb9e802275efe5,
+        type: 3}
+      propertyPath: HasShortHair
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6182060189481554560, guid: a153a4c14592d0646afb9e802275efe5,
         type: 3}
@@ -1704,17 +1797,17 @@ PrefabInstance:
     - target: {fileID: 6182060189481554560, guid: a153a4c14592d0646afb9e802275efe5,
         type: 3}
       propertyPath: SkinColor.b
-      value: 0.3281862
+      value: 0.32941177
       objectReference: {fileID: 0}
     - target: {fileID: 6182060189481554560, guid: a153a4c14592d0646afb9e802275efe5,
         type: 3}
       propertyPath: SkinColor.g
-      value: 0.42564437
+      value: 0.427451
       objectReference: {fileID: 0}
     - target: {fileID: 6182060189481554560, guid: a153a4c14592d0646afb9e802275efe5,
         type: 3}
       propertyPath: SkinColor.r
-      value: 0.5566038
+      value: 0.5568628
       objectReference: {fileID: 0}
     - target: {fileID: 6182060189481554560, guid: a153a4c14592d0646afb9e802275efe5,
         type: 3}
@@ -1886,6 +1979,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cb60002a0c6bb8e4ca381165a6bfec3f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  CapacityModifier: 0
   IsWanderPath: 1
 --- !u!23 &1406601439
 MeshRenderer:
@@ -2122,6 +2216,26 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6182060189481554560, guid: a153a4c14592d0646afb9e802275efe5,
         type: 3}
+      propertyPath: HairColor.a
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6182060189481554560, guid: a153a4c14592d0646afb9e802275efe5,
+        type: 3}
+      propertyPath: HairColor.b
+      value: 0.21960786
+      objectReference: {fileID: 0}
+    - target: {fileID: 6182060189481554560, guid: a153a4c14592d0646afb9e802275efe5,
+        type: 3}
+      propertyPath: HairColor.g
+      value: 0.21960786
+      objectReference: {fileID: 0}
+    - target: {fileID: 6182060189481554560, guid: a153a4c14592d0646afb9e802275efe5,
+        type: 3}
+      propertyPath: HairColor.r
+      value: 0.21960786
+      objectReference: {fileID: 0}
+    - target: {fileID: 6182060189481554560, guid: a153a4c14592d0646afb9e802275efe5,
+        type: 3}
       propertyPath: SkinColor.b
       value: 0.60875756
       objectReference: {fileID: 0}
@@ -2149,6 +2263,11 @@ PrefabInstance:
         type: 3}
       propertyPath: BeardColor.r
       value: 0.75294125
+      objectReference: {fileID: 0}
+    - target: {fileID: 6182060189481554560, guid: a153a4c14592d0646afb9e802275efe5,
+        type: 3}
+      propertyPath: HasShortHair
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6182060189481554560, guid: a153a4c14592d0646afb9e802275efe5,
         type: 3}
@@ -2299,6 +2418,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cb60002a0c6bb8e4ca381165a6bfec3f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  CapacityModifier: 0
   IsWanderPath: 0
 --- !u!23 &1840266186
 MeshRenderer:
@@ -2475,6 +2595,31 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6182060189481554560, guid: a153a4c14592d0646afb9e802275efe5,
         type: 3}
+      propertyPath: HasBeard
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6182060189481554560, guid: a153a4c14592d0646afb9e802275efe5,
+        type: 3}
+      propertyPath: HairColor.a
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6182060189481554560, guid: a153a4c14592d0646afb9e802275efe5,
+        type: 3}
+      propertyPath: HairColor.b
+      value: 0.5019608
+      objectReference: {fileID: 0}
+    - target: {fileID: 6182060189481554560, guid: a153a4c14592d0646afb9e802275efe5,
+        type: 3}
+      propertyPath: HairColor.g
+      value: 0.5019608
+      objectReference: {fileID: 0}
+    - target: {fileID: 6182060189481554560, guid: a153a4c14592d0646afb9e802275efe5,
+        type: 3}
+      propertyPath: HairColor.r
+      value: 0.5019608
+      objectReference: {fileID: 0}
+    - target: {fileID: 6182060189481554560, guid: a153a4c14592d0646afb9e802275efe5,
+        type: 3}
       propertyPath: SkinColor.b
       value: 0.6392157
       objectReference: {fileID: 0}
@@ -2502,6 +2647,11 @@ PrefabInstance:
         type: 3}
       propertyPath: BeardColor.r
       value: 0.5019608
+      objectReference: {fileID: 0}
+    - target: {fileID: 6182060189481554560, guid: a153a4c14592d0646afb9e802275efe5,
+        type: 3}
+      propertyPath: HasShortHair
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6182060189481554560, guid: a153a4c14592d0646afb9e802275efe5,
         type: 3}
@@ -2602,6 +2752,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cb60002a0c6bb8e4ca381165a6bfec3f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  CapacityModifier: 0
   IsWanderPath: 1
 --- !u!23 &2028941349
 MeshRenderer:

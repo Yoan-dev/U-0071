@@ -70,7 +70,8 @@ namespace U0071
 				ref ShortHairColor shortHair,
 				ref LongHairColor longHair,
 				ref BeardColor beard,
-				in CreditsComponent credits)
+				in CreditsComponent credits,
+				in PilosityComponent pilosity)
 			{
 				// TODO: filter from job afterwards
 				if (!Death.IsResolved)
@@ -109,9 +110,9 @@ namespace U0071
 					}
 
 					float4 deathColorOffset = new float4(Const.DeathSkinToneOffset, Const.DeathSkinToneOffset, Const.DeathSkinToneOffset, 0f);
-					shortHair.Value += deathColorOffset;
-					longHair.Value += deathColorOffset;
-					beard.Value += deathColorOffset;
+					if (!pilosity.HasShortHair) shortHair.Value += deathColorOffset;
+					if (!pilosity.HasLongHair) longHair.Value += deathColorOffset;
+					if (!pilosity.HasBeard) beard.Value += deathColorOffset;
 					skin.Value += deathColorOffset;
 				}
 			}

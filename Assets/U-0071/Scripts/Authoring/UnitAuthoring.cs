@@ -23,9 +23,10 @@ namespace U0071
 		[Header("Render")]
 		public Color ShirtColor;
 		public Color SkinColor;
-		public Color ShortHairColor;
-		public Color LongHairColor;
-		public Color BeardColor;
+		public Color HairColor;
+		public bool HasShortHair;
+		public bool HasLongHair;
+		public bool HasBeard;
 
 		public class Baker : Baker<UnitAuthoring>
 		{
@@ -69,9 +70,15 @@ namespace U0071
 				AddComponent(entity, new Orientation { Value = 1f });
 				AddComponent(entity, new ShirtColor { Value = authoring.ShirtColor.linear.ToFloat4() });
 				AddComponent(entity, new SkinColor { Value = authoring.SkinColor.linear.ToFloat4() });
-				AddComponent(entity, new ShortHairColor { Value = authoring.ShortHairColor.linear.ToFloat4() });
-				AddComponent(entity, new LongHairColor { Value = authoring.LongHairColor.linear.ToFloat4() });
-				AddComponent(entity, new BeardColor { Value = authoring.BeardColor.linear.ToFloat4() });
+				AddComponent(entity, new ShortHairColor { Value = (authoring.HasShortHair ? authoring.HairColor : authoring.SkinColor).linear.ToFloat4() });
+				AddComponent(entity, new LongHairColor { Value = (authoring.HasLongHair ? authoring.HairColor : authoring.SkinColor).linear.ToFloat4() });
+				AddComponent(entity, new BeardColor { Value = (authoring.HasBeard ? authoring.HairColor : authoring.SkinColor).linear.ToFloat4() });
+				AddComponent(entity, new PilosityComponent
+				{
+					HasShortHair = authoring.HasShortHair,
+					HasLongHair = authoring.HasLongHair,
+					HasBeard = authoring.HasBeard,
+				});
 			}
 		}
 	}
