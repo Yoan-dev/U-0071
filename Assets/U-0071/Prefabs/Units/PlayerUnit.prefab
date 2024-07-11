@@ -99,7 +99,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Name: U-0071
   Speed: 5
-  Hunger: 0
+  Hunger: 0.1
   Credits: 30
   Range: 0.5
   Time: 1

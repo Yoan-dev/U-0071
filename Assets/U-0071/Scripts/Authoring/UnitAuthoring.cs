@@ -61,6 +61,7 @@ namespace U0071
 				SetComponentEnabled<CarryComponent>(entity, false);
 				AddComponent(entity, new HungerComponent { Value = authoring.Hunger });
 				AddComponent(entity, new DeathComponent());
+				AddComponent(entity, new ResolveDeathTag());
 				SetComponentEnabled<DeathComponent>(entity, false);
 				AddComponent(entity, new PushedComponent());
 				SetComponentEnabled<PushedComponent>(entity, false);

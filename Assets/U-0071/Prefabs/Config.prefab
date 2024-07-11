@@ -73,6 +73,11 @@ MonoBehaviour:
     Duration: 7
     FrameTime: 0.1
     Looping: 0
+  CharacterFlee:
+    StartIndex: 27
+    Duration: 6
+    FrameTime: 0.075
+    Looping: 1
   SkinColors:
   - {r: 0.4433962, g: 0.3374874, b: 0.25725347, a: 1}
   - {r: 0.5568628, g: 0.427451, b: 0.32941177, a: 1}
@@ -93,3 +98,5 @@ MonoBehaviour:
   ChanceOfShortHair: 0.9
   ChanceOfLongHair: 0.6
   ChanceOfBeard: 0.3
+  OrganicWastePrefab: {fileID: 1708813368808323750, guid: 80f746a3980560c40addf3b8fbca1168,
+    type: 3}

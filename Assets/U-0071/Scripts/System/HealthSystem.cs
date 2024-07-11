@@ -78,50 +78,48 @@ namespace U0071
 				ref LongHairColor longHair,
 				ref BeardColor beard,
 				in CreditsComponent credits,
-				in PilosityComponent pilosity)
+				in PilosityComponent pilosity,
+				EnabledRefRW<ResolveDeathTag> resolveDeath)
 			{
-				// TODO: filter from job afterwards
-				if (!death.IsResolved)
+				resolveDeath.ValueRW = false;
+
+				movement.Input = float2.zero;
+				position.BaseYOffset = Const.PickableYOffset;
+				controller.Stop();
+				Ecb.SetComponentEnabled<IsActing>(chunkIndex, entity, false);
+				Ecb.SetComponentEnabled<DeathComponent>(chunkIndex, entity, true);
+				Ecb.AddComponent(chunkIndex, entity, new PickableComponent
 				{
-					death.IsResolved = true;
-					movement.Input = float2.zero;
-					position.BaseYOffset = Const.PickableYOffset;
-					controller.Stop();
-					Ecb.SetComponentEnabled<IsActing>(chunkIndex, entity, false);
-					Ecb.SetComponentEnabled<DeathComponent>(chunkIndex, entity, true);
-					Ecb.AddComponent(chunkIndex, entity, new PickableComponent
-					{
-						CarriedZOffset = Const.CorpseCarriedOffsetZ,
-					});
-					Ecb.SetComponentEnabled<PickableComponent>(chunkIndex, entity, false);
+					CarriedZOffset = Const.CorpseCarriedOffsetZ,
+				});
+				Ecb.SetComponentEnabled<PickableComponent>(chunkIndex, entity, false);
 
-					interactable.Changed = true;
-					interactable.ActionFlags &= ~ActionFlag.Push;
+				interactable.Changed = true;
+				interactable.ActionFlags &= ~ActionFlag.Push;
 
-					if (death.Context == DeathType.Crushed)
-					{
-						animation.StartAnimation(in Config.CharacterCrushed);
-					}
-					else
-					{
-						animation.StartAnimation(in Config.CharacterDie);
-						interactable.ActionFlags |= ActionFlag.Pick;
-						interactable.ItemFlags |= ItemFlag.Trash;
-						if (credits.Value > 0)
-						{
-							// TBD add regardless
-							// (empty research for player)
-							// (need AI to ignore)
-							interactable.ActionFlags |= ActionFlag.Search;
-						}
-					}
-
-					float4 deathColorOffset = new float4(Const.DeathSkinToneOffset, Const.DeathSkinToneOffset, Const.DeathSkinToneOffset, 0f);
-					if (!pilosity.HasShortHair) shortHair.Value += deathColorOffset;
-					if (!pilosity.HasLongHair) longHair.Value += deathColorOffset;
-					if (!pilosity.HasBeard) beard.Value += deathColorOffset;
-					skin.Value += deathColorOffset;
+				if (death.Context == DeathType.Crushed)
+				{
+					animation.StartAnimation(in Config.CharacterCrushed);
 				}
+				else
+				{
+					animation.StartAnimation(in Config.CharacterDie);
+					interactable.ActionFlags |= ActionFlag.Pick;
+					interactable.ItemFlags |= ItemFlag.Trash;
+					if (credits.Value > 0)
+					{
+						// TBD add regardless
+						// (empty research for player)
+						// (need AI to ignore)
+						interactable.ActionFlags |= ActionFlag.Search;
+					}
+				}
+
+				float4 deathColorOffset = new float4(Const.DeathSkinToneOffset, Const.DeathSkinToneOffset, Const.DeathSkinToneOffset, 0f);
+				if (!pilosity.HasShortHair) shortHair.Value += deathColorOffset;
+				if (!pilosity.HasLongHair) longHair.Value += deathColorOffset;
+				if (!pilosity.HasBeard) beard.Value += deathColorOffset;
+				skin.Value += deathColorOffset;
 			}
 		}
 

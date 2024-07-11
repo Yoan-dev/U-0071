@@ -18,6 +18,7 @@ namespace U0071
 		public Animation CharacterInteract;
 		public Animation CharacterDie;
 		public Animation CharacterCrushed;
+		public Animation CharacterFlee;
 		public int2 WorldDimensions;
 		public BlobAssetReference<UnitRenderingColors> UnitRenderingColors;
 		public Entity OrganicWastePrefab;

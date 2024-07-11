@@ -96,9 +96,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dccb9266239c8d64c9bcf20db0937c0f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Name: Trash
+  Name: Organic Waste
   Range: 0.5
   Time: 0
   RawFood: 0
   Food: 0
   Trash: 1
+  Contaminated: 1

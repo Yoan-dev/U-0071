@@ -24,8 +24,9 @@ namespace U0071
 	public struct DeathComponent : IComponentData, IEnableableComponent
 	{
 		public DeathType Context;
-		public bool IsResolved;
 	}
+
+	public struct ResolveDeathTag : IComponentData, IEnableableComponent { }
 
 	public struct SickComponent : IComponentData, IEnableableComponent
 	{

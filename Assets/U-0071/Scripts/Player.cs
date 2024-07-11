@@ -58,7 +58,7 @@ namespace U0071
 				actionNameLookup.HasComponent(data.Target) ? actionNameLookup[data.Target].Value :
 				new FixedString32Bytes();
 			action.TargetName =
-				data.HasActionFlag(ActionFlag.Pick | ActionFlag.Search) ? nameLookup[data.Target].Value :
+				data.HasActionFlag(ActionFlag.Pick | ActionFlag.Search | ActionFlag.Eat | ActionFlag.Drop) ? nameLookup[data.Target].Value :
 				Utilities.RequireItem(data.ActionFlag) && carried != Entity.Null ? nameLookup[carried].Value :
 				new FixedString32Bytes();
 			action.DeviceName = 
