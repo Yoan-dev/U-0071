@@ -105,6 +105,7 @@ MonoBehaviour:
   AreaFlag: 1
   DoorSize: 0.4
   StaysOpenTime: 1
+  AnimationCubicStrength: 12
   DestroyAction: 0
   Teleporter: 0
   RawFood: 0

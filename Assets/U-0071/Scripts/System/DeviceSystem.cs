@@ -142,7 +142,7 @@ namespace U0071
 		{
 			public float DeltaTime;
 
-			public void Execute(ref DoorComponent door, ref InteractableComponent interactable, EnabledRefRW<DoorComponent> doorRef)
+			public void Execute(ref DoorComponent door, ref InteractableComponent interactable, ref TextureArrayIndex textureArrayIndex, EnabledRefRW<DoorComponent> doorRef)
 			{
 				door.OpenTimer += DeltaTime;
 
@@ -150,8 +150,19 @@ namespace U0071
 				{
 					door.OpenTimer = 0f;
 					doorRef.ValueRW = false;
+					textureArrayIndex.Value = 0f;
 					interactable.ActionFlags |= ActionFlag.Open;
 					interactable.Changed = true;
+				}
+				else
+				{
+					float halfTime = door.StaysOpenTime / 2f;
+					float value = door.OpenTimer <= halfTime ?
+						door.OpenTimer / halfTime :
+						1f - (door.OpenTimer - halfTime) / halfTime;
+
+					// plateau
+					textureArrayIndex.Value = (door.StageCount - 1) * math.clamp(Utilities.EaseOutCubic(value, door.AnimationCubicStrength), 0f, 1f);
 				}
 			}
 		}

@@ -28,6 +28,7 @@ namespace U0071
 		public float2 CodeRequirementFacing;
 		public float OpenTimer;
 		public float StaysOpenTime;
+		public float AnimationCubicStrength;
 		public int StageCount;
 	}
 }

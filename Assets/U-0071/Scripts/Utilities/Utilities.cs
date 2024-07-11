@@ -122,6 +122,12 @@ namespace U0071
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static float EaseOutCubic(float value, float strength)
+		{
+			return 1f - math.pow(1f - value, strength);
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static float4 ToFloat4(this Color color)
 		{
 			return new float4(color.r, color.g, color.b, color.a);
