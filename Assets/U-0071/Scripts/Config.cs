@@ -25,6 +25,7 @@ namespace U0071
 		public float ChanceOfLongHair;
 		public float ChanceOfShortHair;
 		public float ChanceOfBeard;
+		public float CycleDuration;
 		public uint Seed;
 	}
 }

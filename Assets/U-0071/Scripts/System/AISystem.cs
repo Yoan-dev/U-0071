@@ -357,9 +357,10 @@ namespace U0071
 			initTag.ValueRW = false;
 
 			authorization.AreaFlag = Utilities.GetLowestAuthorization(Partition.GetAuthorization(position.Value));
-			// TODO: starting code
 
 			// TODO: name U-XXXX
+			// config blob array with 9999 unique codes (all minus U-0071)
+			// index it with entity index ? (add a safe %)
 
 			Random random = new Random((uint)(entity.Index * 10000));
 

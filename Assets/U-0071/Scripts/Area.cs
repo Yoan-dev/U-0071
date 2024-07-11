@@ -18,7 +18,6 @@ namespace U0071
 	public struct AuthorisationComponent : IComponentData
 	{
 		public AreaAuthorization AreaFlag;
-		public int CurrentCode;
 	}
 
 	public struct DoorComponent : IComponentData, IEnableableComponent

@@ -5,7 +5,6 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
-using UnityEditor.Search;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -13,10 +12,11 @@ public class UIManager : MonoBehaviour
 {
 	public TMP_Text Interaction;
 	public TMP_Text PopTextPrefab;
-	public float HeightOffset = 1.2f;
+	public float HeightOffset = 1.4f;
 
-	// core
-	private EntityQuery _query;
+	// queries
+	private EntityQuery _playerQuery;
+	private EntityQuery _cycleQuery;
 
 	// HUD
 	private VisualElement _root;
@@ -39,27 +39,25 @@ public class UIManager : MonoBehaviour
 
 	public void Start()
 	{
-		_query = new EntityQueryBuilder(Allocator.Temp).WithAll<PlayerController, LocalTransform>().Build(Utilities.GetEntityManager());
-	}
-
-	public void OnDestroy()
-	{
-		_query.Dispose(); // needed ?
+		_playerQuery = new EntityQueryBuilder(Allocator.Temp).WithAll<PlayerController>().Build(Utilities.GetEntityManager());
+		_cycleQuery = new EntityQueryBuilder(Allocator.Temp).WithAll<CycleComponent>().Build(Utilities.GetEntityManager());
 	}
 
 	public void Update()
 	{
-		if (_query.HasSingleton<PlayerController>())
+		if (_playerQuery.HasSingleton<PlayerController>())
 		{
+			Entity player = _playerQuery.GetSingletonEntity();
+			CycleComponent cycle = _cycleQuery.GetSingleton<CycleComponent>();
+
 			EntityManager entityManager = Utilities.GetEntityManager();
-			Entity player = _query.GetSingletonEntity();
 			PlayerController playerController = entityManager.GetComponentData<PlayerController>(player);
 			CreditsComponent credits = entityManager.GetComponentData<CreditsComponent>(player);
 			HungerComponent hunger = entityManager.GetComponentData<HungerComponent>(player);
 			float3 position = entityManager.GetComponentData<LocalTransform>(player).Position;
 
-			UpdateHUD(in credits, in hunger);
-			UpdateInteraction(in entityManager, in playerController, position);
+			UpdateHUD(in credits, in hunger, in cycle);
+			UpdateInteraction(in playerController, position);
 			ProcessPopEvents(in credits, position);
 		}
 		else
@@ -69,14 +67,19 @@ public class UIManager : MonoBehaviour
 	}
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public void UpdateHUD(in CreditsComponent credits, in HungerComponent hunger)
+	public void UpdateHUD(in CreditsComponent credits, in HungerComponent hunger, in CycleComponent cycle)
 	{
 		_hungerLabel.text = "Hunger " + (hunger.Value > 1f ? hunger.Value.ToString("0") : hunger.Value.ToString("0.0"));
 		_creditsLabel.text = "Credits " + credits.Value;
+
+		int minutes = (int)(cycle.CycleTimer / 60f);
+		int seconds = (int)(cycle.CycleTimer - minutes * 60);
+		_cycleLabel.text = minutes.ToString("00") + ":" + seconds.ToString("00") + " - Cycle " + cycle.CycleCounter.ToString();
+		_codeLabel.text = cycle.LevelOneCode.ToString("0000") + " - LVL1";
 	}
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public void UpdateInteraction(in EntityManager entityManager, in PlayerController playerController, float3 position)
+	public void UpdateInteraction(in PlayerController playerController, float3 position)
 	{
 		string textOne = GetInteractionText(in playerController.PrimaryAction);
 		string textTwo = GetInteractionText(in playerController.SecondaryAction);

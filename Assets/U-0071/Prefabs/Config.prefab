@@ -47,7 +47,8 @@ MonoBehaviour:
   WorldDimensions:
     x: 64
     y: 64
-  Seed: 0
+  Seed: 1
+  CycleDuration: 20
   CharacterIdle:
     StartIndex: 0
     Duration: 4

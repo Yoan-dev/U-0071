@@ -1,7 +1,6 @@
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
-using Unity.Entities.UniversalDelegates;
 using Unity.Mathematics;
 using UnityEngine;
 
@@ -36,6 +35,7 @@ namespace U0071
 		private bool _debugLevelTwo;
 		private bool _debugLevelThree;
 		private bool _debugAdmin;
+		private bool _debugCycle;
 
 		[BurstCompile]
 		public void OnCreate(ref SystemState state)
@@ -50,12 +50,12 @@ namespace U0071
 		//[BurstCompile]
 		public void OnUpdate(ref SystemState state)
 		{
+			// rooms
 			if (Input.GetKey(KeyCode.LeftControl) && Input.GetKeyDown(KeyCode.R))
 			{
 				_debugRooms = !_debugRooms;
 				if (!_debugRooms) DebugManager.Instance.ClearRoomElements();
 			}
-
 			if (_debugRooms)
 			{
 				NativeList<RoomInfo> roomInfos = new NativeList<RoomInfo>(_query.CalculateEntityCount(), Allocator.TempJob);
@@ -69,6 +69,18 @@ namespace U0071
 				roomInfos.Dispose();
 			}
 
+			// cycle
+			if (Input.GetKey(KeyCode.LeftControl) && Input.GetKeyDown(KeyCode.C))
+			{
+				_debugCycle = !_debugCycle;
+				if (!_debugCycle) DebugManager.Instance.ClearCycleElement();
+			}
+			if (_debugCycle)
+			{
+				DebugManager.Instance.UpdateCycleElement(SystemAPI.GetSingleton<CycleComponent>());
+			}
+
+			// flowfield
 			if (CheckDebugFlowfield(KeyCode.Alpha1, ref _debugLevelZero))
 			{
 				FlowfieldCollection flowfieldCollection = SystemAPI.GetSingleton<FlowfieldCollection>();

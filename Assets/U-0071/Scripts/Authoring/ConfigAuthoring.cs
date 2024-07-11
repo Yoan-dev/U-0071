@@ -11,6 +11,7 @@ namespace U0071
 		[Header("World")]
 		public int2 WorldDimensions;
 		public uint Seed;
+		public float CycleDuration;
 
 		[Header("Animations")]
 		public Animation CharacterIdle;
@@ -40,6 +41,7 @@ namespace U0071
 				{
 					WorldDimensions = authoring.WorldDimensions,
 					Seed = authoring.Seed,
+					CycleDuration = authoring.CycleDuration,
 					CharacterIdle = authoring.CharacterIdle,
 					CharacterWalk = authoring.CharacterWalk,
 					CharacterCrushed = authoring.CharacterCrushed,
@@ -69,6 +71,7 @@ namespace U0071
 				builder.Dispose();
 
 				AddComponent(entity, config);
+				AddComponent(entity, new CycleComponent());
 			}
 		}
 	}

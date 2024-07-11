@@ -7,6 +7,9 @@ namespace U0071
 	{
 		public const int ParallelForCount = 256;
 
+		// Cycle
+		public const uint CycleCounterSeedIndex = 123456;
+
 		// AI goal
 		public const float AITick = 0.1f;
 		public const float AILightHungerRatio = 0.8f;
