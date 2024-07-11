@@ -51,6 +51,7 @@ namespace U0071
 		private BufferLookup<RoomElementBufferElement> _roomElementLookup;
 		private ComponentLookup<NameComponent> _nameLookup;
 		private ComponentLookup<ActionNameComponent> _actionNameLookup;
+		private ComponentLookup<DoorComponent> _doorLookup;
 
 		[BurstCompile]
 		public void OnCreate(ref SystemState state)
@@ -61,6 +62,7 @@ namespace U0071
 			_roomElementLookup = state.GetBufferLookup<RoomElementBufferElement>(true);
 			_nameLookup = state.GetComponentLookup<NameComponent>(true);
 			_actionNameLookup = state.GetComponentLookup<ActionNameComponent>(true);
+			_doorLookup = state.GetComponentLookup<DoorComponent>(true);
 		}
 
 		[BurstCompile]
@@ -69,12 +71,14 @@ namespace U0071
 			_roomElementLookup.Update(ref state);
 			_nameLookup.Update(ref state);
 			_actionNameLookup.Update(ref state);
+			_doorLookup.Update(ref state);
 
 			state.Dependency = new PlayerActionJob
 			{
 				RoomElementBufferLookup = _roomElementLookup,
 				NameLookup = _nameLookup,
 				ActionNameLookup = _actionNameLookup,
+				DoorLookup = _doorLookup,
 			}.Schedule(state.Dependency);
 
 			state.Dependency = new PlayerMovementJob().Schedule(state.Dependency);
@@ -101,6 +105,8 @@ namespace U0071
 			public ComponentLookup<NameComponent> NameLookup;
 			[ReadOnly]
 			public ComponentLookup<ActionNameComponent> ActionNameLookup;
+			[ReadOnly]
+			public ComponentLookup<DoorComponent> DoorLookup;
 
 			public void Execute(
 				Entity entity,
@@ -160,9 +166,18 @@ namespace U0071
 							// door opening is always ok
 							if (target.HasActionFlag(ActionFlag.Open))
 							{
-								// TODO: infinite interaction if need to enter code
-								// + trigger UI and track
+								DoorComponent door = DoorLookup[target.Entity];
+								bool shouldEnterCode =
+									door.CodeRequirementDirection.x == 1f && position.Value.x > enumerator.Current.Position.x ||
+									door.CodeRequirementDirection.x == -1f && position.Value.x < enumerator.Current.Position.x ||
+									door.CodeRequirementDirection.y == 1f && position.Value.y > enumerator.Current.Position.y ||
+									door.CodeRequirementDirection.y == -1f && position.Value.y < enumerator.Current.Position.y;
 								controller.SetPrimaryAction(target.ToActionData(ActionFlag.Open, target.ItemFlags, carry.Flags), in NameLookup, in ActionNameLookup, carry.Picked);
+								if (shouldEnterCode)
+								{
+									// stop resolving manually (enter code UI)
+									controller.PrimaryAction.Data.Time = int.MaxValue;
+								}
 								break;
 							}
 							// primary

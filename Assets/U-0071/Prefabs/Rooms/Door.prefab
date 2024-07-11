@@ -103,7 +103,7 @@ MonoBehaviour:
   CollisionRadius: 0
   Cost: 0
   AreaFlag: 1
-  DoorSize: 0.6
+  DoorSize: 0.4
   DestroyAction: 0
   Teleporter: 0
   RawFood: 0

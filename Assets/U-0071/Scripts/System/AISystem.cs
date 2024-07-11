@@ -221,6 +221,8 @@ namespace U0071
 
 						if (target.HasActionFlag(ActionFlag.Open))
 						{
+							// we check relative position to door thanks to last movement input
+							// (AI always path vertically/horizontally in door "rooms")
 							DoorComponent door = DoorLookup[target.Entity];
 							bool shouldEnterCode =
 								controller.LastMovementInput.x == -door.CodeRequirementDirection.x ||

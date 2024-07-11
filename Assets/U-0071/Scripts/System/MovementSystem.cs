@@ -11,6 +11,7 @@ namespace U0071
 	{
 		private ComponentLookup<CarryComponent> _pickLookup;
 		private BufferLookup<RoomElementBufferElement> _roomElementLookup;
+		private ComponentLookup<DoorComponent> _doorLookup;
 
 		[BurstCompile]
 		public void OnCreate(ref SystemState state)
@@ -19,6 +20,7 @@ namespace U0071
 
 			_pickLookup = SystemAPI.GetComponentLookup<CarryComponent>(true);
 			_roomElementLookup = state.GetBufferLookup<RoomElementBufferElement>(true);
+			_doorLookup = state.GetComponentLookup<DoorComponent>(true);
 		}
 
 		[BurstCompile]
@@ -26,6 +28,7 @@ namespace U0071
 		{
 			_pickLookup.Update(ref state);
 			_roomElementLookup.Update(ref state);
+			_doorLookup.Update(ref state);
 
 			Partition partition = SystemAPI.GetSingleton<Partition>();
 
@@ -52,6 +55,7 @@ namespace U0071
 			{
 				Partition = partition,
 				RoomElementBufferLookup = _roomElementLookup,
+				DoorLookup = _doorLookup,
 			}.ScheduleParallel(state.Dependency);
 		}
 
@@ -117,6 +121,8 @@ namespace U0071
 			public Partition Partition;
 			[ReadOnly]
 			public BufferLookup<RoomElementBufferElement> RoomElementBufferLookup;
+			[ReadOnly]
+			public ComponentLookup<DoorComponent> DoorLookup;
 
 			public void Execute(Entity entity, ref PositionComponent position, in PartitionComponent partition, in InteractableComponent interactable)
 			{
@@ -124,13 +130,19 @@ namespace U0071
 				// will not trigger between rooms
 
 				float2 decollision = float2.zero;
-
+				Entity doorEntity = Entity.Null;
+				float2 doorPosition = float2.zero;
 				DynamicBuffer<RoomElementBufferElement> elements = RoomElementBufferLookup[partition.CurrentRoom];
 				using (var enumerator = elements.GetEnumerator())
 				{
 					while (enumerator.MoveNext())
 					{
-						if (enumerator.Current.Entity != entity && enumerator.Current.Interactable.CollisionRadius > 0f)
+						if (enumerator.Current.HasActionFlag(ActionFlag.Open))
+						{
+							doorEntity = enumerator.Current.Entity;
+							doorPosition = enumerator.Current.Position;
+						}
+						else if (enumerator.Current.Entity != entity && enumerator.Current.Interactable.CollisionRadius > 0f)
 						{
 							float2 difference = position.Value - enumerator.Current.Position;
 							float radiusSum = interactable.CollisionRadius + enumerator.Current.Interactable.CollisionRadius;
@@ -154,6 +166,31 @@ namespace U0071
 				{
 					position.Value = newPosition;
 					position.MovedFlag = position.MovedFlag || !decollision.Equals(float2.zero);
+				}
+
+				// dirty door collision
+				// ideally they would be in the partition ("isPathable") and updated on door open/close
+				// but this would do for now
+				if (doorEntity != Entity.Null)
+				{
+					DoorComponent door = DoorLookup[doorEntity];
+
+					// vertical door
+					if (door.CodeRequirementDirection.x != 0f &&
+						position.x >= doorPosition.x - door.Collision.x &&
+						position.x <= doorPosition.x + door.Collision.x)
+					{
+						position.Value.x = doorPosition.x + (door.Collision.x + math.EPSILON) * math.sign(position.Value.x - doorPosition.x);
+						position.MovedFlag = true;
+					}
+					// horizontal door
+					else if (door.CodeRequirementDirection.y != 0f &&
+						position.y >= doorPosition.y - door.Collision.y &&
+						position.y <= doorPosition.y + door.Collision.y)
+					{
+						position.Value.y = doorPosition.y + (door.Collision.y + math.EPSILON) * math.sign(position.Value.y - doorPosition.y);
+						position.MovedFlag = true;
+					}
 				}
 			}
 		}
