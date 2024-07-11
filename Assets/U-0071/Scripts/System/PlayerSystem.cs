@@ -141,11 +141,11 @@ namespace U0071
 					// consider carried item actions
 					if (Utilities.HasItemFlag(carry.Flags, ItemFlag.Food))
 					{
-						controller.SetPrimaryAction(new ActionData(carry.Picked, ActionFlag.Eat, position.Value, 0f, carry.Time, 0), in NameLookup, in ActionNameLookup, carry.Picked);
+						controller.SetPrimaryAction(new ActionData(carry.Picked, ActionFlag.Eat, 0, carry.Flags, position.Value, 0f, carry.Time, 0), in NameLookup, in ActionNameLookup, carry.Picked);
 					}
 
 					// set drop action
-					controller.SetSecondaryAction(new ActionData(carry.Picked, ActionFlag.Drop, position.Value + Const.GetDropOffset(orientation.Value), 0f, 0f, 0), in NameLookup, in ActionNameLookup, carry.Picked);
+					controller.SetSecondaryAction(new ActionData(carry.Picked, ActionFlag.Drop, 0, carry.Flags, position.Value + Const.GetDropOffset(orientation.Value), 0f, 0f, 0), in NameLookup, in ActionNameLookup, carry.Picked);
 				}
 
 				// player assess all elements in range
@@ -160,16 +160,21 @@ namespace U0071
 							// primary
 							// (override carried item action)
 							if (Utilities.HasActionFlag(target.ActionFlags, primaryFilter) &&
-								target.Evaluate(controller.PrimaryAction.Type, primaryFilter, carry.Flags, out ActionFlag selectedActionFlag, carry.HasItem))
+								target.Evaluate(controller.PrimaryAction.Type, primaryFilter, carry.Flags, out ActionFlag selectedActionFlag, carry.HasItem, false, true))
 							{
-								controller.SetPrimaryAction(target.ToActionData(selectedActionFlag), in NameLookup, in ActionNameLookup, carry.Picked);
+								// hack
+								if (selectedActionFlag == ActionFlag.Store && target.Interactable.HasActionFlag(ActionFlag.Teleport))
+								{
+									selectedActionFlag = ActionFlag.Teleport;
+								}
+								controller.SetPrimaryAction(target.ToActionData(selectedActionFlag, target.ItemFlags, carry.Flags), in NameLookup, in ActionNameLookup, carry.Picked);
 							}
 							
 							// secondary
 							// for now, secondary is hard-coded pick/drop
 							if (!controller.HasSecondaryAction && target.HasActionFlag(ActionFlag.Pick))
 							{
-								controller.SetSecondaryAction(target.ToActionData(ActionFlag.Pick), in NameLookup, in ActionNameLookup, Entity.Null);
+								controller.SetSecondaryAction(target.ToActionData(ActionFlag.Pick, target.ItemFlags, carry.Flags), in NameLookup, in ActionNameLookup, Entity.Null);
 							}
 						}
 					}

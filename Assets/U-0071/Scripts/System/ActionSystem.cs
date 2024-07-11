@@ -28,6 +28,13 @@ namespace U0071
 		public bool Pick;
 	}
 
+	public struct TeleportEvent
+	{
+		public Entity Source;
+		public Entity Target;
+		public Entity Picked;
+	}
+
 	public struct ChangeInteractableEvent
 	{
 		public Entity Target;
@@ -40,8 +47,8 @@ namespace U0071
 		public float2 Position;
 		public Entity Target;
 		public int CapacityChange;
+		public int VariantCapacityChange;
 		public bool Spawn;
-		// TODO: used item flag (for variant capacity increase)
 	}
 
 	[UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
@@ -54,6 +61,7 @@ namespace U0071
 		private NativeQueue<PickDropEvent> _pickDropEvents;
 		private NativeQueue<SpawnerEvent> _spawnerEvents;
 		private NativeQueue<ChangeInteractableEvent> _changeInteractableEvents;
+		private NativeQueue<TeleportEvent> _teleportEvents;
 
 		// lookups (alot)
 		private BufferLookup<RoomElementBufferElement> _roomElementLookup;
@@ -65,6 +73,7 @@ namespace U0071
 		private ComponentLookup<SpawnerComponent> _spawnerLookup;
 		private ComponentLookup<InteractableComponent> _interactableLookup;
 		private ComponentLookup<PushedComponent> _pushedLookup;
+		private ComponentLookup<TeleporterComponent> _teleporterLookup;
 		private ComponentLookup<StorageComponent> _storageLookup;
 
 		[BurstCompile]
@@ -76,6 +85,7 @@ namespace U0071
 			_creditsEvents = new NativeQueue<CreditsEvent>(Allocator.Persistent);
 			_pickDropEvents = new NativeQueue<PickDropEvent>(Allocator.Persistent);
 			_spawnerEvents = new NativeQueue<SpawnerEvent>(Allocator.Persistent);
+			_teleportEvents = new NativeQueue<TeleportEvent>(Allocator.Persistent);
 			_changeInteractableEvents = new NativeQueue<ChangeInteractableEvent>(Allocator.Persistent);
 
 			_roomElementLookup = state.GetBufferLookup<RoomElementBufferElement>();
@@ -87,6 +97,7 @@ namespace U0071
 			_spawnerLookup = state.GetComponentLookup<SpawnerComponent>();
 			_interactableLookup = state.GetComponentLookup<InteractableComponent>();
 			_pushedLookup = state.GetComponentLookup<PushedComponent>();
+			_teleporterLookup = state.GetComponentLookup<TeleporterComponent>();
 			_storageLookup = state.GetComponentLookup<StorageComponent>(true);
 		}
 
@@ -97,6 +108,7 @@ namespace U0071
 			_creditsEvents.Dispose();
 			_pickDropEvents.Dispose();
 			_spawnerEvents.Dispose();
+			_teleportEvents.Dispose();
 			_changeInteractableEvents.Dispose();
 		}
 
@@ -114,6 +126,7 @@ namespace U0071
 			_spawnerLookup.Update(ref state);
 			_interactableLookup.Update(ref state);
 			_storageLookup.Update(ref state);
+			_teleporterLookup.Update(ref state);
 			_pushedLookup.Update(ref state);
 
 			// TODO: have generic events (destroyed, modifyCredits etc) written when processing actions and processed afterwards in // (avoid Lookup-fest)
@@ -125,6 +138,7 @@ namespace U0071
 				CreditsEvents = _creditsEvents.AsParallelWriter(),
 				PickDropEvents = _pickDropEvents.AsParallelWriter(),
 				SpawnerEvents = _spawnerEvents.AsParallelWriter(),
+				TeleportEvents = _teleportEvents.AsParallelWriter(),
 				StorageLookup = _storageLookup,
 				DeltaTime = SystemAPI.Time.DeltaTime,
 			}.ScheduleParallel(state.Dependency);
@@ -169,6 +183,15 @@ namespace U0071
 				SpawnerLookup = _spawnerLookup,
 			}.Schedule(state.Dependency);
 
+			state.Dependency = new TeleportEventJob
+			{
+				Events = _teleportEvents,
+				TeleporterLookup = _teleporterLookup,
+				PickLookup = _pickLookup,
+				PickableLookup = _pickableLookup,
+				PositionLookup = _positionLookup,
+			}.Schedule(state.Dependency);
+
 			state.Dependency = new ChangeInteractableEventJob
 			{
 				Events = _changeInteractableEvents,
@@ -184,6 +207,7 @@ namespace U0071
 			public NativeQueue<CreditsEvent>.ParallelWriter CreditsEvents;
 			public NativeQueue<PickDropEvent>.ParallelWriter PickDropEvents;
 			public NativeQueue<SpawnerEvent>.ParallelWriter SpawnerEvents;
+			public NativeQueue<TeleportEvent>.ParallelWriter TeleportEvents;
 			[ReadOnly]
 			public ComponentLookup<StorageComponent> StorageLookup;
 			public float DeltaTime;
@@ -243,9 +267,10 @@ namespace U0071
 						SpawnerEvents.Enqueue(new SpawnerEvent
 						{
 							Target = storage.Destination,
-							CapacityChange = 1,
+							CapacityChange = controller.Action.UseVariantSpawn ? 0 : 1,
+							VariantCapacityChange = controller.Action.UseVariantSpawn ? 1 : 0,
 						});
-						if (storage.SecondaryDestination != Entity.Null)
+						if (storage.SecondaryDestination != Entity.Null && !controller.Action.UseVariantSpawn)
 						{
 							SpawnerEvents.Enqueue(new SpawnerEvent
 							{
@@ -261,7 +286,14 @@ namespace U0071
 							Target = controller.Action.Target,
 							Position = controller.Action.Position,
 							Spawn = true,
-							CapacityChange = -1,
+						});
+					}
+					else if (controller.Action.ActionFlag == ActionFlag.Teleport)
+					{
+						TeleportEvents.Enqueue(new TeleportEvent
+						{
+							Source = entity,
+							Target = controller.Action.Target,
 						});
 					}
 
@@ -481,20 +513,29 @@ namespace U0071
 
 						ref SpawnerComponent spawner = ref SpawnerLookup.GetRefRW(spawnerEvent.Target).ValueRW;
 
-						// TODO: variant capacity/spawn
-
-						if (spawnerEvent.Spawn && spawner.Capacity > 0)
+						if (spawnerEvent.Spawn && spawner.VariantCapacity > 0)
+						{
+							Ecb.SetComponent(Ecb.Instantiate(spawner.VariantPrefab), new PositionComponent
+							{
+								Value = spawnerEvent.Position + spawner.Offset,
+								BaseYOffset = Const.PickableYOffset,
+							});
+							spawnerEvent.VariantCapacityChange--;
+						}
+						else if (spawnerEvent.Spawn && spawner.Capacity > 0)
 						{
 							Ecb.SetComponent(Ecb.Instantiate(spawner.Prefab), new PositionComponent
 							{
 								Value = spawnerEvent.Position + spawner.Offset,
 								BaseYOffset = Const.PickableYOffset,
 							});
+							spawnerEvent.CapacityChange--;
 						}
 
 						int newCapacity = spawner.Capacity + spawnerEvent.CapacityChange;
+						int newVariantCapacity = spawner.VariantCapacity + spawnerEvent.VariantCapacityChange;
 
-						if (!spawner.Immutable && spawner.Capacity <= 0 && newCapacity > 0)
+						if (!spawner.Immutable && (spawner.Capacity <= 0 && newCapacity > 0 || spawner.VariantCapacity <= 0 && newVariantCapacity > 0))
 						{
 							ChangedInteractableEvents.Enqueue(new ChangeInteractableEvent
 							{
@@ -502,7 +543,7 @@ namespace U0071
 								FlagsToAdd = ActionFlag.Collect,
 							});
 						}
-						else if (!spawner.Immutable && spawner.Capacity > 0 && newCapacity <= 0)
+						else if (!spawner.Immutable && spawner.Capacity + spawner.VariantCapacity > 0 && newCapacity + newVariantCapacity <= 0)
 						{
 							ChangedInteractableEvents.Enqueue(new ChangeInteractableEvent
 							{
@@ -512,6 +553,47 @@ namespace U0071
 						}
 
 						spawner.Capacity = newCapacity;
+						spawner.VariantCapacity = newVariantCapacity;
+					}
+				}
+				Events.Clear();
+				events.Dispose();
+			}
+		}
+
+		[BurstCompile]
+		public partial struct TeleportEventJob : IJob
+		{
+			public NativeQueue<TeleportEvent> Events;
+			public ComponentLookup<CarryComponent> PickLookup;
+			public ComponentLookup<PickableComponent> PickableLookup;
+			public ComponentLookup<PositionComponent> PositionLookup;
+			[ReadOnly]
+			public ComponentLookup<TeleporterComponent> TeleporterLookup;
+
+			public void Execute()
+			{
+				NativeArray<TeleportEvent> events = Events.ToArray(Allocator.Temp);
+				using (var enumerator = events.GetEnumerator())
+				{
+					while (enumerator.MoveNext())
+					{
+						TeleportEvent teleportEvent = enumerator.Current;
+
+						ref CarryComponent carry = ref PickLookup.GetRefRW(teleportEvent.Source).ValueRW;
+						if (carry.Picked != Entity.Null)
+						{
+							PickableLookup.GetRefRW(carry.Picked).ValueRW.Carrier = Entity.Null;
+							PickableLookup.SetComponentEnabled(carry.Picked, false);
+						}
+
+						ref PositionComponent position = ref PositionLookup.GetRefRW(carry.Picked).ValueRW;
+						position.Value = TeleporterLookup[teleportEvent.Target].Destination;
+						position.BaseYOffset = Const.PickableYOffset;
+
+						carry.Picked = Entity.Null;
+						carry.Flags = 0;
+						PickLookup.SetComponentEnabled(teleportEvent.Source, false);
 					}
 				}
 				Events.Clear();

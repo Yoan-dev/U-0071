@@ -8,6 +8,7 @@ namespace U0071
 		RawFood = 1 << 0,
 		Food = 1 << 1,
 		Trash = 1 << 2,
+		Contaminated = 1 << 3,
 		All = RawFood | Food | Trash,
 	}
 }

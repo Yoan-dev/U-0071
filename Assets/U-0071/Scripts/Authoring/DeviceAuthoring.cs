@@ -20,6 +20,7 @@ namespace U0071
 
 		[Header("Action Flags")]
 		public bool DestroyAction;
+		public bool Teleporter;
 
 		[Header("Item Flags")]
 		public bool RawFood;
@@ -138,6 +139,17 @@ namespace U0071
 						SecondaryDestination = authoring.SecondaryDestination != null ? GetEntity(authoring.SecondaryDestination, TransformUsageFlags.Dynamic) : Entity.Null,
 					});
 				}
+				if (authoring.Teleporter)
+				{
+					actionFlags |= ActionFlag.Teleport;
+					actionFlags |= ActionFlag.Store;
+					Vector3 destination = authoring.Destination.transform.position;
+					AddComponent(entity, new TeleporterComponent
+					{
+						Destination = new float2(destination.x, destination.z),
+					});
+				}
+
 
 				// interactable
 				ItemFlag itemFlags = 0;

@@ -97,10 +97,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Name: Potato Collector
-  ActionName: Store
+  ActionName: Drop
   Range: 1
   Time: 0.5
-  CollisionRadius: 0.25
+  CollisionRadius: 0.35
   Cost: -3
   DestroyAction: 0
   RawFood: 1
@@ -113,6 +113,7 @@ MonoBehaviour:
   GrowTime: -1
   VisualStageCount: 0
   AutoSpawner: 0
+  Teleporter: 1
   Destination: {fileID: 0}
   SecondaryDestination: {fileID: 0}
   DeathType: 0

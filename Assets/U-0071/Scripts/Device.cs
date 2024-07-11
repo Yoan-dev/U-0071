@@ -46,6 +46,11 @@ namespace U0071
 		public int StageCount;
 	}
 
+	public struct TeleporterComponent : IComponentData
+	{
+		public float2 Destination;
+	}
+
 	public struct AutoSpawnTag : IComponentData { }
 
 	public struct AutoDestroyTag : IComponentData { }

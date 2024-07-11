@@ -110,7 +110,7 @@ MonoBehaviour:
   VariantPrefab: {fileID: 0}
   SpawnOffset: 0.25
   StartingCapacity: 0
-  GrowTime: 5
+  GrowTime: 20
   VisualStageCount: 5
   AutoSpawner: 0
   Destination: {fileID: 0}

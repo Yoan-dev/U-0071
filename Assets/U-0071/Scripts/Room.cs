@@ -26,9 +26,9 @@ namespace U0071
 		public int Cost => Interactable.Cost;
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public ActionData ToActionData(ActionFlag selectedActionFlag)
+		public ActionData ToActionData(ActionFlag selectedActionFlag, ItemFlag itemFlags, ItemFlag usedItemFlags)
 		{
-			return new ActionData(Entity, selectedActionFlag, Position, Range, Const.GetActionTime(selectedActionFlag, Time), Cost);
+			return new ActionData(Entity, selectedActionFlag, itemFlags, usedItemFlags, Position, Range, Const.GetActionTime(selectedActionFlag, Time), Cost);
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -48,11 +48,11 @@ namespace U0071
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public bool Evaluate(ActionFlag current, ActionFlag actionFilter, ItemFlag carriedFlag, out ActionFlag selected, bool canDestroyAll = false, bool pickHavePriority = false)
+		public bool Evaluate(ActionFlag current, ActionFlag actionFilter, ItemFlag carriedFlag, out ActionFlag selected, bool canDestroyAll = false, bool pickHavePriority = false, bool canProcessTrash = false)
 		{
 			// retrieve eligible action in priority order
 			return
-				EvaluateActionFlag(ActionFlag.Store, current, actionFilter, carriedFlag, out selected) ||
+				EvaluateActionFlag(ActionFlag.Store, current, actionFilter, carriedFlag, out selected, false, canProcessTrash) ||
 				EvaluateActionFlag(ActionFlag.Destroy, current, actionFilter, canDestroyAll ? ItemFlag.All : carriedFlag, out selected) ||
 				EvaluateActionFlag(ActionFlag.Collect, current, actionFilter, carriedFlag, out selected) ||
 				EvaluateActionFlag(ActionFlag.Search, current, actionFilter, carriedFlag, out selected) ||
@@ -61,12 +61,12 @@ namespace U0071
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		private bool EvaluateActionFlag(ActionFlag checkedType, ActionFlag current, ActionFlag filter, ItemFlag itemFlag, out ActionFlag selected, bool hasPriority = false)
+		private bool EvaluateActionFlag(ActionFlag checkedType, ActionFlag current, ActionFlag filter, ItemFlag itemFlag, out ActionFlag selected, bool hasPriority = false, bool canProcessTrash = false)
 		{
 			selected = 
 				(hasPriority || checkedType >= current) && 
 				(ActionFlags & filter & checkedType) != 0 && 
-				(!Utilities.RequireItem(checkedType) || HasItemFlag(itemFlag)) ? checkedType : 0;
+				(!Utilities.RequireItem(checkedType) || HasItemFlag(itemFlag) || (canProcessTrash && HasItemFlag(ItemFlag.RawFood) && Utilities.HasItemFlag(itemFlag, ItemFlag.Trash))) ? checkedType : 0;
 			return selected != 0;
 		}
 

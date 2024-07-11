@@ -20,6 +20,7 @@ namespace U0071
 		public bool RawFood;
 		public bool Food;
 		public bool Trash;
+		public bool Contaminated;
 
 		public class Baker : Baker<ItemAuthoring>
 		{
@@ -46,6 +47,7 @@ namespace U0071
 				if (authoring.RawFood) itemFlags |= ItemFlag.RawFood;
 				if (authoring.Food) itemFlags |= ItemFlag.Food;
 				if (authoring.Trash) itemFlags |= ItemFlag.Trash;
+				if (authoring.Contaminated) itemFlags |= ItemFlag.Contaminated;
 				AddComponent(entity, new InteractableComponent
 				{
 					ActionFlags = ActionFlag.Pick | (authoring.Food ? ActionFlag.Eat : 0),

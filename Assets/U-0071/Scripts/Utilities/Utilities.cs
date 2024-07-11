@@ -54,7 +54,7 @@ namespace U0071
 			in CarryComponent carry,
 			EnabledRefRW<IsActing> isActing)
 		{
-			controller.Action = new ActionData(carry.Picked, ActionFlag.Drop, position.Value + Const.GetDropOffset(orientation.Value), 0f, 0f, 0);
+			controller.Action = new ActionData(carry.Picked, ActionFlag.Drop, 0, carry.Flags, position.Value + Const.GetDropOffset(orientation.Value), 0f, 0f, 0);
 			controller.Start();
 			isActing.ValueRW = true;
 		}
@@ -74,7 +74,7 @@ namespace U0071
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static bool RequireItem(ActionFlag actionFlag)
 		{
-			return actionFlag == ActionFlag.Store || actionFlag == ActionFlag.Destroy;
+			return actionFlag == ActionFlag.Store || actionFlag == ActionFlag.Destroy || actionFlag == ActionFlag.Teleport;
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]

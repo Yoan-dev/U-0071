@@ -193,7 +193,7 @@ namespace U0071
 					{
 						// start interacting
 						isActing.ValueRW = true;
-						actionController.Action = new ActionData(carry.Picked, ActionFlag.Eat, position.Value, 0f, carry.Time, 0);
+						actionController.Action = new ActionData(carry.Picked, ActionFlag.Eat, 0, carry.Flags, position.Value, 0f, carry.Time, 0);
 						actionController.Start();
 						orientation.Update(actionController.Action.Position.x - position.Value.x);
 						return;
@@ -221,8 +221,13 @@ namespace U0071
 								selectedActionFlag > actionController.Action.ActionFlag || 
 								magn < minMagn)
 							{
+								// pose as a storage
+								if (selectedActionFlag == ActionFlag.Store && target.Interactable.HasActionFlag(ActionFlag.Teleport))
+								{
+									selectedActionFlag = ActionFlag.Teleport;
+								}
 								minMagn = magn;
-								actionController.Action = target.ToActionData(selectedActionFlag);
+								actionController.Action = target.ToActionData(selectedActionFlag, target.ItemFlags, carry.Flags);
 
 								// found something to do
 								controller.IsPathing = false;

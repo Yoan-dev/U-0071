@@ -17,6 +17,7 @@ namespace U0071
 		Collect = 1 << 5,
 		Destroy = 1 << 6,
 		Store = 1 << 7,
+		Teleport = 1 << 8,
 	}
 
 	public struct ActionData
@@ -24,17 +25,27 @@ namespace U0071
 		public float2 Position;
 		public Entity Target;
 		public ActionFlag ActionFlag;
+		public ItemFlag ItemFlags;
+		public ItemFlag UsedItemFlags;
 		public float Range;
 		public float Time;
 		public int Cost;
 
 		public bool Has => Target != Entity.Null;
 
+		// hard-coded
+		public bool UseVariantSpawn => 
+			ActionFlag == ActionFlag.Store &&
+			Utilities.HasItemFlag(ItemFlags, ItemFlag.RawFood) &&
+			Utilities.HasItemFlag(UsedItemFlags, ItemFlag.Trash);
+
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public ActionData(Entity target, ActionFlag flag, float2 position, float range, float time, int cost)
+		public ActionData(Entity target, ActionFlag actionFlag, ItemFlag itemFlags, ItemFlag usedItemFlags, float2 position, float range, float time, int cost)
 		{
 			Target = target;
-			ActionFlag = flag;
+			ActionFlag = actionFlag;
+			ItemFlags = itemFlags;
+			UsedItemFlags = usedItemFlags;
 			Position = position;
 			Range = range;
 			Time = time;
