@@ -3,6 +3,7 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
+using UnityEditor.PackageManager;
 
 namespace U0071
 {
@@ -35,6 +36,11 @@ namespace U0071
 		public Entity Picked;
 	}
 
+	public struct OpenEvent
+	{
+		public Entity Target;
+	}
+
 	public struct ChangeInteractableEvent
 	{
 		public Entity Target;
@@ -60,8 +66,9 @@ namespace U0071
 		private NativeQueue<CreditsEvent> _creditsEvents;
 		private NativeQueue<PickDropEvent> _pickDropEvents;
 		private NativeQueue<SpawnerEvent> _spawnerEvents;
-		private NativeQueue<ChangeInteractableEvent> _changeInteractableEvents;
 		private NativeQueue<TeleportEvent> _teleportEvents;
+		private NativeQueue<OpenEvent> _openEvents;
+		private NativeQueue<ChangeInteractableEvent> _changeInteractableEvents;
 
 		// lookups (alot)
 		private BufferLookup<RoomElementBufferElement> _roomElementLookup;
@@ -75,6 +82,7 @@ namespace U0071
 		private ComponentLookup<PushedComponent> _pushedLookup;
 		private ComponentLookup<TeleporterComponent> _teleporterLookup;
 		private ComponentLookup<StorageComponent> _storageLookup;
+		private ComponentLookup<DoorComponent> _doorLookup;
 
 		[BurstCompile]
 		public void OnCreate(ref SystemState state)
@@ -86,6 +94,7 @@ namespace U0071
 			_pickDropEvents = new NativeQueue<PickDropEvent>(Allocator.Persistent);
 			_spawnerEvents = new NativeQueue<SpawnerEvent>(Allocator.Persistent);
 			_teleportEvents = new NativeQueue<TeleportEvent>(Allocator.Persistent);
+			_openEvents = new NativeQueue<OpenEvent>(Allocator.Persistent);
 			_changeInteractableEvents = new NativeQueue<ChangeInteractableEvent>(Allocator.Persistent);
 
 			_roomElementLookup = state.GetBufferLookup<RoomElementBufferElement>();
@@ -98,6 +107,7 @@ namespace U0071
 			_interactableLookup = state.GetComponentLookup<InteractableComponent>();
 			_pushedLookup = state.GetComponentLookup<PushedComponent>();
 			_teleporterLookup = state.GetComponentLookup<TeleporterComponent>();
+			_doorLookup = state.GetComponentLookup<DoorComponent>();
 			_storageLookup = state.GetComponentLookup<StorageComponent>(true);
 		}
 
@@ -109,6 +119,7 @@ namespace U0071
 			_pickDropEvents.Dispose();
 			_spawnerEvents.Dispose();
 			_teleportEvents.Dispose();
+			_openEvents.Dispose();
 			_changeInteractableEvents.Dispose();
 		}
 
@@ -128,6 +139,7 @@ namespace U0071
 			_storageLookup.Update(ref state);
 			_teleporterLookup.Update(ref state);
 			_pushedLookup.Update(ref state);
+			_doorLookup.Update(ref state);
 
 			// TODO: have generic events (destroyed, modifyCredits etc) written when processing actions and processed afterwards in // (avoid Lookup-fest)
 			// TBD: use Ecb instead of Lookup-fest ?
@@ -140,6 +152,7 @@ namespace U0071
 				PickDropEvents = _pickDropEvents.AsParallelWriter(),
 				SpawnerEvents = _spawnerEvents.AsParallelWriter(),
 				TeleportEvents = _teleportEvents.AsParallelWriter(),
+				OpenEvents = _openEvents.AsParallelWriter(),
 				StorageLookup = _storageLookup,
 				DeltaTime = SystemAPI.Time.DeltaTime,
 			}.ScheduleParallel(state.Dependency);
@@ -193,6 +206,13 @@ namespace U0071
 				PositionLookup = _positionLookup,
 			}.Schedule(state.Dependency);
 
+			state.Dependency = new OpenEventJob
+			{
+				Events = _openEvents,
+				DoorLookup = _doorLookup,
+				ChangedInteractableEvents = _changeInteractableEvents.AsParallelWriter(),
+			}.Schedule(state.Dependency);
+
 			state.Dependency = new ChangeInteractableEventJob
 			{
 				Events = _changeInteractableEvents,
@@ -210,6 +230,7 @@ namespace U0071
 			public NativeQueue<PickDropEvent>.ParallelWriter PickDropEvents;
 			public NativeQueue<SpawnerEvent>.ParallelWriter SpawnerEvents;
 			public NativeQueue<TeleportEvent>.ParallelWriter TeleportEvents;
+			public NativeQueue<OpenEvent>.ParallelWriter OpenEvents;
 			[ReadOnly]
 			public ComponentLookup<StorageComponent> StorageLookup;
 			public float DeltaTime;
@@ -307,6 +328,13 @@ namespace U0071
 							Target = controller.Action.Target,
 						});
 					}
+					else if (controller.Action.ActionFlag == ActionFlag.Open)
+					{
+						OpenEvents.Enqueue(new OpenEvent
+						{
+							Target = controller.Action.Target,
+						});
+					}
 
 					if (controller.Action.Cost != 0)
 					{
@@ -368,21 +396,15 @@ namespace U0071
 
 			public void Execute()
 			{
-				NativeArray<PushEvent> events = Events.ToArray(Allocator.Temp);
-				using (var enumerator = events.GetEnumerator())
+				while (Events.Count > 0)
 				{
-					while (enumerator.MoveNext())
-					{
-						PushEvent pushEvent = enumerator.Current;
+					PushEvent pushEvent = Events.Dequeue();
 
-						ref PushedComponent pushed = ref PushedLookup.GetRefRW(pushEvent.Target).ValueRW;
-						pushed.Direction = pushEvent.Direction;
-						pushed.Timer = Const.PushedTimer;
-						PushedLookup.SetComponentEnabled(pushEvent.Target, true);
-					}
+					ref PushedComponent pushed = ref PushedLookup.GetRefRW(pushEvent.Target).ValueRW;
+					pushed.Direction = pushEvent.Direction;
+					pushed.Timer = Const.PushedTimer;
+					PushedLookup.SetComponentEnabled(pushEvent.Target, true);
 				}
-				Events.Clear();
-				events.Dispose();
 			}
 		}
 
@@ -396,39 +418,33 @@ namespace U0071
 
 			public void Execute()
 			{
-				NativeArray<CreditsEvent> events = Events.ToArray(Allocator.Temp);
-				using (var enumerator = events.GetEnumerator())
+				while (Events.Count > 0)
 				{
-					while (enumerator.MoveNext())
+					CreditsEvent creditsEvent = Events.Dequeue();
+					int value = creditsEvent.Value;
+
+					if (creditsEvent.Source != Entity.Null)
 					{
-						CreditsEvent creditsEvent = enumerator.Current;
-						int value = creditsEvent.Value;
+						// clamp value to source credits and decrease source credits
 
-						if (creditsEvent.Source != Entity.Null)
+						ref CreditsComponent credits = ref CreditsLookup.GetRefRW(creditsEvent.Source).ValueRW;
+						value = math.min(math.max(0, credits.Value), Const.LootCreditsCount);
+						credits.Value -= value;
+
+						if (credits.Value <= 0f)
 						{
-							// clamp value to source credits and decrease source credits
-
-							ref CreditsComponent credits = ref CreditsLookup.GetRefRW(creditsEvent.Source).ValueRW;
-							value = math.min(math.max(0, credits.Value), Const.LootCreditsCount);
-							credits.Value -= value;
-
-							if (credits.Value <= 0f)
+							ChangedInteractableEvents.Enqueue(new ChangeInteractableEvent
 							{
-								ChangedInteractableEvents.Enqueue(new ChangeInteractableEvent
-								{
-									Target = creditsEvent.Source,
-									FlagsToRemove = ActionFlag.Search, // TBD: only for AI (empty search for player)
-								});
-							}
-						}
-						if (value != 0)
-						{
-							CreditsLookup.GetRefRW(creditsEvent.Target).ValueRW.Value += value;
+								Target = creditsEvent.Source,
+								FlagsToRemove = ActionFlag.Search, // TBD: only for AI (empty search for player)
+							});
 						}
 					}
+					if (value != 0)
+					{
+						CreditsLookup.GetRefRW(creditsEvent.Target).ValueRW.Value += value;
+					}
 				}
-				Events.Clear();
-				events.Dispose();
 			}
 		}
 
@@ -449,56 +465,50 @@ namespace U0071
 
 			public void Execute()
 			{
-				NativeArray<PickDropEvent> events = Events.ToArray(Allocator.Temp);
-				using (var enumerator = events.GetEnumerator())
+				while (Events.Count > 0)
 				{
-					while (enumerator.MoveNext())
+					PickDropEvent pickDropEvent = Events.Dequeue();
+
+					if (pickDropEvent.Pick)
 					{
-						PickDropEvent pickDropEvent = enumerator.Current;
-
-						if (pickDropEvent.Pick)
+						// verify target has not been picked before
+						if (PickableLookup.IsComponentEnabled(pickDropEvent.Target))
 						{
-							// verify target has not been picked before
-							if (PickableLookup.IsComponentEnabled(pickDropEvent.Target))
-							{
-								continue;
-							}
-
-							ref CarryComponent carry = ref PickLookup.GetRefRW(pickDropEvent.Source).ValueRW;
-							carry.Picked = pickDropEvent.Target;
-							InteractableComponent interactable = InteractableLookup[pickDropEvent.Target];
-							carry.Flags = interactable.ItemFlags;
-							carry.Time = interactable.Time;
-							PickLookup.SetComponentEnabled(pickDropEvent.Source, true);
-
-							PickableLookup.GetRefRW(pickDropEvent.Target).ValueRW.Carrier = pickDropEvent.Source;
-							PickableLookup.SetComponentEnabled(pickDropEvent.Target, true);
-
-							Entity room = Partition.GetRoomData(pickDropEvent.Position).Entity;
-							if (room != Entity.Null)
-							{
-								DynamicBuffer<RoomElementBufferElement> roomElements = RoomElementLookup[room];
-								RoomElementBufferElement.RemoveElement(ref roomElements, new RoomElementBufferElement(pickDropEvent.Target));
-								PartitionLookup.GetRefRW(pickDropEvent.Target).ValueRW.CurrentRoom = Entity.Null;
-							}
+							continue;
 						}
-						else // drop
-						{
-							ref CarryComponent carry = ref PickLookup.GetRefRW(pickDropEvent.Source).ValueRW;
-							carry.Picked = Entity.Null;
-							carry.Flags = 0;
-							PickLookup.SetComponentEnabled(pickDropEvent.Source, false);
-							PickableLookup.GetRefRW(pickDropEvent.Target).ValueRW.Carrier = Entity.Null;
-							PickableLookup.SetComponentEnabled(pickDropEvent.Target, false);
 
-							ref PositionComponent position = ref PositionLookup.GetRefRW(pickDropEvent.Target).ValueRW;
-							position.Value = pickDropEvent.Position;
-							position.BaseYOffset = Const.PickableYOffset;
+						ref CarryComponent carry = ref PickLookup.GetRefRW(pickDropEvent.Source).ValueRW;
+						carry.Picked = pickDropEvent.Target;
+						InteractableComponent interactable = InteractableLookup[pickDropEvent.Target];
+						carry.Flags = interactable.ItemFlags;
+						carry.Time = interactable.Time;
+						PickLookup.SetComponentEnabled(pickDropEvent.Source, true);
+
+						PickableLookup.GetRefRW(pickDropEvent.Target).ValueRW.Carrier = pickDropEvent.Source;
+						PickableLookup.SetComponentEnabled(pickDropEvent.Target, true);
+
+						Entity room = Partition.GetRoomData(pickDropEvent.Position).Entity;
+						if (room != Entity.Null)
+						{
+							DynamicBuffer<RoomElementBufferElement> roomElements = RoomElementLookup[room];
+							RoomElementBufferElement.RemoveElement(ref roomElements, new RoomElementBufferElement(pickDropEvent.Target));
+							PartitionLookup.GetRefRW(pickDropEvent.Target).ValueRW.CurrentRoom = Entity.Null;
 						}
 					}
+					else // drop
+					{
+						ref CarryComponent carry = ref PickLookup.GetRefRW(pickDropEvent.Source).ValueRW;
+						carry.Picked = Entity.Null;
+						carry.Flags = 0;
+						PickLookup.SetComponentEnabled(pickDropEvent.Source, false);
+						PickableLookup.GetRefRW(pickDropEvent.Target).ValueRW.Carrier = Entity.Null;
+						PickableLookup.SetComponentEnabled(pickDropEvent.Target, false);
+
+						ref PositionComponent position = ref PositionLookup.GetRefRW(pickDropEvent.Target).ValueRW;
+						position.Value = pickDropEvent.Position;
+						position.BaseYOffset = Const.PickableYOffset;
+					}
 				}
-				Events.Clear();
-				events.Dispose();
 			}
 		}
 
@@ -512,63 +522,57 @@ namespace U0071
 
 			public void Execute()
 			{
-				NativeArray<SpawnerEvent> events = Events.ToArray(Allocator.Temp);
-				using (var enumerator = events.GetEnumerator())
+				while (Events.Count > 0)
 				{
-					while (enumerator.MoveNext())
+					// spawning and capacity changed are processed
+					// together because spawning depends on capacity (able, variant)
+
+					SpawnerEvent spawnerEvent = Events.Dequeue();
+
+					ref SpawnerComponent spawner = ref SpawnerLookup.GetRefRW(spawnerEvent.Target).ValueRW;
+
+					if (spawnerEvent.Spawn && spawner.VariantCapacity > 0)
 					{
-						// spawning and capacity changed are processed
-						// together because spawning depends on capacity (able, variant)
-
-						SpawnerEvent spawnerEvent = enumerator.Current;
-
-						ref SpawnerComponent spawner = ref SpawnerLookup.GetRefRW(spawnerEvent.Target).ValueRW;
-
-						if (spawnerEvent.Spawn && spawner.VariantCapacity > 0)
+						Ecb.SetComponent(Ecb.Instantiate(spawner.VariantPrefab), new PositionComponent
 						{
-							Ecb.SetComponent(Ecb.Instantiate(spawner.VariantPrefab), new PositionComponent
-							{
-								Value = spawnerEvent.Position + spawner.Offset,
-								BaseYOffset = Const.PickableYOffset,
-							});
-							spawnerEvent.VariantCapacityChange--;
-						}
-						else if (spawnerEvent.Spawn && spawner.Capacity > 0)
-						{
-							Ecb.SetComponent(Ecb.Instantiate(spawner.Prefab), new PositionComponent
-							{
-								Value = spawnerEvent.Position + spawner.Offset,
-								BaseYOffset = Const.PickableYOffset,
-							});
-							spawnerEvent.CapacityChange--;
-						}
-
-						int newCapacity = spawner.Capacity + spawnerEvent.CapacityChange;
-						int newVariantCapacity = spawner.VariantCapacity + spawnerEvent.VariantCapacityChange;
-
-						if (!spawner.Immutable && (spawner.Capacity <= 0 && newCapacity > 0 || spawner.VariantCapacity <= 0 && newVariantCapacity > 0))
-						{
-							ChangedInteractableEvents.Enqueue(new ChangeInteractableEvent
-							{
-								Target = spawnerEvent.Target,
-								FlagsToAdd = ActionFlag.Collect,
-							});
-						}
-						else if (!spawner.Immutable && spawner.Capacity + spawner.VariantCapacity > 0 && newCapacity + newVariantCapacity <= 0)
-						{
-							ChangedInteractableEvents.Enqueue(new ChangeInteractableEvent
-							{
-								Target = spawnerEvent.Target,
-								FlagsToRemove = ActionFlag.Collect,
-							});
-						}
-
-						spawner.Capacity = newCapacity;
-						spawner.VariantCapacity = newVariantCapacity;
+							Value = spawnerEvent.Position + spawner.Offset,
+							BaseYOffset = Const.PickableYOffset,
+						});
+						spawnerEvent.VariantCapacityChange--;
 					}
+					else if (spawnerEvent.Spawn && spawner.Capacity > 0)
+					{
+						Ecb.SetComponent(Ecb.Instantiate(spawner.Prefab), new PositionComponent
+						{
+							Value = spawnerEvent.Position + spawner.Offset,
+							BaseYOffset = Const.PickableYOffset,
+						});
+						spawnerEvent.CapacityChange--;
+					}
+
+					int newCapacity = spawner.Capacity + spawnerEvent.CapacityChange;
+					int newVariantCapacity = spawner.VariantCapacity + spawnerEvent.VariantCapacityChange;
+
+					if (!spawner.Immutable && (spawner.Capacity <= 0 && newCapacity > 0 || spawner.VariantCapacity <= 0 && newVariantCapacity > 0))
+					{
+						ChangedInteractableEvents.Enqueue(new ChangeInteractableEvent
+						{
+							Target = spawnerEvent.Target,
+							FlagsToAdd = ActionFlag.Collect,
+						});
+					}
+					else if (!spawner.Immutable && spawner.Capacity + spawner.VariantCapacity > 0 && newCapacity + newVariantCapacity <= 0)
+					{
+						ChangedInteractableEvents.Enqueue(new ChangeInteractableEvent
+						{
+							Target = spawnerEvent.Target,
+							FlagsToRemove = ActionFlag.Collect,
+						});
+					}
+
+					spawner.Capacity = newCapacity;
+					spawner.VariantCapacity = newVariantCapacity;
 				}
-				Events.Clear();
-				events.Dispose();
 			}
 		}
 
@@ -584,31 +588,48 @@ namespace U0071
 
 			public void Execute()
 			{
-				NativeArray<TeleportEvent> events = Events.ToArray(Allocator.Temp);
-				using (var enumerator = events.GetEnumerator())
+				while (Events.Count > 0)
 				{
-					while (enumerator.MoveNext())
+					TeleportEvent teleportEvent = Events.Dequeue();
+
+					ref CarryComponent carry = ref PickLookup.GetRefRW(teleportEvent.Source).ValueRW;
+					if (carry.Picked != Entity.Null)
 					{
-						TeleportEvent teleportEvent = enumerator.Current;
-
-						ref CarryComponent carry = ref PickLookup.GetRefRW(teleportEvent.Source).ValueRW;
-						if (carry.Picked != Entity.Null)
-						{
-							PickableLookup.GetRefRW(carry.Picked).ValueRW.Carrier = Entity.Null;
-							PickableLookup.SetComponentEnabled(carry.Picked, false);
-						}
-
-						ref PositionComponent position = ref PositionLookup.GetRefRW(carry.Picked).ValueRW;
-						position.Value = TeleporterLookup[teleportEvent.Target].Destination;
-						position.BaseYOffset = Const.PickableYOffset;
-
-						carry.Picked = Entity.Null;
-						carry.Flags = 0;
-						PickLookup.SetComponentEnabled(teleportEvent.Source, false);
+						PickableLookup.GetRefRW(carry.Picked).ValueRW.Carrier = Entity.Null;
+						PickableLookup.SetComponentEnabled(carry.Picked, false);
 					}
+
+					ref PositionComponent position = ref PositionLookup.GetRefRW(carry.Picked).ValueRW;
+					position.Value = TeleporterLookup[teleportEvent.Target].Destination;
+					position.BaseYOffset = Const.PickableYOffset;
+
+					carry.Picked = Entity.Null;
+					carry.Flags = 0;
+					PickLookup.SetComponentEnabled(teleportEvent.Source, false);
 				}
-				Events.Clear();
-				events.Dispose();
+			}
+		}
+
+		[BurstCompile]
+		public partial struct OpenEventJob : IJob
+		{
+			public NativeQueue<OpenEvent> Events;
+			public NativeQueue<ChangeInteractableEvent>.ParallelWriter ChangedInteractableEvents;
+			public ComponentLookup<DoorComponent> DoorLookup;
+
+			public void Execute()
+			{
+				while (Events.Count > 0)
+				{
+					OpenEvent openEvent = Events.Dequeue();
+
+					DoorLookup.SetComponentEnabled(openEvent.Target, true);
+					ChangedInteractableEvents.Enqueue(new ChangeInteractableEvent
+					{
+						Target = openEvent.Target,
+						FlagsToRemove = ActionFlag.Open,
+					});
+				}
 			}
 		}
 
@@ -620,22 +641,16 @@ namespace U0071
 
 			public void Execute()
 			{
-				NativeArray<ChangeInteractableEvent> events = Events.ToArray(Allocator.Temp);
-				using (var enumerator = events.GetEnumerator())
+				while (Events.Count > 0)
 				{
-					while (enumerator.MoveNext())
-					{
-						ChangeInteractableEvent changeInteractableEvent = enumerator.Current;
+					ChangeInteractableEvent changeInteractableEvent = Events.Dequeue();
 
-						ref InteractableComponent interactable = ref InteractableLookup.GetRefRW(changeInteractableEvent.Target).ValueRW;
+					ref InteractableComponent interactable = ref InteractableLookup.GetRefRW(changeInteractableEvent.Target).ValueRW;
 
-						interactable.ActionFlags |= changeInteractableEvent.FlagsToAdd;
-						interactable.ActionFlags &= ~changeInteractableEvent.FlagsToRemove;
-						interactable.Changed = true;
-					}
+					interactable.ActionFlags |= changeInteractableEvent.FlagsToAdd;
+					interactable.ActionFlags &= ~changeInteractableEvent.FlagsToRemove;
+					interactable.Changed = true;
 				}
-				events.Dispose();
-				Events.Clear();
 			}
 		}
 	}

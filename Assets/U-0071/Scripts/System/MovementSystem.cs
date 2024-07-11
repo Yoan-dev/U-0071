@@ -173,10 +173,13 @@ namespace U0071
 				// but this would do for now
 				if (doorEntity != Entity.Null)
 				{
-					DoorComponent door = DoorLookup[doorEntity];
+					// note: if we detect the door in the partition, it means it is open
+					// (no ActionFlag.Open otherwise)
 
+					DoorComponent door = DoorLookup[doorEntity];
+					
 					// vertical door
-					if (door.CodeRequirementDirection.x != 0f &&
+					if (door.CodeRequirementFacing.x != 0f &&
 						position.x >= doorPosition.x - door.Collision.x &&
 						position.x <= doorPosition.x + door.Collision.x)
 					{
@@ -184,7 +187,8 @@ namespace U0071
 						position.MovedFlag = true;
 					}
 					// horizontal door
-					else if (door.CodeRequirementDirection.y != 0f &&
+					else if (
+						door.CodeRequirementFacing.y != 0f &&
 						position.y >= doorPosition.y - door.Collision.y &&
 						position.y <= doorPosition.y + door.Collision.y)
 					{

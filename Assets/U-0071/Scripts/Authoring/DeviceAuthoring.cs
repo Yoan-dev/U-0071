@@ -21,6 +21,7 @@ namespace U0071
 		[Header("Door")]
 		public AreaAuthorization AreaFlag;
 		public float DoorSize;
+		public float StaysOpenTime;
 
 		[Header("Action Flags")]
 		public bool DestroyAction;
@@ -170,8 +171,10 @@ namespace U0071
 						AreaFlag = authoring.AreaFlag,
 						StageCount = authoring.VisualStageCount,
 						Collision = authoring.GetDoorCollision(),
-						CodeRequirementDirection = authoring.GetFacingDirection(authoring.gameObject), // can always open on exit
+						StaysOpenTime = authoring.StaysOpenTime,
+						CodeRequirementFacing = authoring.GetFacingDirection(authoring.gameObject), // can always open on exit
 					});
+					SetComponentEnabled<DoorComponent>(entity, false); // closed
 					AddComponent(entity, new TextureArrayIndex());
 				}
 

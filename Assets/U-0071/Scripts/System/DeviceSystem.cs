@@ -27,9 +27,11 @@ namespace U0071
 
 			_roomElementLookup.Update(ref state);
 
+			float deltaTime = SystemAPI.Time.DeltaTime;
+
 			state.Dependency = new GrowJob
 			{
-				DeltaTime = SystemAPI.Time.DeltaTime,
+				DeltaTime = deltaTime,
 			}.ScheduleParallel(state.Dependency);
 
 			state.Dependency = new CapacityFeedbackJob().ScheduleParallel(state.Dependency);
@@ -42,6 +44,11 @@ namespace U0071
 			state.Dependency = new AutoDestroyJob
 			{
 				Ecb = ecbs.CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter(),
+			}.ScheduleParallel(state.Dependency);
+
+			state.Dependency = new DoorJob
+			{
+				DeltaTime = deltaTime,
 			}.ScheduleParallel(state.Dependency);
 
 			state.Dependency = new HazardJob
@@ -126,6 +133,25 @@ namespace U0071
 				if (spawner.Capacity == 0 && spawner.VariantCapacity == 0)
 				{
 					Ecb.DestroyEntity(chunkIndex, entity);
+				}
+			}
+		}
+
+		[BurstCompile]
+		public partial struct DoorJob : IJobEntity
+		{
+			public float DeltaTime;
+
+			public void Execute(ref DoorComponent door, ref InteractableComponent interactable, EnabledRefRW<DoorComponent> doorRef)
+			{
+				door.OpenTimer += DeltaTime;
+
+				if (door.OpenTimer >= door.StaysOpenTime)
+				{
+					door.OpenTimer = 0f;
+					doorRef.ValueRW = false;
+					interactable.ActionFlags |= ActionFlag.Open;
+					interactable.Changed = true;
 				}
 			}
 		}

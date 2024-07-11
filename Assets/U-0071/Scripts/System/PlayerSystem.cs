@@ -168,10 +168,10 @@ namespace U0071
 							{
 								DoorComponent door = DoorLookup[target.Entity];
 								bool shouldEnterCode =
-									door.CodeRequirementDirection.x == 1f && position.Value.x > enumerator.Current.Position.x ||
-									door.CodeRequirementDirection.x == -1f && position.Value.x < enumerator.Current.Position.x ||
-									door.CodeRequirementDirection.y == 1f && position.Value.y > enumerator.Current.Position.y ||
-									door.CodeRequirementDirection.y == -1f && position.Value.y < enumerator.Current.Position.y;
+									door.CodeRequirementFacing.x == 1f && position.Value.x > enumerator.Current.Position.x ||
+									door.CodeRequirementFacing.x == -1f && position.Value.x < enumerator.Current.Position.x ||
+									door.CodeRequirementFacing.y == 1f && position.Value.y > enumerator.Current.Position.y ||
+									door.CodeRequirementFacing.y == -1f && position.Value.y < enumerator.Current.Position.y;
 								controller.SetPrimaryAction(target.ToActionData(ActionFlag.Open, target.ItemFlags, carry.Flags), in NameLookup, in ActionNameLookup, carry.Picked);
 								if (shouldEnterCode)
 								{

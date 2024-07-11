@@ -225,11 +225,11 @@ namespace U0071
 							// (AI always path vertically/horizontally in door "rooms")
 							DoorComponent door = DoorLookup[target.Entity];
 							bool shouldEnterCode =
-								controller.LastMovementInput.x == -door.CodeRequirementDirection.x ||
-								controller.LastMovementInput.y == -door.CodeRequirementDirection.y;
+								door.CodeRequirementFacing.x != 0f && controller.LastMovementInput.x == -door.CodeRequirementFacing.x ||
+								door.CodeRequirementFacing.y != 0f && controller.LastMovementInput.y == -door.CodeRequirementFacing.y;
 							if (shouldEnterCode ||
-								controller.LastMovementInput.x == door.CodeRequirementDirection.x ||
-								controller.LastMovementInput.y == door.CodeRequirementDirection.y)
+								controller.LastMovementInput.x == door.CodeRequirementFacing.x ||
+								controller.LastMovementInput.y == door.CodeRequirementFacing.y)
 							{
 								actionController.Action = target.ToActionData(ActionFlag.Open, target.ItemFlags, carry.Flags);
 								if (shouldEnterCode)

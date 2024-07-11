@@ -21,14 +21,13 @@ namespace U0071
 		public int CurrentCode;
 	}
 
-	public struct DoorComponent : IComponentData
+	public struct DoorComponent : IComponentData, IEnableableComponent
 	{
 		public AreaAuthorization AreaFlag;
 		public float2 Collision;
-		public float2 CodeRequirementDirection;
+		public float2 CodeRequirementFacing;
 		public float OpenTimer;
+		public float StaysOpenTime;
 		public int StageCount;
-
-		public bool IsOpen => OpenTimer > 0f;
 	}
 }
