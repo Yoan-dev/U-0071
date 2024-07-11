@@ -1,0 +1,13 @@
+.jam-label {
+    font-size: 48px;
+    -unity-font-definition: url("project://database/Assets/Thaleah_PixelFont/ThaleahFat_TTF%20SDF%20text.asset?fileID=11400000&guid=daaad5ec03582fd4c8442316979a9926&type=2#ThaleahFat_TTF SDF text");
+    color: rgb(255, 255, 255);
+    margin-right: 12px;
+    margin-left: 12px;
+    margin-top: 0;
+    margin-bottom: 0;
+    padding-top: 0;
+    padding-right: 0;
+    padding-bottom: 0;
+    padding-left: 0;
+}

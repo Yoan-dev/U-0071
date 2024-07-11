@@ -1,3 +1,13 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
-    <ui:Label tabindex="-1" text="Label" parse-escape-sequences="true" display-tooltip-when-elided="true" style="-unity-font-definition: url(&quot;project://database/Assets/Thaleah_PixelFont/ThaleahFat_TTF%20SDF%20text.asset?fileID=11400000&amp;guid=daaad5ec03582fd4c8442316979a9926&amp;type=2#ThaleahFat_TTF SDF text&quot;);" />
+    <Style src="project://database/Assets/UI%20Toolkit/HUD.uss?fileID=7433441132597879392&amp;guid=219dc7aaf1331e248a628025638434b1&amp;type=3#HUD" />
+    <ui:VisualElement name="Container" style="flex-grow: 1;">
+        <ui:VisualElement name="container_top_left" style="flex-grow: 1; left: 0; position: absolute; margin-top: 5px;">
+            <ui:Label tabindex="-1" text="Hunger 10" parse-escape-sequences="true" display-tooltip-when-elided="true" name="info_hunger" class="jam-label" />
+            <ui:Label tabindex="-1" text="Credits 30" parse-escape-sequences="true" display-tooltip-when-elided="true" name="info_credits" class="jam-label" />
+        </ui:VisualElement>
+        <ui:VisualElement name="container_top_right" style="flex-grow: 1; position: absolute; right: 0; margin-top: 5px;">
+            <ui:Label tabindex="-1" text="05:31 - Cycle 3" parse-escape-sequences="true" display-tooltip-when-elided="true" name="info_cycle" class="jam-label" style="-unity-text-align: upper-right;" />
+            <ui:Label tabindex="-1" text="5135 - LVL1" parse-escape-sequences="true" display-tooltip-when-elided="true" name="info_code" class="jam-label" style="-unity-text-align: upper-right;" />
+        </ui:VisualElement>
+    </ui:VisualElement>
 </ui:UXML>

@@ -184,6 +184,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3108495697834689301}
   - component: {fileID: 7696260181271222263}
+  - component: {fileID: 3597952234028054746}
   m_Layer: 0
   m_Name: UIManager
   m_TagString: Untagged
@@ -224,6 +225,23 @@ MonoBehaviour:
   PopTextPrefab: {fileID: 5481345951632752470, guid: 7c94aa8c6076ea14ba6c9db0d8611b3d,
     type: 3}
   HeightOffset: 1.4
+--- !u!114 &3597952234028054746
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2944145255201687900}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 19102, guid: 0000000000000000e000000000000000, type: 0}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_PanelSettings: {fileID: 11400000, guid: 9eea182ac6d98f1489bc15db8a7bd112, type: 2}
+  m_ParentUI: {fileID: 0}
+  sourceAsset: {fileID: 9197481963319205126, guid: 7e68869f204d874418a017804e72a302,
+    type: 3}
+  m_SortingOrder: 0
 --- !u!1 &6263631347725412095
 GameObject:
   m_ObjectHideFlags: 0
