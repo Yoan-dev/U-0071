@@ -35,9 +35,12 @@ namespace U0071
 		public Animation CharacterDie;
 		public Animation CharacterCrushed;
 		public Animation CharacterFlee;
+		public float4 LevelOneShirtColor;
+		public float4 LevelTwoShirtColor;
+		public float4 LevelThreeShirtColor;
 		public int2 WorldDimensions;
-		public BlobAssetReference<UnitRenderingColors> UnitRenderingColors;
 		public BlobAssetReference<UnitIdentityCollection> UnitNames;
+		public BlobAssetReference<UnitRenderingColors> UnitRenderingColors;
 		public Entity OrganicWastePrefab;
 		public float ChanceOfLongHair;
 		public float ChanceOfShortHair;

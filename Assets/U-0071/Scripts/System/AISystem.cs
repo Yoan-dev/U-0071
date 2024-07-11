@@ -353,6 +353,7 @@ namespace U0071
 			ref LongHairColor longHair,
 			ref BeardColor beard,
 			ref PilosityComponent pilosity,
+			ref ShirtColor shirt,
 			in PositionComponent position,
 			EnabledRefRW<AIUnitInitTag> initTag)
 		{
@@ -374,6 +375,11 @@ namespace U0071
 			shortHair.Value = pilosity.HasShortHair ? hairColor : skinColor;
 			longHair.Value = pilosity.HasLongHair ? hairColor : skinColor;
 			beard.Value = pilosity.HasBeard ? hairColor : skinColor;
+
+			shirt.Value =
+				authorization.AreaFlag == AreaAuthorization.LevelOne ? Config.LevelOneShirtColor :
+				authorization.AreaFlag == AreaAuthorization.LevelTwo ? Config.LevelTwoShirtColor :
+				authorization.AreaFlag == AreaAuthorization.LevelThree ? Config.LevelThreeShirtColor : float4.zero;
 		}
 	}
 }

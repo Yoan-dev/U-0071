@@ -96,6 +96,9 @@ MonoBehaviour:
   - {r: 0.7176471, g: 0.32941177, b: 0.15686275, a: 1}
   - {r: 0.10702207, g: 0.11743503, b: 0.122641504, a: 1}
   - {r: 0.6792453, g: 0.47083536, b: 0.36845854, a: 1}
+  LevelOneShirtColor: {r: 0.32156864, g: 0.3647059, b: 0.38823533, a: 1}
+  LevelTwoShirtColor: {r: 0.43137258, g: 0.7411765, b: 0.45882356, a: 1}
+  LevelThreeShirtColor: {r: 0.6039216, g: 0.6745098, b: 0.7137255, a: 1}
   ChanceOfShortHair: 0.9
   ChanceOfLongHair: 0.6
   ChanceOfBeard: 0.3

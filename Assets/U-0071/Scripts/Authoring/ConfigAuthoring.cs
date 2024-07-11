@@ -24,6 +24,9 @@ namespace U0071
 		[Header("Unit Rendering")]
 		public Color[] SkinColors;
 		public Color[] HairColors;
+		public Color LevelOneShirtColor;
+		public Color LevelTwoShirtColor;
+		public Color LevelThreeShirtColor;
 		public float ChanceOfShortHair;
 		public float ChanceOfLongHair;
 		public float ChanceOfBeard;
@@ -52,6 +55,9 @@ namespace U0071
 					ChanceOfLongHair = authoring.ChanceOfLongHair,
 					ChanceOfBeard = authoring.ChanceOfBeard,
 					OrganicWastePrefab = GetEntity(authoring.OrganicWastePrefab, TransformUsageFlags.Dynamic),
+					LevelOneShirtColor = authoring.LevelOneShirtColor.linear.ToFloat4(),
+					LevelTwoShirtColor = authoring.LevelTwoShirtColor.linear.ToFloat4(),
+					LevelThreeShirtColor = authoring.LevelThreeShirtColor.linear.ToFloat4(),
 				};
 
 				var builder = new BlobBuilder(Allocator.Temp);
@@ -67,6 +73,7 @@ namespace U0071
 				{
 					hairColorArrayBuilder[i] = authoring.HairColors[i].linear.ToFloat4();
 				}
+
 				config.UnitRenderingColors = builder.CreateBlobAssetReference<UnitRenderingColors>(Allocator.Persistent);
 				builder.Dispose();
 
