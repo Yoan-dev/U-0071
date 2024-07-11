@@ -119,7 +119,8 @@ namespace U0071
 	public struct FlowfieldBuilderCell
 	{
 		public float2 Position;
-		public AreaAuthorization AreaFlag;
+		public AreaAuthorization AreaFlags;
+		public AreaAuthorization LowestAreaFlag;
 		public int Index;
 		public int Value;
 		public bool Pathable;
@@ -162,7 +163,8 @@ namespace U0071
 				Cells[i] = new FlowfieldBuilderCell
 				{
 					Position = new float2(i % Dimensions.x - Dimensions.x / 2, i / Dimensions.x - Dimensions.y / 2),
-					AreaFlag = Utilities.GetLowestAuthorization(areaFlags),
+					AreaFlags = areaFlags,
+					LowestAreaFlag = Utilities.GetLowestAuthorization(areaFlags),
 					Index = i,
 					Value = int.MaxValue,
 					Pathable = partition.IsPathable(i),
@@ -257,12 +259,13 @@ namespace U0071
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		private void TryEnqueueCell(in FlowfieldBuilderCell cell, FlowfieldBuilderCell checkedCell)
 		{
-			// flow can go from low to high authorization but not the opposite,
-			// except if we start from high authorization
+			// flow can go from low to high authorization (unset value) but not the opposite,
+			// except if we start from high authorization (flowfield area flag)
 			// allows for all cells to have a value (can go back to authorized if lost somehow)
 			// but never path to an un-authorized cell (in the case of a loop / go through room)
-			if (checkedCell.Pathable && checkedCell.Value > cell.Value + 1 && 
-				(Utilities.CompareAuthorization(checkedCell.AreaFlag, cell.AreaFlag) || Utilities.CompareAuthorization(AreaFlag, checkedCell.AreaFlag)))
+			if (checkedCell.Pathable && checkedCell.Value > cell.Value + 1 && (
+				Utilities.CompareAuthorization(checkedCell.LowestAreaFlag, cell.LowestAreaFlag) && checkedCell.Value == int.MaxValue ||
+				Utilities.CompareAuthorization(AreaFlag, checkedCell.LowestAreaFlag) && Utilities.HasAuthorization(cell.AreaFlags, AreaFlag))) 
 			{
 				checkedCell.Value = cell.Value + 1;
 				Cells[checkedCell.Index] = checkedCell;
