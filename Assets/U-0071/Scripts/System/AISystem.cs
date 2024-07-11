@@ -3,6 +3,7 @@ using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
+using Unity.VisualScripting.FullSerializer;
 using UnityEngine.Rendering.Universal;
 using Random = Unity.Mathematics.Random;
 
@@ -346,6 +347,7 @@ namespace U0071
 		public void Execute(
 			Entity entity,
 			ref AuthorisationComponent authorization,
+			ref NameComponent name,
 			ref SkinColor skin,
 			ref ShortHairColor shortHair,
 			ref LongHairColor longHair,
@@ -358,18 +360,15 @@ namespace U0071
 
 			authorization.AreaFlag = Utilities.GetLowestAuthorization(Partition.GetAuthorization(position.Value));
 
-			// TODO: name U-XXXX
-			// config blob array with 9999 unique codes (all minus U-0071)
-			// index it with entity index ? (add a safe %)
+			UnitIdentity identity = Config.UnitNames.Value.Identities[entity.Index % Config.UnitNames.Value.Identities.Length];
 
-			Random random = new Random((uint)(entity.Index * 10000));
+			name.Value = identity.Name;
+			pilosity.HasShortHair = identity.HasShortHair;
+			pilosity.HasLongHair = identity.HasLongHair;
+			pilosity.HasBeard = identity.HasBeard;
 
-			pilosity.HasShortHair = random.NextFloat() < Config.ChanceOfShortHair;
-			pilosity.HasLongHair = random.NextFloat() < Config.ChanceOfLongHair;
-			pilosity.HasBeard = random.NextFloat() < Config.ChanceOfBeard;
-
-			float4 skinColor = Config.UnitRenderingColors.Value.SkinColors[random.NextInt(Config.UnitRenderingColors.Value.SkinColors.Length)];
-			float4 hairColor = Config.UnitRenderingColors.Value.HairColors[random.NextInt(Config.UnitRenderingColors.Value.HairColors.Length)];
+			float4 skinColor = Config.UnitRenderingColors.Value.SkinColors[identity.SkinColorIndex];
+			float4 hairColor = Config.UnitRenderingColors.Value.HairColors[identity.HairColorIndex];
 
 			skin.Value = skinColor;
 			shortHair.Value = pilosity.HasShortHair ? hairColor : skinColor;

@@ -2,6 +2,7 @@ using System.Runtime.CompilerServices;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Entities.UniversalDelegates;
 using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Transforms;
@@ -377,6 +378,78 @@ namespace U0071
 			{
 				Builder.ProcessDirection(index);
 			}
+		}
+	}
+
+	[UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
+	[UpdateAfter(typeof(GameInitSystem))]
+	[UpdateBefore(typeof(AIControllerSystem))]
+	public partial struct UnitNamesInitSystem : ISystem
+	{
+		private BlobAssetReference<UnitIdentityCollection> _unitNamesReference;
+
+		[BurstCompile]
+		public void OnCreate(ref SystemState state)
+		{
+			state.RequireForUpdate<Config>();
+		}
+
+		[BurstCompile]
+		public void OnDestroy(ref SystemState state)
+		{
+			if (_unitNamesReference.IsCreated)
+			{
+				_unitNamesReference.Dispose();
+			}
+		}
+
+		//[BurstCompile]
+		public void OnUpdate(ref SystemState state)
+		{
+			// generate AI identities (name, pilosity, colors)
+			// need to be deterministic per seed
+
+			ref Config config = ref SystemAPI.GetSingletonRW<Config>().ValueRW;
+
+			Random random = new Random(config.Seed);
+			NativeArray<UnitIdentity> identities = new NativeArray<UnitIdentity>(9999, Allocator.Temp);
+			for (int i = 0; i < identities.Length; i++)
+			{
+				identities[i] = new UnitIdentity
+				{
+					Name = i != 71 ? "U-" + i.ToString("0000") : new FixedString32Bytes("U-9999"), // avoid U-0071
+					SkinColorIndex = random.NextInt(config.UnitRenderingColors.Value.SkinColors.Length),
+					HairColorIndex = random.NextInt(config.UnitRenderingColors.Value.HairColors.Length),
+					HasShortHair = random.NextFloat() <= config.ChanceOfShortHair,
+					HasLongHair = random.NextFloat() <= config.ChanceOfLongHair,
+					HasBeard = random.NextFloat() <= config.ChanceOfBeard,
+				};
+			}
+
+			// shuffle
+			for (int i = 0; i < identities.Length; i++)
+			{
+				UnitIdentity temp = identities[i];
+				int index = random.NextInt(identities.Length);
+				identities[i] = identities[index];
+				identities[index] = temp;
+			}
+
+			var builder = new BlobBuilder(Allocator.Temp);
+			ref UnitIdentityCollection namesBlob = ref builder.ConstructRoot<UnitIdentityCollection>();
+
+			BlobBuilderArray<UnitIdentity> identityArrayBuilder = builder.Allocate(ref namesBlob.Identities, identities.Length);
+			for (int i = 0; i < identities.Length; i++)
+			{
+				identityArrayBuilder[i] = identities[i];
+			}
+
+			_unitNamesReference = builder.CreateBlobAssetReference<UnitIdentityCollection>(Allocator.Persistent);
+			config.UnitNames = _unitNamesReference;
+			builder.Dispose();
+			identities.Dispose();
+
+			state.Enabled = false;
 		}
 	}
 }
