@@ -1,6 +1,7 @@
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Entities.UniversalDelegates;
 using Unity.Mathematics;
 using UnityEngine;
 
@@ -22,16 +23,19 @@ namespace U0071
 		public struct FlowfieldInfo
 		{
 			public float2 Position;
-			public float2 Value;
-			public int Index;
+			public float2 Red;
+			public float2 Green;
+			public float2 Blue;
+			public float2 Yellow;
+			public float2 Cyan;
 		}
 
 		private EntityQuery _query;
 		private bool _debugRooms;
-		private bool _debugFoodLevelZero;
-		private bool _debugWorkLevelZero;
-		private bool _debugDestroy;
-		private bool _debugWander;
+		private bool _debugLevelZero;
+		private bool _debugLevelTwo;
+		private bool _debugLevelThree;
+		private bool _debugAdmin;
 
 		[BurstCompile]
 		public void OnCreate(ref SystemState state)
@@ -65,25 +69,24 @@ namespace U0071
 				roomInfos.Dispose();
 			}
 
-			if (CheckDebugFlowfield(KeyCode.Alpha1, ref _debugFoodLevelZero))
+			if (CheckDebugFlowfield(KeyCode.Alpha1, ref _debugLevelZero))
 			{
-				Flowfield flowfield = SystemAPI.GetSingleton<Flowfield>();
-				DebugFlowfield(in flowfield.FoodLevelZero, flowfield.Dimensions);
+				FlowfieldCollection flowfieldCollection = SystemAPI.GetSingleton<FlowfieldCollection>();
+				DebugFlowfield(in flowfieldCollection.LevelOne);
 			}
-			if (CheckDebugFlowfield(KeyCode.Alpha2, ref _debugDestroy))
+			if (CheckDebugFlowfield(KeyCode.Alpha2, ref _debugLevelTwo))
 			{
-				Flowfield flowfield = SystemAPI.GetSingleton<Flowfield>();
-				DebugFlowfield(in flowfield.Destroy, flowfield.Dimensions);
+				FlowfieldCollection flowfieldCollection = SystemAPI.GetSingleton<FlowfieldCollection>();
+				DebugFlowfield(in flowfieldCollection.LevelTwo);
 			}
-			if (CheckDebugFlowfield(KeyCode.Alpha3, ref _debugWorkLevelZero))
+			if (CheckDebugFlowfield(KeyCode.Alpha3, ref _debugLevelThree))
 			{
-				Flowfield flowfield = SystemAPI.GetSingleton<Flowfield>();
-				DebugFlowfield(in flowfield.WorkLevelZero, flowfield.Dimensions);
+				FlowfieldCollection flowfieldCollection = SystemAPI.GetSingleton<FlowfieldCollection>();
+				DebugFlowfield(in flowfieldCollection.LevelThree);
 			}
-			if (CheckDebugFlowfield(KeyCode.Alpha4, ref _debugWander))
+			if (CheckDebugFlowfield(KeyCode.Alpha4, ref _debugAdmin))
 			{
-				Flowfield flowfield = SystemAPI.GetSingleton<Flowfield>();
-				DebugFlowfield(in flowfield.Wander, flowfield.Dimensions);
+				DebugAdminFlowfield();
 			}
 		}
 
@@ -101,24 +104,48 @@ namespace U0071
 			return false;
 		}
 
-		private void DebugFlowfield(in NativeArray<float2> flowfield, float2 dimensions)
+		private void DebugFlowfield(in Flowfield flowfield)
 		{
 			Partition partition = SystemAPI.GetSingleton<Partition>();
-			NativeArray<FlowfieldInfo> flowfieldInfos = new NativeArray<FlowfieldInfo>(flowfield.Length, Allocator.TempJob);
+			NativeArray<FlowfieldInfo> flowfieldInfos = new NativeArray<FlowfieldInfo>(flowfield.Cells.Length, Allocator.TempJob);
+			for (int i = 0; i < flowfield.Cells.Length; i++)
+			{
+				if (partition.IsPathable(i))
+				{
+					FlowfieldCell cell = flowfield.Cells[i];
+					flowfieldInfos[i] = new FlowfieldInfo
+					{
+						Position = new float2(i % flowfield.Dimensions.x - flowfield.Dimensions.x / 2f + 0.5f, i / flowfield.Dimensions.x - flowfield.Dimensions.y / 2f),
+						Red = cell.ToDestroy,
+						Green = cell.ToFood,
+						Blue = cell.ToWork,
+						Yellow = cell.ToWander,
+						Cyan = cell.ToRelax,
+					};
+				}
+			}
+			DebugManager.Instance.UpdateFlowfieldElements(in flowfieldInfos);
+			flowfieldInfos.Dispose();
+		}
 
-			for (int i = 0; i < flowfield.Length; i++)
+		private void DebugAdminFlowfield()
+		{
+			Partition partition = SystemAPI.GetSingleton<Partition>();
+			FlowfieldCollection flowfieldCollection = SystemAPI.GetSingleton<FlowfieldCollection>();
+			NativeArray<FlowfieldInfo> flowfieldInfos = new NativeArray<FlowfieldInfo>(flowfieldCollection.ToRedAdmin.Length, Allocator.TempJob);
+			for (int i = 0; i < flowfieldCollection.ToRedAdmin.Length; i++)
 			{
 				if (partition.IsPathable(i))
 				{
 					flowfieldInfos[i] = new FlowfieldInfo
 					{
-						Index = i,
-						Position = new float2(i % dimensions.x - dimensions.x / 2f + 0.5f, i / dimensions.x - dimensions.y / 2f),
-						Value = flowfield[i],
+						Position = new float2(i % partition.Dimensions.x - partition.Dimensions.x / 2f + 0.5f, i / partition.Dimensions.x - partition.Dimensions.y / 2f),
+						Red = flowfieldCollection.ToRedAdmin[i],
+						Blue = flowfieldCollection.ToBlueAdmin[i],
+						Yellow = flowfieldCollection.ToYellowAdmin[i],
 					};
 				}
 			}
-			
 			DebugManager.Instance.UpdateFlowfieldElements(in flowfieldInfos);
 			flowfieldInfos.Dispose();
 		}

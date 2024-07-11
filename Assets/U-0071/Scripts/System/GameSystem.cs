@@ -24,7 +24,7 @@ namespace U0071
 			if (SystemAPI.HasComponent<Partition>(state.SystemHandle))
 			{
 				SystemAPI.GetComponent<Partition>(state.SystemHandle).Dispose();
-				SystemAPI.GetComponent<Flowfield>(state.SystemHandle).Dispose();
+				SystemAPI.GetComponent<FlowfieldCollection>(state.SystemHandle).Dispose();
 			}
 		}
 
@@ -33,25 +33,34 @@ namespace U0071
 		{
 			Config config = SystemAPI.GetSingleton<Config>();
 			Partition partition = new Partition(config.WorldDimensions);
-			Flowfield flowfield = new Flowfield(config.WorldDimensions);
-
-			// jobs are run with NativeDisableParallelForRestriction on the partition
-			// because rooms and doors/links should not be on top of one another
-			// (isolated cell indexes)
-			// (otherwise map is wrong)
-
+			FlowfieldCollection flowfieldCollection = new FlowfieldCollection(config.WorldDimensions);
 			int size = config.WorldDimensions.x * config.WorldDimensions.y;
+
+			// wander path (looping) is common to all authorization (will be in lower)
+			// it will then be overlayed on each flowfield "ToWander" path
+			// (get out of the rooms => wander in loop)
 			NativeArray<bool> wanderCells = new NativeArray<bool>(size, Allocator.TempJob);
+			NativeArray<float2> wanderPath = new NativeArray<float2>(size, Allocator.TempJob);
 			NativeQueue<WandererComponent> wanderers = new NativeQueue<WandererComponent>(Allocator.TempJob);
 
-			// partition/rooms init
+			// jobs are run with NativeDisableParallelForRestriction on the partition
+			// because rooms should not be on top of each other
+			// (isolated cell indexes)
+			// (same for devices)
+			// (otherwise map is wrong and will cause a big mess)
+			// (TODO: in a proper project, editor tool detecting room or device overlaps)
 
+			// by design, flowfields area organized incrementally (one < two < three)
+			// but they could be used as exclusion (separated workforces)
+			// (was the original jam goal)
+			// (would need to tweak area authorization comparison)
+
+			// partition/rooms init
 			new RoomInitJob
 			{
 				Partition = partition,
 				WanderCells = wanderCells,
 			}.ScheduleParallel(state.Dependency).Complete();
-
 			new CorridorOverrideJob
 			{
 				Partition = partition,
@@ -59,77 +68,136 @@ namespace U0071
 			}.ScheduleParallel(state.Dependency).Complete();
 
 			// wander path
-
-			state.Dependency = new GetWanderersJob
+			new GetWanderersJob
 			{
 				Wanderers = wanderers.AsParallelWriter(),
-			}.Schedule(state.Dependency);
-
-			state.Dependency = new WanderPathJob
+			}.Schedule(state.Dependency).Complete();
+			new WanderPathJob
 			{
 				WanderCells = wanderCells,
-				WanderPath = flowfield.Wander,
+				WanderPath = wanderPath,
 				Wanderers = wanderers,
 				Dimensions = partition.Dimensions,
-			}.Schedule(state.Dependency);
+			}.Schedule(state.Dependency).Complete();
 
 			// flowfields init
+			// run sequentially but each call run its jobs in parallel
+			ProcessFlowfield(ref state, ref flowfieldCollection.LevelOne, AreaAuthorisation.LevelOne, in wanderPath, in partition);
+			ProcessFlowfield(ref state, ref flowfieldCollection.LevelTwo, AreaAuthorisation.LevelTwo, in wanderPath, in partition);
+			ProcessFlowfield(ref state, ref flowfieldCollection.LevelThree, AreaAuthorisation.LevelThree, in wanderPath, in partition);
+			ProcessAdminFlowfields(ref state, ref flowfieldCollection, in partition);
 
-			// go to wander, will be merged with wander path
-			NativeArray<float2> goToWander = new NativeArray<float2>(size, Allocator.TempJob);
-			
-			// do not use ActionFlag.Collect (not set if starting capacity != 0)
-			FlowfieldBuilder foodLevelZeroBuilder = new FlowfieldBuilder(flowfield.FoodLevelZero, 0, ItemFlag.Food, in partition);
-			FlowfieldBuilder workLevelZeroBuilder = new FlowfieldBuilder(flowfield.WorkLevelZero, 0, 0, in partition, true);
-			FlowfieldBuilder destroyBuilder = new FlowfieldBuilder(flowfield.Destroy, ActionFlag.Destroy, ItemFlag.Trash, in partition);
-			FlowfieldBuilder goToWanderBuilder = new FlowfieldBuilder(goToWander, 0, 0, in partition);
-
-			state.Dependency = new DeviceFlowfieldInitJob
-			{
-				Partition = partition,
-				FoodLevelZeroBuilder = foodLevelZeroBuilder,
-				WorkLevelZeroBuilder = workLevelZeroBuilder,
-				DestroyBuilder = destroyBuilder,
-			}.ScheduleParallel(state.Dependency);
-
-			state.Dependency = new WandererFlowfieldInitJob
-			{
-				GoToWanderBuilder = goToWanderBuilder,
-			}.Schedule(state.Dependency);
-
-			state.Dependency = new FlowfieldSpreadJob { Builder = foodLevelZeroBuilder }.Schedule(state.Dependency);
-			state.Dependency = new FlowfieldSpreadJob { Builder = workLevelZeroBuilder }.Schedule(state.Dependency);
-			state.Dependency = new FlowfieldSpreadJob { Builder = destroyBuilder }.Schedule(state.Dependency);
-			state.Dependency = new FlowfieldSpreadJob { Builder = goToWanderBuilder }.Schedule(state.Dependency);
-
-			state.Dependency = new FlowfieldDirectionJob { Builder = foodLevelZeroBuilder }.ScheduleParallel(size, Const.ParallelForCount, state.Dependency);
-			state.Dependency = new FlowfieldDirectionJob { Builder = workLevelZeroBuilder }.ScheduleParallel(size, Const.ParallelForCount, state.Dependency);
-			state.Dependency = new FlowfieldDirectionJob { Builder = destroyBuilder }.ScheduleParallel(size, Const.ParallelForCount, state.Dependency);
-			state.Dependency = new FlowfieldDirectionJob { Builder = goToWanderBuilder }.ScheduleParallel(size, Const.ParallelForCount, state.Dependency);
-
-			state.Dependency.Complete();
-
-			// overlay goToWander on wander flowfield
-			// (get out of the rooms => wander in loop)
-			for (int i = 0; i < size; i++)
-			{
-				if (flowfield.Wander[i].Equals(float2.zero))
-				{
-					flowfield.Wander[i] = goToWander[i];
-				}
-			}
-
-			foodLevelZeroBuilder.Dispose();
-			destroyBuilder.Dispose();
-			workLevelZeroBuilder.Dispose();
-			goToWanderBuilder.Dispose();
-			goToWander.Dispose();
 			wanderCells.Dispose();
 			wanderers.Dispose();
 
 			state.EntityManager.AddComponentData(state.SystemHandle, partition);
-			state.EntityManager.AddComponentData(state.SystemHandle, flowfield);
+			state.EntityManager.AddComponentData(state.SystemHandle, flowfieldCollection);
 			state.Enabled = false;
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		private void ProcessFlowfield(
+			ref SystemState state, 
+			ref Flowfield flowfield, 
+			AreaAuthorisation areaFlag, 
+			in NativeArray<float2> wanderPath, 
+			in Partition partition)
+		{
+			int size = flowfield.Dimensions.x * flowfield.Dimensions.y;
+
+			// separated for // processing, will be merged after
+			// do not use ActionFlag.Collect (not set if distributor starting capacity != 0)
+			// (hack: WorkingStationgFlag is used instead)
+			FlowfieldBuilder toFood = new FlowfieldBuilder(areaFlag, 0, ItemFlag.Food, in partition);
+			FlowfieldBuilder toWork = new FlowfieldBuilder(areaFlag, 0, ItemFlag.Food, in partition);
+			FlowfieldBuilder toDestroy = new FlowfieldBuilder(areaFlag, ActionFlag.Destroy, ItemFlag.Trash, in partition);
+			FlowfieldBuilder toWander = new FlowfieldBuilder(areaFlag, 0, 0, in partition);
+			FlowfieldBuilder toRelax = new FlowfieldBuilder(areaFlag, 0, 0, in partition); // TODO
+
+			state.Dependency = new DeviceFlowfieldInitJob
+			{
+				Partition = partition,
+				ToFoodBuilder = toFood,
+				ToWorkBuilder = toWork,
+				ToDestroyBuilder = toDestroy,
+			}.ScheduleParallel(state.Dependency);
+
+			state.Dependency = new WandererFlowfieldInitJob
+			{
+				ToWanderBuilder = toWander,
+				ToRelaxBuilder = toRelax, // TEMP, TODO: relax devices/spots (for now will run away from working stations)
+			}.Schedule(state.Dependency);
+
+			state.Dependency = new FlowfieldSpreadJob { Builder = toFood }.Schedule(state.Dependency);
+			state.Dependency = new FlowfieldSpreadJob { Builder = toWork }.Schedule(state.Dependency);
+			state.Dependency = new FlowfieldSpreadJob { Builder = toDestroy }.Schedule(state.Dependency);
+			state.Dependency = new FlowfieldSpreadJob { Builder = toWander }.Schedule(state.Dependency);
+			state.Dependency = new FlowfieldSpreadJob { Builder = toRelax }.Schedule(state.Dependency);
+
+			state.Dependency = new FlowfieldDirectionJob { Builder = toFood }.ScheduleParallel(size, Const.ParallelForCount, state.Dependency);
+			state.Dependency = new FlowfieldDirectionJob { Builder = toWork }.ScheduleParallel(size, Const.ParallelForCount, state.Dependency);
+			state.Dependency = new FlowfieldDirectionJob { Builder = toDestroy }.ScheduleParallel(size, Const.ParallelForCount, state.Dependency);
+			state.Dependency = new FlowfieldDirectionJob { Builder = toWander }.ScheduleParallel(size, Const.ParallelForCount, state.Dependency);
+			state.Dependency = new FlowfieldDirectionJob { Builder = toRelax }.ScheduleParallel(size, Const.ParallelForCount, state.Dependency);
+
+			state.Dependency.Complete();
+
+			// merge flowfields + wander path
+			for (int i = 0; i < size; i++)
+			{
+				float2 wanderDirection = wanderPath[i];
+				flowfield.Cells[i] = new FlowfieldCell
+				{
+					ToFood = toFood.Flowfield[i],
+					ToWork = toWork.Flowfield[i],
+					ToDestroy = toDestroy.Flowfield[i],
+					ToRelax = toRelax.Flowfield[i],
+
+					// overlay goToWander on wander flowfield
+					// (get out of the rooms => wander in loop)
+					ToWander = wanderDirection.Equals(float2.zero) ? toWander.Flowfield[i] : wanderDirection,
+				};
+			}
+
+			toFood.Dispose();
+			toWork.Dispose();
+			toDestroy.Dispose();
+			toWander.Dispose();
+			toRelax.Dispose();
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		private void ProcessAdminFlowfields(ref SystemState state, ref FlowfieldCollection collection, in Partition partition)
+		{
+			int size = partition.Dimensions.x * partition.Dimensions.y;
+
+			FlowfieldBuilder toRed = new FlowfieldBuilder(AreaAuthorisation.Red, 0, 0, in partition);
+			FlowfieldBuilder toBlue = new FlowfieldBuilder(AreaAuthorisation.Blue, 0, 0, in partition);
+			FlowfieldBuilder toYellow = new FlowfieldBuilder(AreaAuthorisation.Yellow, 0, 0, in partition);
+
+			// TODO retrieve starting cell(s) for each admin area
+
+			state.Dependency = new FlowfieldSpreadJob { Builder = toRed }.Schedule(state.Dependency);
+			state.Dependency = new FlowfieldSpreadJob { Builder = toBlue }.Schedule(state.Dependency);
+			state.Dependency = new FlowfieldSpreadJob { Builder = toYellow }.Schedule(state.Dependency);
+
+			state.Dependency = new FlowfieldDirectionJob { Builder = toRed }.ScheduleParallel(size, Const.ParallelForCount, state.Dependency);
+			state.Dependency = new FlowfieldDirectionJob { Builder = toBlue }.ScheduleParallel(size, Const.ParallelForCount, state.Dependency);
+			state.Dependency = new FlowfieldDirectionJob { Builder = toYellow }.ScheduleParallel(size, Const.ParallelForCount, state.Dependency);
+
+			state.Dependency.Complete();
+
+			// copy
+			for (int i = 0; i < size; i++)
+			{
+				collection.ToRedAdmin[i] = toRed.Flowfield[i];
+				collection.ToBlueAdmin[i] = toBlue.Flowfield[i];
+				collection.ToYellowAdmin[i] = toYellow.Flowfield[i];
+			}
+
+			toRed.Dispose();
+			toBlue.Dispose();
+			toYellow.Dispose();
 		}
 
 		[BurstCompile]
@@ -258,33 +326,32 @@ namespace U0071
 		public partial struct DeviceFlowfieldInitJob : IJobEntity
 		{
 			[ReadOnly] public Partition Partition;
-			[NativeDisableParallelForRestriction] public FlowfieldBuilder FoodLevelZeroBuilder;
-			[NativeDisableParallelForRestriction] public FlowfieldBuilder WorkLevelZeroBuilder;
-			[NativeDisableParallelForRestriction] public FlowfieldBuilder DestroyBuilder;
+			[NativeDisableParallelForRestriction] public FlowfieldBuilder ToFoodBuilder;
+			[NativeDisableParallelForRestriction] public FlowfieldBuilder ToWorkBuilder;
+			[NativeDisableParallelForRestriction] public FlowfieldBuilder ToDestroyBuilder;
 
 			public void Execute(in InteractableComponent interactable, in LocalTransform transform)
 			{
-				// TODO check partition to know autorisation level (later)
-
 				// we assume normalized scale
 				float2 position = new float2(transform.Position.x, transform.Position.z);
 				int size = (int)transform.Scale;
 
-				FoodLevelZeroBuilder.ProcessDevice(in interactable, in Partition, position, size);
-				DestroyBuilder.ProcessDevice(in interactable, in Partition, position, size);
-				WorkLevelZeroBuilder.ProcessDevice(in interactable, in Partition, position, size);
+				ToFoodBuilder.ProcessDevice(in interactable, in Partition, position, size);
+				ToDestroyBuilder.ProcessDevice(in interactable, in Partition, position, size);
+				ToWorkBuilder.ProcessDevice(in interactable, in Partition, position, size);
 			}
 		}
 
 		[BurstCompile]
 		public partial struct WandererFlowfieldInitJob : IJobEntity
 		{
-			[NativeDisableParallelForRestriction]
-			public FlowfieldBuilder GoToWanderBuilder;
+			[NativeDisableParallelForRestriction] public FlowfieldBuilder ToWanderBuilder;
+			[NativeDisableParallelForRestriction] public FlowfieldBuilder ToRelaxBuilder; // TEMP
 
 			public void Execute(in WandererComponent wanderer)
 			{
-				GoToWanderBuilder.InitStartingCell(GoToWanderBuilder.GetIndex(wanderer.Position), true);
+				ToWanderBuilder.InitStartingCell(ToWanderBuilder.GetIndex(wanderer.Position), true);
+				ToRelaxBuilder.InitStartingCell(ToRelaxBuilder.GetIndex(wanderer.Position), true);
 			}
 		}
 

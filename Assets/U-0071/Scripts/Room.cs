@@ -7,6 +7,7 @@ namespace U0071
 	public struct RoomComponent : IComponentData
 	{
 		public int2 Dimensions;
+		public AreaAuthorisation Area;
 		public int Capacity; // amount of possible workers
 		public int Population; // current amount of units in room
 		public bool IsWanderPath;

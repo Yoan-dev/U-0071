@@ -18,6 +18,7 @@ namespace U0071
 		public Entity Entity;
 		
 		public int Size => Room.Dimensions.x * Room.Dimensions.y;
+		public AreaAuthorisation AreaFlag => Room.Area;
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public float2 GetRoomRatio(float2 position)
@@ -32,20 +33,20 @@ namespace U0071
 
 	public struct Partition : IComponentData, IDisposable
 	{
-		public NativeArray<RoomData> Rooms;
+		public NativeArray<RoomData> RoomCells; // cached room data for each cell
 		public NativeArray<bool> Path;
 		public int2 Dimensions;
 
 		public Partition(int2 dimensions)
 		{
 			Dimensions = dimensions;
-			Rooms = new NativeArray<RoomData>(dimensions.x * dimensions.y, Allocator.Persistent);
+			RoomCells = new NativeArray<RoomData>(dimensions.x * dimensions.y, Allocator.Persistent);
 			Path = new NativeArray<bool>(dimensions.x * dimensions.y, Allocator.Persistent);
 		}
 
 		public void Dispose()
 		{
-			Rooms.Dispose();
+			RoomCells.Dispose();
 			Path.Dispose();
 		}
 
@@ -53,7 +54,7 @@ namespace U0071
 		public RoomData GetRoomData(float2 position)
 		{
 			int index = GetIndex(position);
-			return index >= 0 && index < Rooms.Length ? Rooms[index] : new RoomData();
+			return index >= 0 && index < RoomCells.Length ? RoomCells[index] : new RoomData();
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -66,15 +67,21 @@ namespace U0071
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public bool IsPathable(int index)
 		{
-			return index >= 0 && index < Rooms.Length ? Path[index] : false;
+			return index >= 0 && index < RoomCells.Length ? Path[index] : false;
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public AreaAuthorisation GetAuthorization(int index)
+		{
+			return index >= 0 && index < RoomCells.Length ? RoomCells[index].AreaFlag : 0;
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public void SetCellData(bool pathable, RoomData room, int index)
 		{
-			if (index >= 0 && index < Rooms.Length)
+			if (index >= 0 && index < RoomCells.Length)
 			{
-				Rooms[index] = room;
+				RoomCells[index] = room;
 				Path[index] = pathable;
 			}
 		}

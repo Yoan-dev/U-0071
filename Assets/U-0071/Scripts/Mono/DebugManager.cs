@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using TMPro;
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Mathematics;
 using UnityEngine;
 using static U0071.DebugSystem;
 
@@ -69,13 +70,25 @@ public class DebugManager : MonoBehaviour
 		_flowfieldInfos = new List<FlowfieldInfo>(flowfieldInfos);
 	}
 
-	public void DrawFlowfield()
+	private void DrawFlowfield()
 	{
 		foreach (var info in _flowfieldInfos)
 		{
 			Vector3 from = new Vector3(info.Position.x, 0.5f, info.Position.y);
-			Gizmos.color = Color.red;
-			Gizmos.DrawLine(from, from + new Vector3(info.Value.x, 0f, info.Value.y) / 2f);
+			TryDraw(Color.red, from, info.Red);
+			TryDraw(Color.green, from, info.Green);
+			TryDraw(Color.blue, from, info.Blue);
+			TryDraw(Color.yellow, from, info.Yellow);
+			TryDraw(Color.cyan, from, info.Cyan);
+		}
+	}
+
+	private void TryDraw(Color color, Vector3 from, float2 direction)
+	{
+		if (!direction.Equals(float2.zero))
+		{
+			Gizmos.color = color;
+			Gizmos.DrawLine(from, from + new Vector3(direction.x, 0f, direction.y) / 2f);
 		}
 	}
 

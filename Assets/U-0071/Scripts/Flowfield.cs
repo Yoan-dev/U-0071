@@ -6,50 +6,101 @@ using Unity.Mathematics;
 
 namespace U0071
 {
+	// used for wander flowfield init
+	// (find loop in maze algo)
 	public struct WandererComponent : IComponentData
 	{
 		public float2 Position;
 		public float2 Direction;
 	}
 
-	public struct Flowfield : IComponentData, IDisposable
+	public struct FlowfieldCell
 	{
-		// TODO: per autorisation level
-		// TODO: ensure loop in every area for wander
-		public NativeArray<float2> FoodLevelZero;
-		public NativeArray<float2> WorkLevelZero;
-		public NativeArray<float2> Destroy;
-		public NativeArray<float2> Wander;
+		// TODO: pack the float2s (several 8-directions in a byte)
+		public float2 ToFood;
+		public float2 ToWork;
+		public float2 ToDestroy;
+		public float2 ToWander;
+		public float2 ToRelax;
+	}
+
+	public struct FlowfieldCollection : IComponentData, IDisposable
+	{
+		public Flowfield LevelOne;
+		public Flowfield LevelTwo;
+		public Flowfield LevelThree;
+		public NativeArray<float2> ToRedAdmin;
+		public NativeArray<float2> ToBlueAdmin;
+		public NativeArray<float2> ToYellowAdmin;
+
+		public FlowfieldCollection(int2 dimensions)
+		{
+			LevelOne = new Flowfield(dimensions);
+			LevelTwo = new Flowfield(dimensions);
+			LevelThree = new Flowfield(dimensions);
+			ToRedAdmin = new NativeArray<float2>(dimensions.x * dimensions.y, Allocator.Persistent);
+			ToBlueAdmin = new NativeArray<float2>(dimensions.x * dimensions.y, Allocator.Persistent);
+			ToYellowAdmin = new NativeArray<float2>(dimensions.x * dimensions.y, Allocator.Persistent);
+		}
+
+		public void Dispose()
+		{
+			LevelOne.Dispose();
+			LevelTwo.Dispose();
+			LevelThree.Dispose();
+			ToRedAdmin.Dispose();
+			ToBlueAdmin.Dispose();
+			ToYellowAdmin.Dispose();
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public float2 GetDirection(AreaAuthorisation areaFlag, AIGoal goal, float2 position)
+		{
+			return areaFlag switch
+			{
+				AreaAuthorisation.LevelOne => LevelOne.GetDirection(goal, position),
+				AreaAuthorisation.LevelTwo => LevelTwo.GetDirection(goal, position),
+				AreaAuthorisation.LevelThree => LevelThree.GetDirection(goal, position),
+				AreaAuthorisation.Red => LevelThree.GetDirection(goal, position),
+				AreaAuthorisation.Blue => LevelThree.GetDirection(goal, position),
+				AreaAuthorisation.Yellow => LevelThree.GetDirection(goal, position),
+				_ => float2.zero,
+			};
+		}
+	}
+
+	public struct Flowfield : /*IComponentData, ISharedComponentData,*/ IDisposable
+	{
+		public NativeArray<FlowfieldCell> Cells;
 		public int2 Dimensions;
 
 		public Flowfield(int2 dimensions)
 		{
 			Dimensions = dimensions;
-			FoodLevelZero = new NativeArray<float2>(dimensions.x * dimensions.y, Allocator.Persistent);
-			Destroy = new NativeArray<float2>(dimensions.x * dimensions.y, Allocator.Persistent);
-			WorkLevelZero = new NativeArray<float2>(dimensions.x * dimensions.y, Allocator.Persistent);
-			Wander = new NativeArray<float2>(dimensions.x * dimensions.y, Allocator.Persistent);
+			Cells = new NativeArray<FlowfieldCell>(dimensions.x * dimensions.y, Allocator.Persistent);
 		}
 
 		public void Dispose()
 		{
-			FoodLevelZero.Dispose();
-			WorkLevelZero.Dispose();
-			Destroy.Dispose();
-			Wander.Dispose();
+			Cells.Dispose();
 		}
 
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public float2 GetDirection(AIGoal goal, float2 position)
 		{
 			int index = GetIndex(position);
-			return 
-				goal == AIGoal.Eat ? FoodLevelZero[index] : 
-				goal == AIGoal.Destroy ? Destroy[index] :
-				goal == AIGoal.Work ? WorkLevelZero[index] : 
-				goal == AIGoal.Wander || goal == AIGoal.Flee ? Wander[index] : float2.zero;
-			
-			// TODO: flee field usage (go to their level)
-			// TODO: the rest / autorisation level
+			FlowfieldCell cell = Cells[index];
+
+			return goal switch
+			{
+				AIGoal.Eat => cell.ToFood,
+				AIGoal.Work => cell.ToWork,
+				AIGoal.Destroy => cell.ToDestroy,
+				AIGoal.Wander => cell.ToWander,
+				AIGoal.Relax => cell.ToRelax,
+				AIGoal.Flee => cell.ToRelax.Equals(float2.zero) ? cell.ToWander : cell.ToRelax,
+				_ => float2.zero,
+			};
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -62,6 +113,7 @@ namespace U0071
 	public struct FlowfieldBuilderCell
 	{
 		public float2 Position;
+		public AreaAuthorisation Area;
 		public int Index;
 		public int Value;
 		public bool Pathable;
@@ -73,6 +125,7 @@ namespace U0071
 		public NativeArray<float2> Flowfield;
 		public NativeArray<FlowfieldBuilderCell> Cells;
 		public NativeQueue<FlowfieldBuilderCell> Queue;
+		public AreaAuthorisation AreaFlag;
 		public ActionFlag ActionFlag;
 		public ItemFlag ItemFlag;
 		public bool WorkFlag;
@@ -85,20 +138,24 @@ namespace U0071
 		private int offsetS => -Dimensions.x;
 		private int offsetSE => -Dimensions.x + 1;
 
-		public FlowfieldBuilder(NativeArray<float2> flowfield, ActionFlag actionFlag, ItemFlag itemFlag, in Partition partition, bool workFlag = false)
+		public FlowfieldBuilder(AreaAuthorisation areaFlag, ActionFlag actionFlag, ItemFlag itemFlag, in Partition partition, bool workFlag = false)
 		{
-			Flowfield = flowfield;
+			// lone flag because we will do < comparisons
+			AreaFlag = areaFlag;
+
 			Dimensions = partition.Dimensions;
 			ActionFlag = actionFlag;
 			ItemFlag = itemFlag;
 			WorkFlag = workFlag;
-			Queue = new NativeQueue<FlowfieldBuilderCell>(Allocator.Persistent);
-			Cells = new NativeArray<FlowfieldBuilderCell>(flowfield.Length, Allocator.Persistent);
+			Queue = new NativeQueue<FlowfieldBuilderCell>(Allocator.TempJob);
+			Flowfield = new NativeArray<float2>(Dimensions.x * Dimensions.y, Allocator.TempJob);
+			Cells = new NativeArray<FlowfieldBuilderCell>(Dimensions.x * Dimensions.y, Allocator.TempJob);
 			for (int i = 0; i < Cells.Length; i++)
 			{
 				Cells[i] = new FlowfieldBuilderCell
 				{
 					Position = new float2(i % Dimensions.x, i / Dimensions.x), // only need relative pos to each other
+					Area = partition.GetAuthorization(i),
 					Index = i,
 					Value = int.MaxValue,
 					Pathable = partition.IsPathable(i),
@@ -108,6 +165,7 @@ namespace U0071
 
 		public void Dispose()
 		{
+			Flowfield.Dispose();
 			Cells.Dispose();
 			Queue.Dispose();
 		}
@@ -115,14 +173,20 @@ namespace U0071
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public void ProcessDevice(in InteractableComponent interactable, in Partition partition, float2 position, int size)
 		{
+			// flowfield starts from:
+			// - working stations if work flag
+			// - devices with no action/item flags or required ones
+			// - authorized areas
+			int index = GetIndex(position);
 			bool isStartingCell =
 				(!WorkFlag || interactable.WorkingStationFlag) && 
 				(ActionFlag == 0 || interactable.HasActionFlag(ActionFlag)) && 
-				(ItemFlag == 0 || interactable.HasItemFlag(ItemFlag));
+				(ItemFlag == 0 || interactable.HasItemFlag(ItemFlag)) &&
+				Utilities.HasAuthorization(AreaFlag, partition.GetRoomData(index).AreaFlag);
 
 			if (size == 1)
 			{
-				InitStartingCell(partition.GetIndex(position), isStartingCell);
+				InitStartingCell(index, isStartingCell);
 			}
 			else
 			{
@@ -130,7 +194,7 @@ namespace U0071
 				{
 					for (int x = 0; x < size; x++)
 					{
-						InitStartingCell(partition.GetIndex(new float2(position.x + x - size / 2f, position.y + y - size / 2f)), isStartingCell);
+						InitStartingCell(GetIndex(new float2(position.x + x - size / 2f, position.y + y - size / 2f)), isStartingCell);
 					}
 				}
 			}
@@ -145,7 +209,7 @@ namespace U0071
 				cell.Value = 0;
 				Queue.Enqueue(cell);
 			}
-			else // obstacle
+			else
 			{
 				cell.HasObstacle = true;
 			}
@@ -155,9 +219,6 @@ namespace U0071
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public void Spread()
 		{
-			// note: no check for out of bound index
-			// (map will have buffer around rooms)
-
 			while (Queue.Count > 0)
 			{
 				FlowfieldBuilderCell cell = Queue.Dequeue();
@@ -188,7 +249,10 @@ namespace U0071
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		private void TryEnqueueCell(in FlowfieldBuilderCell cell, FlowfieldBuilderCell checkedCell)
 		{
-			if (checkedCell.Pathable && checkedCell.Value > cell.Value + 1)
+			// flow can go from low to high authorization but not the opposite
+			// allows for all cells to have a value (can go back to authorized if lost somehow)
+			// but never path to an un-authorized cell
+			if (checkedCell.Pathable && checkedCell.Value > cell.Value + 1 && Utilities.CompareAuthorization(checkedCell.Area, cell.Area))
 			{
 				checkedCell.Value = cell.Value + 1;
 				Cells[checkedCell.Index] = checkedCell;

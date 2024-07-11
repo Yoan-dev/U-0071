@@ -72,6 +72,20 @@ namespace U0071
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static bool HasAuthorization(AreaAuthorisation flag, AreaAuthorisation check)
+		{
+			return (flag & check) != 0;
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static bool CompareAuthorization(AreaAuthorisation area1, AreaAuthorisation area2)
+		{
+			// admin areas should exclude each other but this check will be enough
+			// (level design will have admin areas as dead ends)
+			return area1 >= area2;
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static bool RequireItem(ActionFlag actionFlag)
 		{
 			return actionFlag == ActionFlag.Store || actionFlag == ActionFlag.Destroy || actionFlag == ActionFlag.Teleport;

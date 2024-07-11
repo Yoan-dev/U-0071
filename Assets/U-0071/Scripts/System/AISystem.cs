@@ -64,7 +64,7 @@ namespace U0071
 
 				state.Dependency = new AIMovementJob
 				{
-					Flowfield = SystemAPI.GetSingleton<Flowfield>(),
+					FlowfieldCollection = SystemAPI.GetSingleton<FlowfieldCollection>(),
 				}.ScheduleParallel(state.Dependency);
 
 				state.Dependency = new AIUnitInitJob
@@ -274,15 +274,15 @@ namespace U0071
 		public partial struct AIMovementJob : IJobEntity
 		{
 			[ReadOnly]
-			public Flowfield Flowfield;
+			public FlowfieldCollection FlowfieldCollection;
 
-			public void Execute(ref MovementComponent movement, ref AIController controller, in PositionComponent position, in ActionController actionController)
+			public void Execute(ref MovementComponent movement, ref AIController controller, in PositionComponent position, in ActionController actionController, in AuthorisationComponent authorisation)
 			{
 				movement.IsRunning = controller.Goal == AIGoal.Flee;
 
 				if (controller.IsPathing)
 				{
-					movement.Input = Flowfield.GetDirection(controller.Goal, position.Value);
+					movement.Input = FlowfieldCollection.GetDirection(authorisation.AreaFlag, controller.Goal, position.Value);
 					if (movement.Input.Equals(float2.zero))
 					{
 						// arrived

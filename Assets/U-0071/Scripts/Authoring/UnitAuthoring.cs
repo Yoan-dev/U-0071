@@ -13,6 +13,7 @@ namespace U0071
 		public string Name;
 		public float Speed;
 		public float Hunger = 10f;
+		public AreaAuthorisation Authorisation;
 		public int Credits;
 		
 		[Header("Interactable")]
@@ -36,6 +37,7 @@ namespace U0071
 
 				Vector3 position = authoring.gameObject.transform.position;
 
+				// core
 				AddComponent(entity, new DepthSorted_Tag());
 				AddComponent(entity, new NameComponent { Value = new FixedString32Bytes(authoring.Name) });
 				AddComponent(entity, new PositionComponent
@@ -59,6 +61,8 @@ namespace U0071
 				AddComponent(entity, new CreditsComponent { Value = authoring.Credits });
 				AddComponent(entity, new CarryComponent());
 				SetComponentEnabled<CarryComponent>(entity, false);
+
+				// health
 				AddComponent(entity, new HungerComponent { Value = authoring.Hunger });
 				AddComponent(entity, new DeathComponent());
 				AddComponent(entity, new ResolveDeathTag());
@@ -67,6 +71,12 @@ namespace U0071
 				SetComponentEnabled<PushedComponent>(entity, false);
 				AddComponent(entity, new SickComponent());
 				SetComponentEnabled<SickComponent>(entity, false);
+
+				// areas
+				AddComponent(entity, new AuthorisationComponent
+				{
+					AreaFlag = authoring.Authorisation,
+				});
 
 				// render
 				AddComponent(entity, new TextureArrayIndex { Value = 0f });
