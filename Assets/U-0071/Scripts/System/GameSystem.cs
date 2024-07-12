@@ -27,7 +27,7 @@ namespace U0071
 			state.RequireForUpdate<Config>();
 			state.RequireForUpdate<PlayerController>();
 
-			_seed = new Random(math.clamp((uint)Time.realtimeSinceStartup, 1, uint.MaxValue)).NextUInt(1, uint.MaxValue);
+			_seed = new Random(math.clamp((uint)(Time.realtimeSinceStartup * 100000f), 1, uint.MaxValue)).NextUInt(1, uint.MaxValue);
 		}
 
 		//[BurstCompile]
