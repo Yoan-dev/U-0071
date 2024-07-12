@@ -1,15 +1,70 @@
-using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
-using Unity.Entities.UniversalDelegates;
 using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Transforms;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+using Random = Unity.Mathematics.Random;
 
 namespace U0071
 {
+	[UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
+	[UpdateBefore(typeof(GameInitSystem))]
+	public partial struct GameSimulationSystem : ISystem
+	{
+		private uint _seed;
+		private int _iteration;
+		private float _resetTimer;
+		private bool _resetStarted;
+		private bool _iterationInitialized;
+
+		[BurstCompile]
+		public void OnCreate(ref SystemState state)
+		{
+			state.RequireForUpdate<Config>();
+			state.RequireForUpdate<PlayerController>();
+
+			_seed = new Random(math.clamp((uint)Time.realtimeSinceStartup, 1, uint.MaxValue)).NextUInt(1, uint.MaxValue);
+		}
+
+		//[BurstCompile]
+		public void OnUpdate(ref SystemState state)
+		{
+			if (!_iterationInitialized)
+			{
+				_iterationInitialized = true;
+				ref Config config = ref SystemAPI.GetSingletonRW<Config>().ValueRW;
+				config.Seed = _seed;
+				config.Iteration = _iteration;
+				Debug.Log("Iteration " + config.Iteration + " initialized with seed " +  config.Seed);
+			}
+
+			if (_resetStarted)
+			{
+				_resetTimer += SystemAPI.Time.DeltaTime;
+				if (_resetTimer > Const.SimulationResetTime)
+				{
+					_iterationInitialized = false;
+					_resetStarted = false;
+					_resetTimer = 0;
+					_iteration++;
+					SceneManager.LoadScene("Testing", LoadSceneMode.Single);
+				}
+			}
+			else
+			{
+				Entity player = SystemAPI.GetSingletonEntity<PlayerController>();
+				if (state.EntityManager.IsComponentEnabled<DeathComponent>(player))
+				{
+					_resetStarted = true;
+				}
+			}
+		}
+	}
+
 	[UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
 	[UpdateBefore(typeof(RoomSystem))]
 	public partial struct GameInitSystem : ISystem
@@ -18,6 +73,7 @@ namespace U0071
 		public void OnCreate(ref SystemState state)
 		{
 			state.RequireForUpdate<Config>();
+			state.RequireForUpdate<GameInitFlag>();
 		}
 		
 		[BurstCompile]
@@ -95,7 +151,6 @@ namespace U0071
 
 			state.EntityManager.AddComponentData(state.SystemHandle, partition);
 			state.EntityManager.AddComponentData(state.SystemHandle, flowfieldCollection);
-			state.Enabled = false;
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -393,7 +448,7 @@ namespace U0071
 	[UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
 	[UpdateAfter(typeof(GameInitSystem))]
 	[UpdateBefore(typeof(AIControllerSystem))]
-	public partial struct UnitNamesInitSystem : ISystem
+	public partial struct UnitIdentityInitSystem : ISystem
 	{
 		private BlobAssetReference<UnitIdentityCollection> _unitNamesReference;
 
@@ -401,6 +456,7 @@ namespace U0071
 		public void OnCreate(ref SystemState state)
 		{
 			state.RequireForUpdate<Config>();
+			state.RequireForUpdate<GameInitFlag>();
 		}
 
 		[BurstCompile]
@@ -419,6 +475,21 @@ namespace U0071
 			// need to be deterministic per seed
 
 			ref Config config = ref SystemAPI.GetSingletonRW<Config>().ValueRW;
+			ManagedData managedData = ManagedData.Instance;
+
+			var builder = new BlobBuilder(Allocator.Temp);
+			ref UnitIdentityCollection blobAsset = ref builder.ConstructRoot<UnitIdentityCollection>();
+
+			BlobBuilderArray<float4> skinColorArrayBuilder = builder.Allocate(ref blobAsset.SkinColors, managedData.SkinColors.Length);
+			for (int i = 0; i < managedData.SkinColors.Length; i++)
+			{
+				skinColorArrayBuilder[i] = managedData.SkinColors[i].linear.ToFloat4();
+			}
+			BlobBuilderArray<float4> hairColorArrayBuilder = builder.Allocate(ref blobAsset.HairColors, managedData.HairColors.Length);
+			for (int i = 0; i < managedData.HairColors.Length; i++)
+			{
+				hairColorArrayBuilder[i] = managedData.HairColors[i].linear.ToFloat4();
+			}
 
 			Random random = new Random(config.Seed);
 			NativeArray<UnitIdentity> identities = new NativeArray<UnitIdentity>(9999, Allocator.Temp);
@@ -427,8 +498,8 @@ namespace U0071
 				identities[i] = new UnitIdentity
 				{
 					Name = i != 71 ? "U-" + i.ToString("0000") : new FixedString32Bytes("U-9999"), // avoid U-0071
-					SkinColorIndex = random.NextInt(config.UnitRenderingColors.Value.SkinColors.Length),
-					HairColorIndex = random.NextInt(config.UnitRenderingColors.Value.HairColors.Length),
+					SkinColorIndex = random.NextInt(managedData.SkinColors.Length),
+					HairColorIndex = random.NextInt(managedData.HairColors.Length),
 					HasShortHair = random.NextFloat() <= config.ChanceOfShortHair,
 					HasLongHair = random.NextFloat() <= config.ChanceOfLongHair,
 					HasBeard = random.NextFloat() <= config.ChanceOfBeard,
@@ -444,21 +515,19 @@ namespace U0071
 				identities[index] = temp;
 			}
 
-			var builder = new BlobBuilder(Allocator.Temp);
-			ref UnitIdentityCollection namesBlob = ref builder.ConstructRoot<UnitIdentityCollection>();
-
-			BlobBuilderArray<UnitIdentity> identityArrayBuilder = builder.Allocate(ref namesBlob.Identities, identities.Length);
+			BlobBuilderArray<UnitIdentity> identityArrayBuilder = builder.Allocate(ref blobAsset.Identities, identities.Length);
 			for (int i = 0; i < identities.Length; i++)
 			{
 				identityArrayBuilder[i] = identities[i];
 			}
 
 			_unitNamesReference = builder.CreateBlobAssetReference<UnitIdentityCollection>(Allocator.Persistent);
-			config.UnitNames = _unitNamesReference;
+			config.UnitIdentityData = _unitNamesReference;
 			builder.Dispose();
 			identities.Dispose();
 
-			state.Enabled = false;
+			// last system to initialize
+			state.EntityManager.RemoveComponent<GameInitFlag>(SystemAPI.GetSingletonEntity<Config>());
 		}
 	}
 }

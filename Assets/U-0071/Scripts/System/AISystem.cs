@@ -20,6 +20,7 @@ namespace U0071
 		[BurstCompile]
 		public void OnCreate(ref SystemState state)
 		{
+			state.RequireForUpdate<Config>();
 			state.RequireForUpdate<Partition>();
 			state.RequireForUpdate<FlowfieldCollection>();
 
@@ -345,15 +346,15 @@ namespace U0071
 
 			authorization.AreaFlag = Utilities.GetLowestAuthorization(Partition.GetAuthorization(position.Value));
 
-			UnitIdentity identity = Config.UnitNames.Value.Identities[entity.Index % Config.UnitNames.Value.Identities.Length];
+			UnitIdentity identity = Config.UnitIdentityData.Value.Identities[entity.Index % Config.UnitIdentityData.Value.Identities.Length];
 
 			name.Value = identity.Name;
 			pilosity.HasShortHair = identity.HasShortHair;
 			pilosity.HasLongHair = identity.HasLongHair;
 			pilosity.HasBeard = identity.HasBeard;
 
-			float4 skinColor = Config.UnitRenderingColors.Value.SkinColors[identity.SkinColorIndex];
-			float4 hairColor = Config.UnitRenderingColors.Value.HairColors[identity.HairColorIndex];
+			float4 skinColor = Config.UnitIdentityData.Value.SkinColors[identity.SkinColorIndex];
+			float4 hairColor = Config.UnitIdentityData.Value.HairColors[identity.HairColorIndex];
 
 			skin.Value = skinColor;
 			shortHair.Value = pilosity.HasShortHair ? hairColor : skinColor;

@@ -13,7 +13,7 @@ namespace U0071
 
 	// TODO: update before everyone except game init
 	[UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
-	public partial struct RoomSystem : ISystem
+	public partial struct RoomSystem : ISystem, ISystemStartStop
 	{
 		public enum RoomUpdateType
 		{
@@ -55,6 +55,20 @@ namespace U0071
 		public void OnDestroy(ref SystemState state)
 		{
 			_updates.Dispose();
+		}
+
+		[BurstCompile]
+		public void OnStartRunning(ref SystemState state)
+		{
+		}
+
+		[BurstCompile]
+		public void OnStopRunning(ref SystemState state)
+		{
+			if (_updates.IsCreated)
+			{
+				_updates.Clear();
+			}
 		}
 
 		[BurstCompile]

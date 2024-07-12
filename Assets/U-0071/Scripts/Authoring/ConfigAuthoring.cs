@@ -62,25 +62,9 @@ namespace U0071
 					LevelThreeShirtColor = authoring.LevelThreeShirtColor.linear.ToFloat4(),
 				};
 
-				var builder = new BlobBuilder(Allocator.Temp);
-				ref UnitRenderingColors unitRenderingColors = ref builder.ConstructRoot<UnitRenderingColors>();
-
-				BlobBuilderArray<float4> skinColorArrayBuilder = builder.Allocate(ref unitRenderingColors.SkinColors, authoring.SkinColors.Length);
-				for (int i = 0; i < authoring.SkinColors.Length; i++)
-				{
-					skinColorArrayBuilder[i] = authoring.SkinColors[i].linear.ToFloat4();
-				}
-				BlobBuilderArray<float4> hairColorArrayBuilder = builder.Allocate(ref unitRenderingColors.HairColors, authoring.HairColors.Length);
-				for (int i = 0; i < authoring.HairColors.Length; i++)
-				{
-					hairColorArrayBuilder[i] = authoring.HairColors[i].linear.ToFloat4();
-				}
-
-				config.UnitRenderingColors = builder.CreateBlobAssetReference<UnitRenderingColors>(Allocator.Persistent);
-				builder.Dispose();
-
 				AddComponent(entity, config);
 				AddComponent(entity, new CycleComponent());
+				AddComponent(entity, new GameInitFlag());
 			}
 		}
 	}
