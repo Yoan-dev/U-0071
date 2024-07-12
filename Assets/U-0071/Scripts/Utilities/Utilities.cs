@@ -24,11 +24,7 @@ namespace U0071
 		public static bool ProcessUnitControllerStart(
 			Entity entity,
 			ref ActionController controller,
-			ref Orientation orientation,
-			in PositionComponent position,
-			in CarryComponent carry,
 			in PartitionComponent partition,
-			EnabledRefRW<IsActing> isActing,
 			EnabledRefRO<DeathComponent> death,
 			EnabledRefRO<PushedComponent> pushed,
 			in ComponentLookup<InteractableComponent> interactableLookup,
@@ -38,11 +34,7 @@ namespace U0071
 
 			if (death.ValueRO || pushed.ValueRO)
 			{
-				if (carry.HasItem)
-				{
-					// drop item on death/pushed
-					QueueDropAction(ref controller, ref orientation, in position, in carry, isActing);
-				}
+				controller.Stop(true);
 				return true;
 			}
 
@@ -53,8 +45,7 @@ namespace U0071
 				!interactable.HasActionFlag(controller.Action.ActionFlag)))
 			{
 				// target is being solo-used or has been destroyed/picked/disabled
-				controller.Stop();
-				isActing.ValueRW = false;
+				controller.Stop(false);
 				return false;
 			}
 

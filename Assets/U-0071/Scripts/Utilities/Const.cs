@@ -20,7 +20,9 @@ namespace U0071
 
 		// doors
 		public const float AIUnitEnterCodeTime = 3f;
-		public const float CodePeekingAngleCheck = math.PI / 4f;
+		public const float PeekingRange = 2f;
+		public const float PeekingAngle = math.PI / 4f;
+		public const float PeekingStaysTime = 0.5f;
 
 		// used for Y sorting
 		public const float PickableYOffset = 0.4f;

@@ -163,7 +163,10 @@ namespace U0071
 				Ecb = ecbs.CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter(),
 			}.ScheduleParallel(state.Dependency);
 
-			state.Dependency = new StopActionJob().ScheduleParallel(state.Dependency);
+			state.Dependency = new StopActionJob
+			{
+				ChangeInteractableEvents = _changeInteractableEvents.AsParallelWriter(),
+			}.ScheduleParallel(state.Dependency);
 
 			state.Dependency = new PushEventJob
 			{
@@ -263,16 +266,6 @@ namespace U0071
 				{
 					// process behavior that can be in parallel here
 					// queue the rest
-
-					if (!controller.Action.MultiusableFlag)
-					{
-						// interactable is not single-used anymore
-						ChangeInteractableEvents.Enqueue(new ChangeInteractableEvent
-						{
-							Target = controller.Action.Target,
-							CurrentUser = Entity.Null,
-						});
-					}
 
 					if (controller.Action.ActionFlag == ActionFlag.Eat)
 					{
@@ -400,11 +393,26 @@ namespace U0071
 		[BurstCompile]
 		public partial struct StopActionJob : IJobEntity
 		{
+			public NativeQueue<ChangeInteractableEvent>.ParallelWriter ChangeInteractableEvents;
+			
 			public void Execute(ref ActionController controller, EnabledRefRW<IsActing> isActing)
 			{
-				if (controller.Timer >= controller.Action.Time)
+				if (controller.ShouldStop)
 				{
-					controller.Stop();
+					if (!controller.Action.MultiusableFlag)
+					{
+						// interactable is not single-used anymore
+						ChangeInteractableEvents.Enqueue(new ChangeInteractableEvent
+						{
+							Target = controller.Action.Target,
+							CurrentUser = Entity.Null,
+						});
+					}
+					controller.Action.Target = Entity.Null;
+					controller.Action.ActionFlag = 0;
+					controller.IsResolving = false;
+					controller.ShouldStopFlag = false;
+					controller.ShouldDropFlag = false;
 					isActing.ValueRW = false;
 				}
 			}

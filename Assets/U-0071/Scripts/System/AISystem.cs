@@ -111,11 +111,7 @@ namespace U0071
 				EnabledRefRO<DeathComponent> death,
 				EnabledRefRO<PushedComponent> pushed)
 			{
-				if (Utilities.ProcessUnitControllerStart(
-					entity, 
-					ref actionController, ref orientation, 
-					in position, in carry, in partition, isActing, death, pushed, 
-					in InteractableLookup, in PickableLookup))
+				if (Utilities.ProcessUnitControllerStart(entity, ref actionController, in partition, death, pushed, in InteractableLookup, in PickableLookup))
 				{
 					return;
 				}
@@ -304,7 +300,7 @@ namespace U0071
 			[ReadOnly]
 			public FlowfieldCollection FlowfieldCollection;
 
-			public void Execute(ref MovementComponent movement, ref AIController controller, in PositionComponent position, in ActionController actionController, in AuthorisationComponent authorisation)
+			public void Execute(ref MovementComponent movement, ref AIController controller, in PositionComponent position, in ActionController actionController, in AuthorizationComponent authorisation)
 			{
 				movement.IsRunning = controller.Goal == AIGoal.Flee;
 
@@ -342,7 +338,7 @@ namespace U0071
 
 		public void Execute(
 			Entity entity,
-			ref AuthorisationComponent authorization,
+			ref AuthorizationComponent authorization,
 			ref NameComponent name,
 			ref SkinColor skin,
 			ref ShortHairColor shortHair,

@@ -75,7 +75,7 @@ namespace U0071
 				SetComponentEnabled<SickComponent>(entity, false);
 
 				// areas
-				AddComponent(entity, new AuthorisationComponent
+				AddComponent(entity, new AuthorizationComponent
 				{
 					AreaFlag = authoring.Authorisation,
 				});

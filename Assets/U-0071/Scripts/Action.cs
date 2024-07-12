@@ -70,8 +70,11 @@ namespace U0071
 		public ActionData Action;
 		public float Timer;
 		public bool IsResolving;
+		public bool ShouldStopFlag;
+		public bool ShouldDropFlag;
 
 		public bool HasTarget => Action.Has;
+		public bool ShouldStop => Timer >= Action.Time || ShouldStopFlag;
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public void Start()
@@ -81,18 +84,16 @@ namespace U0071
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void Stop()
+		public void Stop(bool forceDrop)
 		{
-			Action.Target = Entity.Null;
-			Action.ActionFlag = 0;
-			IsResolving = false;
+			ShouldStopFlag = true;
+			ShouldDropFlag = forceDrop;
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public bool ShouldResolve(int credits)
 		{
-			// TBC credits check, should already be checked in controller (action start)
-			return Timer >= Action.Time && (Action.Cost <= 0f || Action.Cost <= credits);
+			return Timer >= Action.Time && (Action.Cost <= 0f || Action.Cost <= credits) && !ShouldStopFlag;
 		}
 	}
 

@@ -186,6 +186,7 @@ namespace U0071
 					});
 					SetComponentEnabled<DoorComponent>(entity, false); // closed
 					AddComponent(entity, new TextureArrayIndex());
+					AddComponent(entity, new PeekingComponent());
 				}
 
 				// interactable

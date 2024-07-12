@@ -36,7 +36,7 @@ namespace U0071
 
 			public void Execute(ref AnimationController controller, in MovementComponent movement, in PositionComponent position, in ActionController actionController)
 			{
-				if (actionController.IsResolving)
+				if (actionController.IsResolving && actionController.Action.Time > 0f)
 				{
 					if (!controller.IsPlaying(in Config.CharacterInteract))
 					{
@@ -65,6 +65,7 @@ namespace U0071
 		}
 
 		[BurstCompile]
+		[WithAll(typeof(PlayerController))]
 		public partial struct AnimationJob : IJobEntity
 		{
 			public float DeltaTime;
@@ -76,8 +77,8 @@ namespace U0071
 				{
 					controller.Timer -= controller.Animation.FrameTime;
 					controller.Frame = (controller.Frame + 1) % controller.Animation.Duration;
-					index.Value = controller.Animation.StartIndex + controller.Frame;
 				}
+				index.Value = controller.Animation.StartIndex + controller.Frame;
 			}
 		}
 	}

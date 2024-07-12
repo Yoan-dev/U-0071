@@ -135,11 +135,7 @@ namespace U0071
 				controller.SecondaryAction.Reset();
 				controller.ActionTimer = 0f;
 
-				if (Utilities.ProcessUnitControllerStart(
-					entity,
-					ref actionController, ref orientation,
-					in position, in carry, in partition, isActing, death, pushed,
-					in InteractableLookup, in PickableLookup))
+				if (Utilities.ProcessUnitControllerStart(entity, ref actionController, in partition, death, pushed, in InteractableLookup, in PickableLookup))
 				{
 					if (actionController.IsResolving)
 					{
@@ -175,17 +171,13 @@ namespace U0071
 					while (enumerator.MoveNext())
 					{
 						RoomElementBufferElement target = enumerator.Current;
-						if (target.Entity != entity && position.IsInRange(target.Position + interactionOffset, target.Range))
+						if (target.CanBeUsed && target.Entity != entity && position.IsInRange(target.HasActionFlag(ActionFlag.Push) ? target.Position : target.Position + interactionOffset,  target.Range))
 						{
 							// door opening is always ok
 							if (target.HasActionFlag(ActionFlag.Open))
 							{
 								DoorComponent door = DoorLookup[target.Entity];
-								bool shouldEnterCode =
-									door.CodeRequirementFacing.x != 0f && door.CodeRequirementFacing.x == 1f && position.Value.x > target.Position.x ||
-									door.CodeRequirementFacing.x != 0f && door.CodeRequirementFacing.x == -1f && position.Value.x < target.Position.x ||
-									door.CodeRequirementFacing.y != 0f && door.CodeRequirementFacing.y == 1f && position.Value.y > target.Position.y ||
-									door.CodeRequirementFacing.y != 0f && door.CodeRequirementFacing.y == -1f && position.Value.y < target.Position.y;
+								bool shouldEnterCode = door.IsOnEnterCodeSide(position.Value, target.Position);
 								controller.SetPrimaryAction(target.ToActionData(ActionFlag.Open, target.ItemFlags, carry.Flags), in NameLookup, in ActionNameLookup, carry.Picked);
 								if (shouldEnterCode)
 								{
@@ -197,7 +189,8 @@ namespace U0071
 							}
 							// primary
 							// (override carried item action)
-							else if (Utilities.HasActionFlag(target.ActionFlags, primaryFilter) &&
+							else if (
+								Utilities.HasActionFlag(target.ActionFlags, primaryFilter) &&
 								target.Evaluate(controller.PrimaryAction.Type, primaryFilter, carry.Flags, out ActionFlag selectedActionFlag, carry.HasItem, false, true, true))
 							{
 								// pose as a storage

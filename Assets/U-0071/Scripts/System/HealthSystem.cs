@@ -76,11 +76,11 @@ namespace U0071
 		[BurstCompile]
 		public partial struct DeathJob : IJobEntity
 		{
+			public EntityCommandBuffer.ParallelWriter Ecb;
 			[ReadOnly]
 			public BufferLookup<RoomElementBufferElement> RoomElementBufferLookup;
 			[ReadOnly]
 			public ComponentLookup<AIController> AILookup;
-			public EntityCommandBuffer.ParallelWriter Ecb;
 			public Config Config;
 
 			public void Execute(
@@ -89,7 +89,6 @@ namespace U0071
 				ref DeathComponent death,
 				ref MovementComponent movement,
 				ref PositionComponent position,
-				ref ActionController controller,
 				ref AnimationController animation,
 				ref InteractableComponent interactable,
 				ref SkinColor skin,
@@ -105,8 +104,6 @@ namespace U0071
 
 				movement.Input = float2.zero;
 				position.BaseYOffset = Const.PickableYOffset;
-				controller.Stop();
-				Ecb.SetComponentEnabled<IsActing>(chunkIndex, entity, false);
 				Ecb.SetComponentEnabled<DeathComponent>(chunkIndex, entity, true);
 				Ecb.AddComponent(chunkIndex, entity, new PickableComponent
 				{

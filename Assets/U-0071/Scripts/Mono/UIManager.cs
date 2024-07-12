@@ -170,9 +170,9 @@ public class UIManager : MonoBehaviour
 				{
 					// cancel
 					ActionController controller = entityManager.GetComponentData<ActionController>(_player);
-					controller.Stop();
+					controller.Stop(false);
 					entityManager.SetComponentData(_player, controller);
-					entityManager.SetComponentEnabled<IsActing>(_player, false);
+					_codepad.ExitScreen();
 					return;
 				}
 
