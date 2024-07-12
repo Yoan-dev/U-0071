@@ -418,6 +418,10 @@ PrefabInstance:
         type: 3}
       insertIndex: -1
       addedObject: {fileID: 0}
+    - targetCorrespondingSourceObject: {fileID: 5190796135914544844, guid: 86a089a1bc38a5b4e8c2286c6b47330a,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
   m_SourcePrefab: {fileID: 100100000, guid: 86a089a1bc38a5b4e8c2286c6b47330a, type: 3}
 --- !u!1001 &5502681631675129867
 PrefabInstance:

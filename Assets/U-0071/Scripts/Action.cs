@@ -72,7 +72,7 @@ namespace U0071
 		public bool IsResolving;
 		public bool ShouldStopFlag;
 
-		public bool HasTarget => Action.Has;
+		public bool HasTarget => Action.Has && !ShouldStopFlag;
 		public bool ShouldStop => Timer >= Action.Time || ShouldStopFlag;
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -85,7 +85,19 @@ namespace U0071
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public void Stop()
 		{
-			ShouldStopFlag = true;
+			if (IsResolving)
+			{
+				// schedule stopping
+				ShouldStopFlag = true;
+			}
+			else
+			{
+				// clear target
+				Action.Target = Entity.Null;
+				Action.ActionFlag = 0;
+				IsResolving = false;
+				ShouldStopFlag = false;
+			}
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
