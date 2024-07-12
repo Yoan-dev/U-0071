@@ -121,6 +121,10 @@ namespace U0071
 				{
 					animation.StartAnimation(in Config.CharacterCrushed);
 				}
+				else if (death.Context == DeathType.CrushedFromBelow)
+				{
+					animation.StartAnimation(in Config.CharacterCrushedFromBelow);
+				}
 				else
 				{
 					animation.StartAnimation(in Config.CharacterDie);

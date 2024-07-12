@@ -100,9 +100,15 @@ MonoBehaviour:
   ActionName: Buy
   Range: 1
   Time: 0.5
-  CollisionRadius: 0.25
+  CollisionRange: 0.25
+  Collide: 1
   Cost: 10
+  AreaFlag: 0
+  DoorSize: 0
+  StaysOpenTime: 0
+  AnimationCubicStrength: 0
   DestroyAction: 0
+  Teleporter: 0
   RawFood: 0
   Food: 1
   Trash: 0
@@ -117,7 +123,6 @@ MonoBehaviour:
   Destination: {fileID: 0}
   SecondaryDestination: {fileID: 0}
   DeathType: 0
-  HazardRange: 0
   Animated: 0
   Animation:
     StartIndex: 0

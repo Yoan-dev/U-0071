@@ -174,7 +174,7 @@ namespace U0071
 			[ReadOnly]
 			public BufferLookup<RoomElementBufferElement> RoomElementBufferLookup;
 
-			public void Execute([ChunkIndexInQuery] int chunkIndex, Entity entity, in HazardComponent hazard, in PositionComponent position, in PartitionComponent partition)
+			public void Execute([ChunkIndexInQuery] int chunkIndex, Entity entity, in HazardComponent hazard, in PartitionComponent partition , in BoundsComponent bounds, in PositionComponent position)
 			{
 				DynamicBuffer<RoomElementBufferElement> elements = RoomElementBufferLookup[partition.CurrentRoom];
 				using (var enumerator = elements.GetEnumerator())
@@ -182,12 +182,17 @@ namespace U0071
 					while (enumerator.MoveNext())
 					{
 						// check for push action (living characters)
-						// TODO: a better way
 						if (enumerator.Current.Entity != entity &&
 							enumerator.Current.HasActionFlag(ActionFlag.Push) &&
-							Utilities.IsInCircle(position.Value, enumerator.Current.Position, hazard.Range))
+							Utilities.IsInBounds(enumerator.Current.Position, in bounds))
 						{
-							DeathComponent death = new DeathComponent { Context = hazard.DeathType };
+							DeathType deathType = hazard.DeathType;
+							if (deathType == DeathType.Crushed && position.Value.y < enumerator.Current.Position.y)
+							{
+								deathType = DeathType.CrushedFromBelow;
+							}
+
+							DeathComponent death = new DeathComponent { Context = deathType };
 							Ecb.SetComponent(chunkIndex, enumerator.Current.Entity, death);
 							Ecb.SetComponentEnabled<DeathComponent>(chunkIndex, enumerator.Current.Entity, true);
 						}

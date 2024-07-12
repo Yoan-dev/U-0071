@@ -100,9 +100,15 @@ MonoBehaviour:
   ActionName: Destroy
   Range: 1.25
   Time: 1
-  CollisionRadius: 0
+  CollisionRange: 0.6
+  Collide: 0
   Cost: -2
+  AreaFlag: 0
+  DoorSize: 0
+  StaysOpenTime: 0
+  AnimationCubicStrength: 0
   DestroyAction: 1
+  Teleporter: 0
   RawFood: 0
   Food: 0
   Trash: 1
@@ -116,7 +122,6 @@ MonoBehaviour:
   Destination: {fileID: 0}
   SecondaryDestination: {fileID: 0}
   DeathType: 1
-  HazardRange: 0.4
   Animated: 1
   Animation:
     StartIndex: 0

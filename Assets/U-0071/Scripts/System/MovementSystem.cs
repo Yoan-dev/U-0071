@@ -180,20 +180,16 @@ namespace U0071
 					DoorComponent door = DoorLookup[doorEntity];
 					
 					// vertical door
-					if (door.CodeRequirementFacing.x != 0f &&
-						position.x >= doorPosition.x - door.Collision.x &&
-						position.x <= doorPosition.x + door.Collision.x)
+					if (door.CodeRequirementFacing.x != 0f && position.x >= door.CachedBounds.Min.x && position.x <= door.CachedBounds.Max.x)
 					{
-						position.Value.x = doorPosition.x + (door.Collision.x + math.EPSILON) * math.sign(position.Value.x - doorPosition.x);
+						position.Value.x = position.Value.x <= doorPosition.x ? door.CachedBounds.Min.x - math.EPSILON : door.CachedBounds.Max.x + math.EPSILON;
 						position.MovedFlag = true;
 					}
 					// horizontal door
 					else if (
-						door.CodeRequirementFacing.y != 0f &&
-						position.y >= doorPosition.y - door.Collision.y &&
-						position.y <= doorPosition.y + door.Collision.y)
+						door.CodeRequirementFacing.y != 0f && position.y >= door.CachedBounds.Min.y && position.y <= door.CachedBounds.Max.y)
 					{
-						position.Value.y = doorPosition.y + (door.Collision.y + math.EPSILON) * math.sign(position.Value.y - doorPosition.y);
+						position.Value.y = position.Value.y <= doorPosition.y ? door.CachedBounds.Min.y - math.EPSILON : door.CachedBounds.Max.y + math.EPSILON;
 						position.MovedFlag = true;
 					}
 				}
@@ -246,7 +242,7 @@ namespace U0071
 		{
 			public void Execute(ref LocalTransform transform, in PositionComponent position)
 			{
-				transform.Position = new float3(position.x, position.CurrentYOffset, position.y);
+				transform.Position = new float3(position.x, position.CurrentYOffset, position.y + position.BaseZOffset);
 			}
 		}
 	}

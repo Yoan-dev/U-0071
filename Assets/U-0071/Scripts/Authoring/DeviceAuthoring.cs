@@ -15,7 +15,8 @@ namespace U0071
 		[Header("Interactable")]
 		public float Range = 1f;
 		public float Time = 0.5f;
-		public float CollisionRadius = 0.25f;
+		public float CollisionRange = 0.25f;
+		public bool Collide = true;
 		public int Cost;
 
 		[Header("Door")]
@@ -48,7 +49,6 @@ namespace U0071
 
 		[Header("Hazard")]
 		public DeathType DeathType;
-		public float HazardRange;
 
 		[Header("Animation")]
 		public bool Animated;
@@ -78,7 +78,7 @@ namespace U0071
 			{
 				Entity entity = GetEntity(TransformUsageFlags.Dynamic);
 
-				Vector3 position = authoring.gameObject.transform.position;
+				Vector3 worldPosition = authoring.gameObject.transform.position;
 
 				bool isWorkingStation = false;
 
@@ -89,9 +89,10 @@ namespace U0071
 				{
 					AddComponent(entity, new ActionNameComponent { Value = new FixedString32Bytes(authoring.ActionName) });
 				}
+				float2 position = new float2(worldPosition.x, worldPosition.z);
 				AddComponent(entity, new PositionComponent
 				{
-					Value = new float2(position.x, position.z),
+					Value = position,
 				});
 				AddComponent(entity, new DeviceTag());
 				AddComponent(entity, new PartitionComponent());
@@ -166,13 +167,20 @@ namespace U0071
 				if (authoring.AreaFlag != 0)
 				{
 					actionFlags |= ActionFlag.Open;
+					float2 dimensions = authoring.GetDoorCollision();
+					BoundsComponent bounds = new BoundsComponent
+					{
+						Min = position - dimensions,
+						Max = position + dimensions,
+					};
+					AddComponent(entity, bounds);
 					AddComponent(entity, new DoorComponent
 					{
 						AreaFlag = authoring.AreaFlag,
 						StageCount = authoring.VisualStageCount,
-						Collision = authoring.GetDoorCollision(),
 						StaysOpenTime = authoring.StaysOpenTime,
 						AnimationCubicStrength = authoring.AnimationCubicStrength,
+						CachedBounds = bounds,
 						CodeRequirementFacing = authoring.GetFacingDirection(authoring.gameObject), // can always open on exit
 					});
 					SetComponentEnabled<DoorComponent>(entity, false); // closed
@@ -191,18 +199,26 @@ namespace U0071
 					Range = authoring.Range,
 					Time = authoring.Time,
 					Cost = authoring.Cost,
-					CollisionRadius = authoring.CollisionRadius,
 					WorkingStationFlag = isWorkingStation,
+					CollisionRadius = authoring.Collide ? authoring.CollisionRange : 0f,
 				});
 
 				// miscellaneous
-				if (authoring.HazardRange > 0f)
+				if (authoring.DeathType > DeathType.Hunger)
 				{
 					AddComponent(entity, new HazardComponent
 					{
 						DeathType = authoring.DeathType,
-						Range = authoring.HazardRange,
 					});
+					if (authoring.AreaFlag == 0) // doors arleady have bounds
+					{
+						float2 dimensions = new float2(authoring.CollisionRange, authoring.CollisionRange);
+						AddComponent(entity, new BoundsComponent
+						{
+							Min = position - dimensions,
+							Max = position + dimensions,
+						});
+					}
 				}
 				if (authoring.Animated)
 				{

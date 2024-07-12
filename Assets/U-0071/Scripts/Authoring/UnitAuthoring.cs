@@ -15,11 +15,11 @@ namespace U0071
 		public float Hunger = 10f;
 		public AreaAuthorization Authorisation;
 		public int Credits;
-		
+
 		[Header("Interactable")]
+		public float CollisionRadius = 0.2f;
 		public float Range = 0.5f;
 		public float Time = 1f;
-		public float CollisionRadius = 0.2f;
 
 		[Header("Render")]
 		public Color ShirtColor;
@@ -44,6 +44,7 @@ namespace U0071
 				{
 					Value = new float2(position.x, position.z),
 					BaseYOffset = Const.CharacterYOffset,
+					BaseZOffset = Const.CharacterZOffset,
 				});
 				AddComponent(entity, new MovementComponent { Speed = authoring.Speed });
 				AddComponent(entity, AnimationController.GetDefault());

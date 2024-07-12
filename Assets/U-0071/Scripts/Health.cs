@@ -7,6 +7,7 @@ namespace U0071
 	{
 		Hunger = 0,
 		Crushed,
+		CrushedFromBelow,
 		Electric,
 	}
 

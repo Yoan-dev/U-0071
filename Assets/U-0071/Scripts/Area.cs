@@ -23,7 +23,7 @@ namespace U0071
 	public struct DoorComponent : IComponentData, IEnableableComponent
 	{
 		public AreaAuthorization AreaFlag;
-		public float2 Collision;
+		public BoundsComponent CachedBounds;
 		public float2 CodeRequirementFacing;
 		public float OpenTimer;
 		public float StaysOpenTime;

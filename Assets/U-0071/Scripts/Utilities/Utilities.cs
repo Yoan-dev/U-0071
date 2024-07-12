@@ -111,6 +111,14 @@ namespace U0071
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static bool IsInBounds(float2 point, in BoundsComponent bounds)
+		{
+			return
+				point.x >= bounds.Min.x && point.y >= bounds.Min.y &&
+				point.x <= bounds.Max.x && point.y <= bounds.Max.y;
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static bool IsDirectionTowards(float2 from, float2 direction, float2 to, float angle)
 		{
 			float2 toDirection = math.normalizesafe(to - from);

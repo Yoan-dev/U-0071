@@ -30,6 +30,7 @@ namespace U0071
 
 		private NativeParallelMultiHashMap<Entity, RoomUpdateEvent> _updates;
 		private EntityQuery _query;
+		private EntityQuery _deviceQuery;
 
 		[BurstCompile]
 		public void OnCreate(ref SystemState state)
@@ -38,8 +39,13 @@ namespace U0071
 
 			_query = SystemAPI.QueryBuilder()
 				.WithAllRW<PartitionComponent>()
-				.WithAll<PositionComponent, InteractableComponent>()
-				.WithNone<PickableComponent>()
+				.WithAllRW<PositionComponent, InteractableComponent>()
+				.WithNone<PickableComponent, DeviceTag>()
+				.Build();
+
+			_deviceQuery = SystemAPI.QueryBuilder()
+				.WithAllRW<PartitionComponent, InteractableComponent>()
+				.WithAll<PositionComponent, DeviceTag>()
 				.Build();
 
 			_updates = new NativeParallelMultiHashMap<Entity, RoomUpdateEvent>(0, Allocator.Persistent);
@@ -54,8 +60,10 @@ namespace U0071
 		[BurstCompile]
 		public void OnUpdate(ref SystemState state)
 		{
-			// map should be able to receive an add and leave event for each paritioned entity
-			int count = _query.CalculateEntityCount() * 2;
+			Partition partition = SystemAPI.GetSingleton<Partition>();
+
+			// map should be able to receive an add and leave event per moving entity and one per device
+			int count = _query.CalculateEntityCount() * 2 + _deviceQuery.CalculateEntityCount();
 			if (_updates.Capacity < count)
 			{
 				_updates.Capacity = count;
@@ -64,9 +72,15 @@ namespace U0071
 
 			state.Dependency = new RoomUpdateJob
 			{
-				Partition = SystemAPI.GetSingleton<Partition>(),
+				Partition = partition,
 				Updates = _updates.AsParallelWriter(),
 			}.ScheduleParallel(_query, state.Dependency);
+
+			state.Dependency = new RoomDeviceUpdateJob
+			{
+				Partition = partition,
+				Updates = _updates.AsParallelWriter(),
+			}.ScheduleParallel(_deviceQuery, state.Dependency);
 
 			state.Dependency = new PartitionUpdateJob
 			{
@@ -86,9 +100,6 @@ namespace U0071
 
 			public void Execute(Entity entity, ref PartitionComponent partition, ref PositionComponent position, ref InteractableComponent interactable)
 			{
-				// TODO: static entities should be initiated once on start and get filtered from this job
-				// (except on interactable changed)
-
 				// Entity.Null events will be ignored during partition update
 				RoomData newRoom = Partition.GetRoomData(position.Value);
 
@@ -119,6 +130,40 @@ namespace U0071
 				{
 					// consume
 					position.MovedFlag = false;
+					interactable.Changed = false;
+
+					Updates.Add(partition.CurrentRoom, new RoomUpdateEvent
+					{
+						Element = new RoomElementBufferElement(entity, position.Value, in interactable),
+						Type = RoomUpdateType.Update,
+					});
+				}
+			}
+		}
+
+		[BurstCompile]
+		public partial struct RoomDeviceUpdateJob : IJobEntity
+		{
+			[ReadOnly]
+			public Partition Partition;
+			[WriteOnly]
+			public NativeParallelMultiHashMap<Entity, RoomUpdateEvent>.ParallelWriter Updates;
+
+			public void Execute(Entity entity, in PositionComponent position, ref PartitionComponent partition, ref InteractableComponent interactable)
+			{
+				if (partition.CurrentRoom == Entity.Null)
+				{
+					Entity room = Partition.GetRoomData(position.Value).Entity;
+					Updates.Add(room, new RoomUpdateEvent
+					{
+						Element = new RoomElementBufferElement(entity, position.Value, in interactable),
+						Type = RoomUpdateType.Addition,
+					});
+					partition.CurrentRoom = room;
+				}
+				else if (interactable.Changed)
+				{
+					// consume
 					interactable.Changed = false;
 
 					Updates.Add(partition.CurrentRoom, new RoomUpdateEvent

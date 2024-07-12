@@ -33,10 +33,17 @@ namespace U0071
 	public struct HazardComponent : IComponentData
 	{
 		public DeathType DeathType;
-		public float Range;
 	}
 
-	public struct ActionNameComponent : IComponentData
+    public struct BoundsComponent : IComponentData
+    {
+		public float2 Min;
+		public float2 Max;
+
+		public bool Has => !Min.Equals(Max);
+    }
+
+    public struct ActionNameComponent : IComponentData
 	{
 		public FixedString32Bytes Value;
 	}

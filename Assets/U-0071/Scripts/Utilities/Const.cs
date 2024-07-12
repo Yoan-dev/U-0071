@@ -25,6 +25,7 @@ namespace U0071
 		// used for Y sorting
 		public const float PickableYOffset = 0.4f;
 		public const float CharacterYOffset = 1.0f;
+		public const float CharacterZOffset = 0.3f;
 		public const float CarriedYOffset = 0.001f;
 		public const float YOffsetRatioX = 0.05f;
 		public const float YOffsetRatioY = 0.2f;

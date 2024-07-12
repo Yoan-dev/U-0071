@@ -101,6 +101,8 @@ MonoBehaviour:
   Range: 0.75
   Time: 0.25
   CollisionRadius: 0
+  CollisionRange: 0.45
+  Collide: 1
   Cost: 0
   AreaFlag: 1
   DoorSize: 0.4
@@ -121,7 +123,6 @@ MonoBehaviour:
   Destination: {fileID: 0}
   SecondaryDestination: {fileID: 0}
   DeathType: 0
-  HazardRange: 0
   Animated: 0
   Animation:
     StartIndex: 0

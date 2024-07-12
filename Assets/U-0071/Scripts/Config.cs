@@ -34,6 +34,7 @@ namespace U0071
 		public Animation CharacterInteract;
 		public Animation CharacterDie;
 		public Animation CharacterCrushed;
+		public Animation CharacterCrushedFromBelow;
 		public Animation CharacterFlee;
 		public float4 LevelOneShirtColor;
 		public float4 LevelTwoShirtColor;
