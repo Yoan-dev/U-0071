@@ -111,7 +111,7 @@ namespace U0071
 				EnabledRefRO<DeathComponent> death,
 				EnabledRefRO<PushedComponent> pushed)
 			{
-				if (Utilities.ProcessUnitControllerStart(entity, ref actionController, in partition, death, pushed, in InteractableLookup, in PickableLookup))
+				if (Utilities.ProcessUnitControllerStart(entity, ref actionController, ref orientation, in position, in carry, in partition, isActing, death, pushed, in InteractableLookup, in PickableLookup))
 				{
 					return;
 				}

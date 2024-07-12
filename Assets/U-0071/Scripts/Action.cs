@@ -71,7 +71,6 @@ namespace U0071
 		public float Timer;
 		public bool IsResolving;
 		public bool ShouldStopFlag;
-		public bool ShouldDropFlag;
 
 		public bool HasTarget => Action.Has;
 		public bool ShouldStop => Timer >= Action.Time || ShouldStopFlag;
@@ -84,10 +83,9 @@ namespace U0071
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void Stop(bool forceDrop)
+		public void Stop()
 		{
 			ShouldStopFlag = true;
-			ShouldDropFlag = forceDrop;
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]

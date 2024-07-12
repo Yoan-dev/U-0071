@@ -412,7 +412,6 @@ namespace U0071
 					controller.Action.ActionFlag = 0;
 					controller.IsResolving = false;
 					controller.ShouldStopFlag = false;
-					controller.ShouldDropFlag = false;
 					isActing.ValueRW = false;
 				}
 			}

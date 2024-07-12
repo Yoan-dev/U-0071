@@ -135,7 +135,7 @@ namespace U0071
 				controller.SecondaryAction.Reset();
 				controller.ActionTimer = 0f;
 
-				if (Utilities.ProcessUnitControllerStart(entity, ref actionController, in partition, death, pushed, in InteractableLookup, in PickableLookup))
+				if (Utilities.ProcessUnitControllerStart(entity, ref actionController, ref orientation, in position, in carry, in partition, isActing, death, pushed, in InteractableLookup, in PickableLookup))
 				{
 					if (actionController.IsResolving)
 					{
@@ -191,7 +191,7 @@ namespace U0071
 							// (override carried item action)
 							else if (
 								Utilities.HasActionFlag(target.ActionFlags, primaryFilter) &&
-								target.Evaluate(controller.PrimaryAction.Type, primaryFilter, carry.Flags, out ActionFlag selectedActionFlag, carry.HasItem, false, true, true))
+								target.Evaluate(controller.PrimaryAction.Type, primaryFilter, carry.Flags, out ActionFlag selectedActionFlag, carry.HasItem, false, true, carry.HasItem))
 							{
 								// pose as a storage
 								if (selectedActionFlag == ActionFlag.Store && target.Interactable.HasActionFlag(ActionFlag.Teleport))
