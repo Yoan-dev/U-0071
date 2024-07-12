@@ -152,13 +152,14 @@ namespace U0071
 				}
 
 				// player assess all elements in range
+				float2 interactionOffset = new float2(0f, Const.PlayerInteractionZOffset);
 				DynamicBuffer<RoomElementBufferElement> elements = RoomElementBufferLookup[partition.CurrentRoom];
 				using (var enumerator = elements.GetEnumerator())
 				{
 					while (enumerator.MoveNext())
 					{
 						RoomElementBufferElement target = enumerator.Current;
-						if (target.Entity != entity && position.IsInRange(target.Position, target.Range))
+						if (target.Entity != entity && position.IsInRange(target.Position + interactionOffset, target.Range))
 						{
 							// door opening is always ok
 							if (target.HasActionFlag(ActionFlag.Open))

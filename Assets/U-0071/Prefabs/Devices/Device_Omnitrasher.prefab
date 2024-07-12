@@ -98,7 +98,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Name: Omnitrasher
   ActionName: Destroy
-  Range: 1.25
+  Range: 1.15
   Time: 1
   CollisionRange: 0.6
   Collide: 0

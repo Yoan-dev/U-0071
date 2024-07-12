@@ -203,7 +203,7 @@ namespace U0071
 		{
 			public void Execute(ref CarryComponent carry, in PositionComponent position, in Orientation orientation)
 			{
-				carry.Position = new float2(position.x + Const.CarriedOffsetX * orientation.Value, position.y + Const.CarriedOffsetY);
+				carry.Position = new float2(position.x + Const.CarriedOffsetX * orientation.Value, position.y + position.BaseZOffset + Const.CarriedOffsetY);
 				carry.YOffset = position.CurrentYOffset;
 			}
 		}
