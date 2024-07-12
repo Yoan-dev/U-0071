@@ -39,8 +39,7 @@ namespace U0071
 				ReassessmentTimer <= 0f || 
 				Goal == AIGoal.Eat && hungerRatio >= Const.AILightHungerRatio ||
 				Goal == AIGoal.Destroy && !hasItem ||
-				Goal == AIGoal.Process && !hasItem ||
-				Goal == AIGoal.Wander && LastMovementInput.Equals(float2.zero);
+				Goal == AIGoal.Process && !hasItem;
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]

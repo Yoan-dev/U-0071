@@ -15,12 +15,12 @@ public class DebugManager : MonoBehaviour
 	public TMP_Text CycleElement;
 
 	[Header("Flowfield")]
-	public bool ShowRed;
-	public bool ShowGreen;
-	public bool ShowBlue;
-	public bool ShowYellow;
-	public bool ShowCyan;
-	public bool ShowMagenta;
+	public bool ShowToDestroyAndRed;
+	public bool ShowFood;
+	public bool ShowWorkdAndBlue;
+	public bool ShowProcessAndYellow;
+	public bool ShowWander;
+	public bool ShowRelax;
 
 	[Header("Miscellaneous")]	
 	public TMP_Text RoomElementPrefab;
@@ -109,12 +109,12 @@ public class DebugManager : MonoBehaviour
 		foreach (var info in _flowfieldInfos)
 		{
 			Vector3 from = new Vector3(info.Position.x, 0.5f, info.Position.y);
-			if (ShowRed) TryDraw(Color.red, from, info.Red);
-			if (ShowGreen) TryDraw(Color.green, from, info.Green);
-			if (ShowBlue) TryDraw(Color.blue, from, info.Blue);
-			if (ShowYellow) TryDraw(Color.yellow, from, info.Yellow);
-			if (ShowCyan) TryDraw(Color.cyan, from, info.Cyan);
-			if (ShowMagenta) TryDraw(Color.magenta, from, info.Magenta);
+			if (ShowToDestroyAndRed) TryDraw(Color.red, from, info.ToDestroyAndRed);
+			if (ShowFood) TryDraw(Color.green, from, info.Food);
+			if (ShowWorkdAndBlue) TryDraw(Color.blue, from, info.WorkdAndBlue);
+			if (ShowProcessAndYellow) TryDraw(Color.yellow, from, info.ProcessAndYellow);
+			if (ShowWander) TryDraw(Color.cyan, from, info.Wander);
+			if (ShowRelax) TryDraw(Color.magenta, from, info.Relax);
 		}
 	}
 

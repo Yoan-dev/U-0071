@@ -22,12 +22,12 @@ namespace U0071
 		public struct FlowfieldInfo
 		{
 			public float2 Position;
-			public float2 Red;
-			public float2 Green;
-			public float2 Blue;
-			public float2 Yellow;
-			public float2 Cyan;
-			public float2 Magenta;
+			public float2 ToDestroyAndRed;
+			public float2 Food;
+			public float2 WorkdAndBlue;
+			public float2 ProcessAndYellow;
+			public float2 Wander;
+			public float2 Relax;
 		}
 
 		private EntityQuery _query;
@@ -129,12 +129,12 @@ namespace U0071
 					flowfieldInfos[i] = new FlowfieldInfo
 					{
 						Position = new float2(i % flowfield.Dimensions.x - flowfield.Dimensions.x / 2f + 0.5f, i / flowfield.Dimensions.x + 0.5f - flowfield.Dimensions.y / 2f),
-						Red = cell.ToDestroy,
-						Green = cell.ToFood,
-						Blue = cell.ToWork,
-						Yellow = cell.ToProcess,
-						Cyan = cell.ToWander,
-						Magenta = cell.ToRelax,
+						ToDestroyAndRed = cell.ToDestroy,
+						Food = cell.ToFood,
+						WorkdAndBlue = cell.ToWork,
+						ProcessAndYellow = cell.ToProcess,
+						Wander = cell.ToWander,
+						Relax = cell.ToRelax,
 					};
 				}
 			}
@@ -154,9 +154,9 @@ namespace U0071
 					flowfieldInfos[i] = new FlowfieldInfo
 					{
 						Position = new float2(i % partition.Dimensions.x - partition.Dimensions.x / 2f + 0.5f, i / partition.Dimensions.x + 0.5f - partition.Dimensions.y / 2f),
-						Red = flowfieldCollection.ToRedAdmin[i],
-						Blue = flowfieldCollection.ToBlueAdmin[i],
-						Yellow = flowfieldCollection.ToYellowAdmin[i],
+						ToDestroyAndRed = flowfieldCollection.ToRedAdmin[i],
+						WorkdAndBlue = flowfieldCollection.ToBlueAdmin[i],
+						ProcessAndYellow = flowfieldCollection.ToYellowAdmin[i],
 					};
 				}
 			}

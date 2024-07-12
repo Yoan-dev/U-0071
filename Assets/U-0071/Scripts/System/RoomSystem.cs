@@ -245,10 +245,6 @@ namespace U0071
 					{
 						room.FiredWorker = lowest;
 					}
-					else
-					{
-						room.FiredWorker = Entity.Null;
-					}
 				}
 			}
 		}
