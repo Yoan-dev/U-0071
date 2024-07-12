@@ -43,9 +43,11 @@ namespace U0071
 	public struct ChangeInteractableEvent
 	{
 		public Entity Target;
-		public Entity CurrentUser;
+		public Entity PreviousUser;
+		public Entity NewUser;
 		public ActionFlag FlagsToAdd;
 		public ActionFlag FlagsToRemove;
+		public bool UserChange;
 	}
 
 	public struct SpawnerEvent
@@ -262,7 +264,9 @@ namespace U0071
 					ChangeInteractableEvents.Enqueue(new ChangeInteractableEvent
 					{
 						Target = controller.Action.Target,
-						CurrentUser = entity,
+						PreviousUser = Entity.Null,
+						NewUser = entity,
+						UserChange = true,
 					});
 				}
 
@@ -421,17 +425,19 @@ namespace U0071
 		{
 			public NativeQueue<ChangeInteractableEvent>.ParallelWriter ChangeInteractableEvents;
 			
-			public void Execute(ref ActionController controller, EnabledRefRW<IsActing> isActing)
+			public void Execute(Entity entity, ref ActionController controller, EnabledRefRW<IsActing> isActing)
 			{
 				if (controller.ShouldStop)
 				{
-					if (!controller.Action.MultiusableFlag)
+					if (!controller.Action.MultiusableFlag && controller.IsResolving)
 					{
 						// interactable is not single-used anymore
 						ChangeInteractableEvents.Enqueue(new ChangeInteractableEvent
 						{
 							Target = controller.Action.Target,
-							CurrentUser = Entity.Null,
+							PreviousUser = entity,
+							NewUser = Entity.Null,
+							UserChange = true,
 						});
 					}
 					controller.Action.Target = Entity.Null;
@@ -701,10 +707,14 @@ namespace U0071
 				{
 					ChangeInteractableEvent changeInteractableEvent = Events.Dequeue();
 
+					// need to send assumed previous user because
+					// of concurrent accesses (2 units trying to acceed the same frame)
 					ref InteractableComponent interactable = ref InteractableLookup.GetRefRW(changeInteractableEvent.Target).ValueRW;
-					if (!interactable.CanBeMultiused && interactable.CurrentUser != changeInteractableEvent.CurrentUser)
+					if (changeInteractableEvent.UserChange && 
+						!interactable.CanBeMultiused && 
+						(interactable.CurrentUser == changeInteractableEvent.PreviousUser))
 					{
-						interactable.CurrentUser = changeInteractableEvent.CurrentUser;
+						interactable.CurrentUser = changeInteractableEvent.NewUser;
 						interactable.Changed = true;
 					}
 					if (changeInteractableEvent.FlagsToAdd != 0)

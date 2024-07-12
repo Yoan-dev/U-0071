@@ -214,11 +214,13 @@ namespace U0071
 						if (target.CanBeUsed && target.HasActionFlag(ActionFlag.Open))
 						{
 							DoorComponent door = DoorLookup[target.Entity];
-							if (door.CodeRequirementFacing.x != 0f && math.abs(controller.LastMovementInput.x) == 1f ||
-								door.CodeRequirementFacing.y != 0f && math.abs(controller.LastMovementInput.y) == 1f)
+							bool isOnCodeSide = door.IsOnEnterCodeSide(position.Value, target.Position);
+
+							if (door.CodeRequirementFacing.x != 0f && (door.CodeRequirementFacing.x == controller.LastMovementInput.x * (isOnCodeSide ? -1f : 1f)) ||
+								door.CodeRequirementFacing.y != 0f && (door.CodeRequirementFacing.y == controller.LastMovementInput.y * (isOnCodeSide ? -1f : 1f)))
 							{
 								actionController.Action = target.ToActionData(ActionFlag.Open, target.ItemFlags, carry.Flags);
-								if (door.IsOnEnterCodeSide(position.Value, target.Position))
+								if (isOnCodeSide)
 								{
 									// override time if needs to enter code
 									actionController.Action.Time = Const.AIUnitEnterCodeTime;
