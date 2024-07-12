@@ -54,6 +54,7 @@ namespace U0071
 			{
 				// target is being solo-used or has been destroyed/picked/disabled
 				controller.Stop();
+				isActing.ValueRW = false;
 				return false;
 			}
 

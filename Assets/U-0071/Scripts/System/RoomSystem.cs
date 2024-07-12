@@ -126,10 +126,10 @@ namespace U0071
 					});
 					partition.CurrentRoom = newRoom.Entity;
 				}
-				else if (position.MovedFlag || interactable.Changed)
+				else if (position.HasMoved || interactable.Changed)
 				{
 					// consume
-					position.MovedFlag = false;
+					position.LastPosition = position.Value;
 					interactable.Changed = false;
 
 					Updates.Add(partition.CurrentRoom, new RoomUpdateEvent

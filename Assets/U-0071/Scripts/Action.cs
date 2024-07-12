@@ -31,6 +31,7 @@ namespace U0071
 		public float Range;
 		public float Time;
 		public int Cost;
+		public bool MultiusableFlag;
 
 		public bool Has => Target != Entity.Null;
 
@@ -41,7 +42,7 @@ namespace U0071
 			Utilities.HasItemFlag(UsedItemFlags, ItemFlag.Trash);
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public ActionData(Entity target, ActionFlag actionFlag, ItemFlag itemFlags, ItemFlag usedItemFlags, float2 position, float range, float time, int cost)
+		public ActionData(Entity target, ActionFlag actionFlag, ItemFlag itemFlags, ItemFlag usedItemFlags, float2 position, float range, float time, int cost, bool multiusableFlag = true)
 		{
 			Target = target;
 			ActionFlag = actionFlag;
@@ -51,6 +52,10 @@ namespace U0071
 			Range = range;
 			Time = time;
 			Cost = cost;
+
+			// set to true by default to avoid unecessary action processing
+			// (= instant actions do not need multiusage logic)
+			MultiusableFlag = multiusableFlag;
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -105,6 +110,8 @@ namespace U0071
 		public bool Changed;
 		public bool WorkingStationFlag;
 		public bool CanBeMultiused;
+
+		public bool CanBeUsed => CanBeMultiused || CurrentUser == Entity.Null;
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public bool HasActionFlag(ActionFlag inFlag)

@@ -3,7 +3,6 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
-using UnityEditor.PackageManager;
 
 namespace U0071
 {
@@ -44,6 +43,7 @@ namespace U0071
 	public struct ChangeInteractableEvent
 	{
 		public Entity Target;
+		public Entity CurrentUser;
 		public ActionFlag FlagsToAdd;
 		public ActionFlag FlagsToRemove;
 	}
@@ -153,6 +153,7 @@ namespace U0071
 				SpawnerEvents = _spawnerEvents.AsParallelWriter(),
 				TeleportEvents = _teleportEvents.AsParallelWriter(),
 				OpenEvents = _openEvents.AsParallelWriter(),
+				ChangeInteractableEvents = _changeInteractableEvents.AsParallelWriter(),
 				StorageLookup = _storageLookup,
 				DeltaTime = SystemAPI.Time.DeltaTime,
 			}.ScheduleParallel(state.Dependency);
@@ -231,6 +232,7 @@ namespace U0071
 			public NativeQueue<SpawnerEvent>.ParallelWriter SpawnerEvents;
 			public NativeQueue<TeleportEvent>.ParallelWriter TeleportEvents;
 			public NativeQueue<OpenEvent>.ParallelWriter OpenEvents;
+			public NativeQueue<ChangeInteractableEvent>.ParallelWriter ChangeInteractableEvents;
 			[ReadOnly]
 			public ComponentLookup<StorageComponent> StorageLookup;
 			public float DeltaTime;
@@ -246,11 +248,31 @@ namespace U0071
 				// do not filter isDeadTag to be able to drop carried item on death
 				// (isActing will filter the job after)
 
+				if (!controller.Action.MultiusableFlag && controller.Timer == 0f)
+				{
+					// start using single-used interactable
+					ChangeInteractableEvents.Enqueue(new ChangeInteractableEvent
+					{
+						Target = controller.Action.Target,
+						CurrentUser = entity,
+					});
+				}
+
 				controller.Timer += DeltaTime;
 				if (controller.ShouldResolve(credits.Value))
 				{
 					// process behavior that can be in parallel here
 					// queue the rest
+
+					if (!controller.Action.MultiusableFlag)
+					{
+						// interactable is not single-used anymore
+						ChangeInteractableEvents.Enqueue(new ChangeInteractableEvent
+						{
+							Target = controller.Action.Target,
+							CurrentUser = Entity.Null,
+						});
+					}
 
 					if (controller.Action.ActionFlag == ActionFlag.Eat)
 					{
@@ -646,10 +668,21 @@ namespace U0071
 					ChangeInteractableEvent changeInteractableEvent = Events.Dequeue();
 
 					ref InteractableComponent interactable = ref InteractableLookup.GetRefRW(changeInteractableEvent.Target).ValueRW;
-
-					interactable.ActionFlags |= changeInteractableEvent.FlagsToAdd;
-					interactable.ActionFlags &= ~changeInteractableEvent.FlagsToRemove;
-					interactable.Changed = true;
+					if (!interactable.CanBeMultiused && interactable.CurrentUser != changeInteractableEvent.CurrentUser)
+					{
+						interactable.CurrentUser = changeInteractableEvent.CurrentUser;
+						interactable.Changed = true;
+					}
+					if (changeInteractableEvent.FlagsToAdd != 0)
+					{
+						interactable.ActionFlags |= changeInteractableEvent.FlagsToAdd;
+						interactable.Changed = true;
+					}
+					if (changeInteractableEvent.FlagsToRemove != 0)
+					{
+						interactable.ActionFlags &= ~changeInteractableEvent.FlagsToRemove;
+						interactable.Changed = true;
+					}
 				}
 			}
 		}

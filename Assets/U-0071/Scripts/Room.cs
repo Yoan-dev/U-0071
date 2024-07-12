@@ -26,11 +26,12 @@ namespace U0071
 		public float Range => Interactable.Range;
 		public float Time => Interactable.Time;
 		public int Cost => Interactable.Cost;
+		public bool CanBeUsed => Interactable.CanBeUsed;
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public ActionData ToActionData(ActionFlag selectedActionFlag, ItemFlag itemFlags, ItemFlag usedItemFlags)
 		{
-			return new ActionData(Entity, selectedActionFlag, itemFlags, usedItemFlags, Position, Range, Const.GetActionTime(selectedActionFlag, Time), Cost);
+			return new ActionData(Entity, selectedActionFlag, itemFlags, usedItemFlags, Position, Range, Const.GetActionTime(selectedActionFlag, Time), Cost, Interactable.CanBeMultiused);
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]

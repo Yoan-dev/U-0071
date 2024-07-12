@@ -34,7 +34,7 @@ namespace U0071
 		{
 			public Config Config;
 
-			public void Execute(ref AnimationController controller, in MovementComponent movement, in ActionController actionController)
+			public void Execute(ref AnimationController controller, in MovementComponent movement, in PositionComponent position, in ActionController actionController)
 			{
 				if (actionController.IsResolving)
 				{
@@ -43,7 +43,7 @@ namespace U0071
 						controller.StartAnimation(in Config.CharacterInteract);
 					}
 				}
-				else if (!movement.Input.Equals(float2.zero))
+				else if (!movement.Input.Equals(float2.zero) && position.HasSlightlyMoved)
 				{
 					if (movement.IsRunning)
 					{

@@ -78,7 +78,6 @@ namespace U0071
 				if (!input.Equals(float2.zero) && Partition.IsPathable(newPosition))
 				{
 					position.Value = newPosition;
-					position.MovedFlag = true;
 				}
 				orientation.Update(input.x);
 			}
@@ -96,13 +95,13 @@ namespace U0071
 			{
 				// input should already be normalized
 				// assumed non-zero (push parameters)
-				float2 newPosition = position.Value + pushed.Direction * Const.PushedSpeed * DeltaTime;
+				float2 input = pushed.Direction * Const.PushedSpeed * DeltaTime;
+				float2 newPosition = position.Value + input;
 
 				// rough collision
 				if (Partition.IsPathable(newPosition))
 				{
 					position.Value = newPosition;
-					position.MovedFlag = true;
 				}
 
 				pushed.Timer -= DeltaTime;
@@ -130,7 +129,8 @@ namespace U0071
 				// rough decollision to avoid characters stacking on each others / on devices
 				// will not trigger between rooms
 
-				float2 decollision = float2.zero;
+				float2 newPosition = position.Value;
+
 				Entity doorEntity = Entity.Null;
 				float2 doorPosition = float2.zero;
 				DynamicBuffer<RoomElementBufferElement> elements = RoomElementBufferLookup[partition.CurrentRoom];
@@ -155,18 +155,16 @@ namespace U0071
 								float distance = math.length(difference);
 								if (distance > 0f)
 								{
-									decollision += difference * (radiusSum - distance) / distance * Const.DecollisionStrength;
+									newPosition += difference * (radiusSum - distance) / distance * Const.DecollisionStrength;
 								}
 							}
 						}
 					}
 				}
 
-				float2 newPosition = position.Value + decollision;
-				if (Partition.IsPathable(newPosition))
+				if (!Partition.IsPathable(newPosition))
 				{
-					position.Value = newPosition;
-					position.MovedFlag = position.MovedFlag || !decollision.Equals(float2.zero);
+					newPosition = position.Value;
 				}
 
 				// dirty door collision
@@ -180,19 +178,19 @@ namespace U0071
 					DoorComponent door = DoorLookup[doorEntity];
 					
 					// vertical door
-					if (door.CodeRequirementFacing.x != 0f && position.x >= door.CachedBounds.Min.x && position.x <= door.CachedBounds.Max.x)
+					if (door.CodeRequirementFacing.x != 0f && newPosition.x >= door.CachedBounds.Min.x && newPosition.x <= door.CachedBounds.Max.x)
 					{
-						position.Value.x = position.Value.x <= doorPosition.x ? door.CachedBounds.Min.x - math.EPSILON : door.CachedBounds.Max.x + math.EPSILON;
-						position.MovedFlag = true;
+						newPosition.x = newPosition.x <= doorPosition.x ? door.CachedBounds.Min.x - math.EPSILON : door.CachedBounds.Max.x + math.EPSILON;
 					}
 					// horizontal door
 					else if (
-						door.CodeRequirementFacing.y != 0f && position.y >= door.CachedBounds.Min.y && position.y <= door.CachedBounds.Max.y)
+						door.CodeRequirementFacing.y != 0f && newPosition.y >= door.CachedBounds.Min.y && newPosition.y <= door.CachedBounds.Max.y)
 					{
-						position.Value.y = position.Value.y <= doorPosition.y ? door.CachedBounds.Min.y - math.EPSILON : door.CachedBounds.Max.y + math.EPSILON;
-						position.MovedFlag = true;
+						newPosition.y = newPosition.y <= doorPosition.y ? door.CachedBounds.Min.y - math.EPSILON : door.CachedBounds.Max.y + math.EPSILON;
 					}
 				}
+
+				position.Value = newPosition;
 			}
 		}
 

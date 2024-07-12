@@ -215,7 +215,7 @@ namespace U0071
 					{
 						RoomElementBufferElement target = enumerator.Current;
 
-						if (target.HasActionFlag(ActionFlag.Open))
+						if (target.CanBeUsed && target.HasActionFlag(ActionFlag.Open))
 						{
 							// we check relative position to door thanks to last movement input
 							// (AI always path vertically/horizontally in door "rooms")
@@ -238,6 +238,7 @@ namespace U0071
 							}
 						}
 						if (target.Entity != entity &&
+							target.CanBeUsed &&
 							target.HasActionFlag(actionFilter) &&
 							(itemFilter == 0 || target.HasItemFlag(itemFilter)) &&
 							(target.Cost <= 0f || target.Cost <= credits.Value) &&
