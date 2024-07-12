@@ -100,9 +100,9 @@ MonoBehaviour:
   ActionName: Open
   Range: 0.75
   Time: 0.25
-  CollisionRadius: 0
   CollisionRange: 0.45
-  Collide: 1
+  Collide: 0
+  CanBeMultiused: 0
   Cost: 0
   AreaFlag: 1
   DoorSize: 0.4

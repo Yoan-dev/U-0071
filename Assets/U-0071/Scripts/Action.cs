@@ -101,8 +101,10 @@ namespace U0071
 		public float Time;
 		public float CollisionRadius; // cached here to have access in partition (meh)
 		public int Cost;
+		public Entity CurrentUser; // always Entity.Null if cannot be multiused
 		public bool Changed;
 		public bool WorkingStationFlag;
+		public bool CanBeMultiused;
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public bool HasActionFlag(ActionFlag inFlag)

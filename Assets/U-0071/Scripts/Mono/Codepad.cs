@@ -84,6 +84,10 @@ namespace U0071
 
 		public void ExitScreen()
 		{
+			foreach (CodepadButton button in _buttons)
+			{
+				button.Reset();
+			}
 			_callback = null;
 			_root.style.display = DisplayStyle.None;
 		}

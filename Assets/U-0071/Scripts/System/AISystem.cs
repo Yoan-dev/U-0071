@@ -111,7 +111,11 @@ namespace U0071
 				EnabledRefRO<DeathComponent> death,
 				EnabledRefRO<PushedComponent> pushed)
 			{
-				if (Utilities.ProcessUnitControllerStart(ref actionController, ref orientation, in position, in carry, in partition, isActing, death, pushed))
+				if (Utilities.ProcessUnitControllerStart(
+					entity, 
+					ref actionController, ref orientation, 
+					in position, in carry, in partition, isActing, death, pushed, 
+					in InteractableLookup, in PickableLookup))
 				{
 					return;
 				}
@@ -121,27 +125,16 @@ namespace U0071
 				// re-evaluate current target
 				if (actionController.HasTarget)
 				{
-					if (!InteractableLookup.TryGetComponent(actionController.Action.Target, out InteractableComponent interactable) ||
-						interactable.HasActionFlag(ActionFlag.Pick) && PickableLookup.IsComponentEnabled(actionController.Action.Target) ||
-						!interactable.HasActionFlag(actionController.Action.ActionFlag))
-					{
-						// target has been destroyed/picked/disabled
-						actionController.Stop();
-					}
-					else if (position.IsInRange(actionController.Action.Position, actionController.Action.Range))
+					if (position.IsInRange(actionController.Action.Position, actionController.Action.Range))
 					{
 						// start interacting
 						isActing.ValueRW = true;
 						actionController.Start();
 						orientation.Update(actionController.Action.Position.x - position.Value.x);
-						return;
 					}
 
-					// going to target
-					if (actionController.HasTarget)
-					{
-						return;
-					}
+					// start interacting or going to target
+					return;
 				}
 
 				// attempt at a rough mid-term goal AI

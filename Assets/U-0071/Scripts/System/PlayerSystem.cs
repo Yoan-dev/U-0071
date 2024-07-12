@@ -48,6 +48,8 @@ namespace U0071
 		private BufferLookup<RoomElementBufferElement> _roomElementLookup;
 		private ComponentLookup<NameComponent> _nameLookup;
 		private ComponentLookup<ActionNameComponent> _actionNameLookup;
+		private ComponentLookup<InteractableComponent> _interactableLookup;
+		private ComponentLookup<PickableComponent> _pickableLookup;
 		private ComponentLookup<DoorComponent> _doorLookup;
 
 		[BurstCompile]
@@ -60,6 +62,8 @@ namespace U0071
 			_nameLookup = state.GetComponentLookup<NameComponent>(true);
 			_actionNameLookup = state.GetComponentLookup<ActionNameComponent>(true);
 			_doorLookup = state.GetComponentLookup<DoorComponent>(true);
+			_interactableLookup = state.GetComponentLookup<InteractableComponent>(true);
+			_pickableLookup = state.GetComponentLookup<PickableComponent>(true);
 		}
 
 		[BurstCompile]
@@ -69,10 +73,14 @@ namespace U0071
 			_nameLookup.Update(ref state);
 			_actionNameLookup.Update(ref state);
 			_doorLookup.Update(ref state);
+			_interactableLookup.Update(ref state);
+			_pickableLookup.Update(ref state);
 
 			state.Dependency = new PlayerActionJob
 			{
 				RoomElementBufferLookup = _roomElementLookup,
+				InteractableLookup = _interactableLookup,
+				PickableLookup = _pickableLookup,
 				NameLookup = _nameLookup,
 				ActionNameLookup = _actionNameLookup,
 				DoorLookup = _doorLookup,
@@ -103,6 +111,10 @@ namespace U0071
 			[ReadOnly]
 			public ComponentLookup<ActionNameComponent> ActionNameLookup;
 			[ReadOnly]
+			public ComponentLookup<PickableComponent> PickableLookup;
+			[ReadOnly]
+			public ComponentLookup<InteractableComponent> InteractableLookup;
+			[ReadOnly]
 			public ComponentLookup<DoorComponent> DoorLookup;
 
 			public void Execute(
@@ -123,7 +135,11 @@ namespace U0071
 				controller.SecondaryAction.Reset();
 				controller.ActionTimer = 0f;
 
-				if (Utilities.ProcessUnitControllerStart(ref actionController, ref orientation, in position, in carry, in partition, isActing, death, pushed))
+				if (Utilities.ProcessUnitControllerStart(
+					entity,
+					ref actionController, ref orientation,
+					in position, in carry, in partition, isActing, death, pushed,
+					in InteractableLookup, in PickableLookup))
 				{
 					if (actionController.IsResolving)
 					{
@@ -166,10 +182,10 @@ namespace U0071
 							{
 								DoorComponent door = DoorLookup[target.Entity];
 								bool shouldEnterCode =
-									door.CodeRequirementFacing.x == 1f && position.Value.x > enumerator.Current.Position.x ||
-									door.CodeRequirementFacing.x == -1f && position.Value.x < enumerator.Current.Position.x ||
-									door.CodeRequirementFacing.y == 1f && position.Value.y > enumerator.Current.Position.y ||
-									door.CodeRequirementFacing.y == -1f && position.Value.y < enumerator.Current.Position.y;
+									door.CodeRequirementFacing.x != 0f && door.CodeRequirementFacing.x == 1f && position.Value.x > target.Position.x ||
+									door.CodeRequirementFacing.x != 0f && door.CodeRequirementFacing.x == -1f && position.Value.x < target.Position.x ||
+									door.CodeRequirementFacing.y != 0f && door.CodeRequirementFacing.y == 1f && position.Value.y > target.Position.y ||
+									door.CodeRequirementFacing.y != 0f && door.CodeRequirementFacing.y == -1f && position.Value.y < target.Position.y;
 								controller.SetPrimaryAction(target.ToActionData(ActionFlag.Open, target.ItemFlags, carry.Flags), in NameLookup, in ActionNameLookup, carry.Picked);
 								if (shouldEnterCode)
 								{

@@ -58,6 +58,7 @@ namespace U0071
 					Time = authoring.Time,
 					ActionFlags = ActionFlag.Push,
 					CollisionRadius = authoring.CollisionRadius,
+					CanBeMultiused = true,
 				});
 				AddComponent(entity, new CreditsComponent { Value = authoring.Credits });
 				AddComponent(entity, new CarryComponent());

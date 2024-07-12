@@ -39,6 +39,15 @@ namespace U0071
 			}
 		}
 
+		public void Reset()
+		{
+			if (feedbackTimer > 0f)
+			{
+				feedbackTimer = 0f;
+				_root.RemoveFromClassList("jam-button-codepad-pressed");
+			}
+		}
+
 		private void OnClicked()
 		{
 			_callback?.Invoke(_number);

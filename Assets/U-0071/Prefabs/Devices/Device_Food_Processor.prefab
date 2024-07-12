@@ -102,6 +102,7 @@ MonoBehaviour:
   Time: 3
   CollisionRange: 0.25
   Collide: 1
+  CanBeMultiused: 0
   Cost: -5
   AreaFlag: 0
   DoorSize: 0

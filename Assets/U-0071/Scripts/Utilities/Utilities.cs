@@ -2,6 +2,7 @@ using System.Runtime.CompilerServices;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
+using static UnityEngine.EventSystems.EventTrigger;
 
 namespace U0071
 {
@@ -21,6 +22,7 @@ namespace U0071
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static bool ProcessUnitControllerStart(
+			Entity entity,
 			ref ActionController controller,
 			ref Orientation orientation,
 			in PositionComponent position,
@@ -28,7 +30,9 @@ namespace U0071
 			in PartitionComponent partition,
 			EnabledRefRW<IsActing> isActing,
 			EnabledRefRO<DeathComponent> death,
-			EnabledRefRO<PushedComponent> pushed)
+			EnabledRefRO<PushedComponent> pushed,
+			in ComponentLookup<InteractableComponent> interactableLookup,
+			in ComponentLookup<PickableComponent> pickableLookup)
 		{
 			// returns "should stop" to AI/Player controller jobs
 
@@ -42,8 +46,24 @@ namespace U0071
 				return true;
 			}
 
+			if (controller.HasTarget && (
+				!interactableLookup.TryGetComponent(controller.Action.Target, out InteractableComponent interactable) ||
+				interactable.CurrentUser != Entity.Null && interactable.CurrentUser != entity ||
+				interactable.HasActionFlag(ActionFlag.Pick) && pickableLookup.IsComponentEnabled(controller.Action.Target) ||
+				!interactable.HasActionFlag(controller.Action.ActionFlag)))
+			{
+				// target is being solo-used or has been destroyed/picked/disabled
+				controller.Stop();
+				return false;
+			}
+
 			// cannot act if not in partition or already acting
-			return partition.CurrentRoom == Entity.Null || controller.IsResolving;
+			if (partition.CurrentRoom == Entity.Null || controller.IsResolving)
+			{
+				return true;
+			}
+
+			return false;
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -166,9 +166,7 @@ public class UIManager : MonoBehaviour
 			// is interacting with a door
 			if (_codepad.IsShown())
 			{
-				if (!playerController.MoveInput.Equals(float2.zero) || 
-					Input.GetKeyDown(KeyCode.Escape) || 
-					entityManager.IsComponentEnabled<DoorComponent>(actionController.Action.Target))
+				if (!playerController.MoveInput.Equals(float2.zero) || Input.GetKeyDown(KeyCode.Escape))
 				{
 					// cancel
 					ActionController controller = entityManager.GetComponentData<ActionController>(_player);
