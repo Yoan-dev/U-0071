@@ -10,6 +10,7 @@ namespace U0071
 		public AreaAuthorization Area;
 		public int Capacity; // amount of possible workers
 		public int Population; // current amount of units in room
+		public Entity FiredWorker; // should leave (workplace too crowded)
 		public bool IsWanderPath;
 	}
 

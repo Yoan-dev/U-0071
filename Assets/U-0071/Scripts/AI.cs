@@ -44,7 +44,7 @@ namespace U0071
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void ChooseGoal(bool hasItem, in ComponentLookup<RoomComponent> roomLookup, Entity currentRoom)
+		public void ChooseGoal(Entity entity, bool hasItem, in ComponentLookup<RoomComponent> roomLookup, Entity currentRoom)
 		{
 			AIGoal newGoal =
 				EatWeight > WorkWeight && EatWeight > RelaxWeight ? AIGoal.Eat :
@@ -61,7 +61,7 @@ namespace U0071
 			{
 				// verify that we are not in a crowded workplace
 				RoomComponent room = roomLookup[currentRoom];
-				if (room.Capacity > 0 && room.Population > room.Capacity)
+				if (room.Capacity > 0 && room.Population > room.Capacity && room.FiredWorker == entity)
 				{
 					// look for new opportunities
 					newGoal = AIGoal.Wander;

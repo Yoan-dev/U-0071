@@ -163,10 +163,11 @@ namespace U0071
 					while (Updates.TryGetNextValue(out update, ref it));
 				}
 
-				if (dirtyPopulation)
+				if (dirtyPopulation || room.Population > room.Capacity)
 				{
+					Entity lowest = Entity.Null;
+
 					// recount all (safer because of death)
-					// TODO: find a better way
 					room.Population = 0;
 					using (var element = elements.GetEnumerator())
 					{
@@ -175,9 +176,15 @@ namespace U0071
 							// push check is the dirty way to check for characters
 							if (element.Current.HasActionFlag(ActionFlag.Push))
 							{
+								lowest = lowest == Entity.Null || element.Current.Entity.Index < lowest.Index ? element.Current.Entity : lowest;
 								room.Population++;
 							}
 						}
+					}
+
+					if (room.Population > room.Capacity)
+					{
+						room.FiredWorker = lowest;
 					}
 				}
 			}

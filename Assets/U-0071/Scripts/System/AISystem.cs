@@ -167,7 +167,7 @@ namespace U0071
 
 					controller.RelaxWeight = Const.AIRelaxWeight;
 
-					controller.ChooseGoal(carry.HasItem, in RoomLookup, partition.CurrentRoom);
+					controller.ChooseGoal(entity, carry.HasItem, in RoomLookup, partition.CurrentRoom);
 				}
 
 				if (controller.Goal == AIGoal.Relax)
