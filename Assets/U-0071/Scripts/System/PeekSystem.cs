@@ -117,6 +117,7 @@ namespace U0071
 						PeekingInfos.Enqueue(new PeekingInfoComponent
 						{
 							DoorEntity = entity,
+							Authorization = door.AreaFlag,
 							Peeking = peeking,
 							Position = position.Value,
 							IsPeeking = isPeeking,

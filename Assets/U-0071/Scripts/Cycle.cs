@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using Unity.Entities;
 
 namespace U0071
@@ -13,5 +14,20 @@ namespace U0071
 		public float CycleTimer;
 		public uint CycleCounter;
 		public bool CycleChanged;
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public int GetCode(AreaAuthorization authorization)
+		{
+			return authorization switch
+			{
+				AreaAuthorization.LevelOne => LevelOneCode,
+				AreaAuthorization.LevelTwo => LevelTwoCode,
+				AreaAuthorization.LevelThree => LevelThreeCode,
+				AreaAuthorization.Red => RedCode,
+				AreaAuthorization.Blue => BlueCode,
+				AreaAuthorization.Yellow => YellowCode,
+				_ => 1234,
+			};
+		}
 	}
 }

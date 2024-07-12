@@ -1,5 +1,6 @@
 using System;
 using Unity.Entities.UniversalDelegates;
+using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace U0071
@@ -34,13 +35,7 @@ namespace U0071
 			_code = "";
 			_authorization = authorization;
 			_cycleCounter = (int)cycle.CycleCounter;
-			_requiredCode =
-				authorization == AreaAuthorization.LevelOne ? cycle.LevelOneCode :
-				authorization == AreaAuthorization.LevelTwo ? cycle.LevelTwoCode :
-				authorization == AreaAuthorization.LevelThree ? cycle.LevelThreeCode :
-				authorization == AreaAuthorization.Red ? cycle.RedCode :
-				authorization == AreaAuthorization.Blue ? cycle.BlueCode :
-				authorization == AreaAuthorization.Yellow ? cycle.YellowCode : 1234;
+			_requiredCode = cycle.GetCode(authorization);
 
 			if (callback != null)
 			{

@@ -243,20 +243,17 @@ public class UIManager : MonoBehaviour
 
 			BubbleRenderer.material = info.IsPeeking ? BubbleMaterial : DisabledBubbleMaterial;
 
-			PeekingBubble.text =
-				(info.Peeking.FirstDiscovered ? "X" : info.Peeking.DigitIndex > 0 ? "?" : "_") +
-				(info.Peeking.SecondDiscovered ? "X" : info.Peeking.DigitIndex > 1 ? "?" : "_") +
-				(info.Peeking.ThirdDiscovered ? "X" : info.Peeking.DigitIndex > 2 ? "?" : "_") +
-				(info.Peeking.FourthDiscovered ? "X" : info.Peeking.DigitIndex > 3 ? "?" : "_");
+			char[] digits = cycle.GetCode(info.Authorization).ToString("0000").ToCharArray();
+			
+			PeekingBubble.text = "" +
+				(info.Peeking.FirstDiscovered ? digits[0] : info.Peeking.DigitIndex > 0 ? "?" : "_") +
+				(info.Peeking.SecondDiscovered ? digits[1] : info.Peeking.DigitIndex > 1 ? "?" : "_") +
+				(info.Peeking.ThirdDiscovered ? digits[2] : info.Peeking.DigitIndex > 2 ? "?" : "_") +
+				(info.Peeking.FourthDiscovered ? digits[3] : info.Peeking.DigitIndex > 3 ? "?" : "_");
 		}
-		else if (bubbleAnchor.gameObject.activeSelf)
+		else
 		{
-			//_peekingLastTimer += Time.deltaTime;
-			//if (_peekingLastTimer > Const.PeekingStaysTime)
-			//{
-				//_peekingLastTimer = 0f;
-				bubbleAnchor.gameObject.SetActive(false);
-			//}
+			bubbleAnchor.gameObject.SetActive(false);
 		}
 	}
 }

@@ -23,7 +23,6 @@ namespace U0071
 		public const float PeekingStartRange = 5.5f;
 		public const float PeekingRange = 2f;
 		public const float PeekingAngle = math.PI / 4f;
-		public const float PeekingStaysTime = 0.2f;
 		public const float PeekingBubbleMinScale = 0.45f;
 		public const float PeekingBubbleScaleSmoothStart = 0.7f;
 		public const float PeekingBubbleScaleSmoothEnd = 1f;

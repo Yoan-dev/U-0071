@@ -62,4 +62,14 @@ namespace U0071
 			else if (newDigitIndex == 3) FourthDiscovered = true;
 		}
 	}
+
+	public struct PeekingInfoComponent : IComponentData
+	{
+		public PeekingComponent Peeking;
+		public AreaAuthorization Authorization;
+		public float2 Position;
+		public Entity DoorEntity;
+		public float DistanceRatio;
+		public bool IsPeeking;
+	};
 }
