@@ -20,10 +20,13 @@ namespace U0071
 
 		// doors
 		public const float AIUnitEnterCodeTime = 4f;
-		public const float PeekingStartRange = 4f;
+		public const float PeekingStartRange = 5.5f;
 		public const float PeekingRange = 2f;
 		public const float PeekingAngle = math.PI / 4f;
 		public const float PeekingStaysTime = 0.5f;
+		public const float PeekingBubbleMinScale = 0.45f;
+		public const float PeekingBubbleScaleSmoothStart = 0.7f;
+		public const float PeekingBubbleScaleSmoothEnd = 1f;
 
 		// used for Y sorting
 		public const float PickableYOffset = 0.4f;
@@ -93,7 +96,7 @@ namespace U0071
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static float2 GetDropOffset(float orientation)
 		{
-			return new float2(Const.DropOffsetX * orientation, Const.DropOffsetY);
+			return new float2(DropOffsetX * orientation, DropOffsetY);
 		}
 	}
 }

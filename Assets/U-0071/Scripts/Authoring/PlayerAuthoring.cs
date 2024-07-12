@@ -18,6 +18,7 @@ namespace U0071
 					SecondaryAction = new ActionInfo { Key = KeyCode.F },
 				});
 				AddComponent(entity, new CameraComponent());
+				AddComponent(entity, new PeekingInfoComponent());
 			}
 		}
 	}

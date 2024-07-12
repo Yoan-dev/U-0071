@@ -10,13 +10,20 @@ using UnityEngine.UIElements;
 
 public class UIManager : MonoBehaviour
 {
+	[Header("Core")]
 	public TMP_Text Interaction;
 	public TMP_Text PopTextPrefab;
 	public float HeightOffset = 1.4f;
 
-	// entites
-	public Entity _player;
-	public Entity _gameSingleton;
+	[Header("PeekingBubble")]
+	public TMP_Text PeekingBubble;
+	public MeshRenderer BubbleRenderer;
+	public Material BubbleMaterial;
+	public Material DisabledBubbleMaterial;
+
+	// ECS
+	private Entity _player;
+	private Entity _gameSingleton;
 
 	// HUD
 	private VisualElement _root;
@@ -30,7 +37,8 @@ public class UIManager : MonoBehaviour
 
 	// miscellaneous
 	private int _lastCreditsValue;
-	
+	private float _peekingLastTimer;
+
 	private void OnEnable()
 	{
 		_root = GetComponent<UIDocument>().rootVisualElement;
@@ -69,6 +77,7 @@ public class UIManager : MonoBehaviour
 			ActionController actionController = entityManager.GetComponentData<ActionController>(_player);
 			CreditsComponent credits = entityManager.GetComponentData<CreditsComponent>(_player);
 			HungerComponent hunger = entityManager.GetComponentData<HungerComponent>(_player);
+			PeekingInfoComponent peekingInfo = entityManager.GetComponentData<PeekingInfoComponent>(_player);
 			float3 position = entityManager.GetComponentData<LocalTransform>(_player).Position;
 			CycleComponent cycle = entityManager.GetComponentData<CycleComponent>(_gameSingleton);
 
@@ -76,6 +85,8 @@ public class UIManager : MonoBehaviour
 			UpdateInteraction(in playerController, position);
 			ProcessPopEvents(in credits, position);
 			UpdateCodepad(in entityManager, in playerController, in actionController, in cycle);
+
+			UpdatePeekingBubble(in peekingInfo, in cycle);
 		}
 		else
 		{
@@ -109,7 +120,7 @@ public class UIManager : MonoBehaviour
 		if (Interaction.gameObject.activeSelf)
 		{
 			Interaction.text = shouldDisplayTimer ? playerController.ActionTimer.ToString("0.00") : textOne + (textOne != "" ? "\n" : "") + textTwo;
-			Interaction.transform.SetLocalPositionAndRotation(position + new float3(0f, 0f, HeightOffset), Interaction.transform.rotation);
+			Interaction.transform.SetLocalPositionAndRotation(new float3(position.x, position.y + 5f, position.z + HeightOffset), Interaction.transform.rotation);
 		}
 	}
 
@@ -215,5 +226,37 @@ public class UIManager : MonoBehaviour
 		ActionController controller = entityManager.GetComponentData<ActionController>(_player);
 		controller.Action.Time = 0f;
 		entityManager.SetComponentData(_player, controller);
+	}
+
+	public void	UpdatePeekingBubble(in PeekingInfoComponent info, in CycleComponent cycle)
+	{
+		Transform bubbleAnchor = PeekingBubble.transform.parent;
+		
+		if (info.DoorEntity != Entity.Null)
+		{
+			bubbleAnchor.gameObject.SetActive(true);
+			bubbleAnchor.SetPositionAndRotation(new float3(info.Position.x, 4f, info.Position.y), bubbleAnchor.rotation);
+
+			float smoothedRatio = Utilities.SmoothStep(1f - info.DistanceRatio, Const.PeekingBubbleScaleSmoothStart, Const.PeekingBubbleScaleSmoothEnd);
+			float scale = math.clamp(Const.PeekingBubbleMinScale + smoothedRatio * (1f - Const.PeekingBubbleMinScale), Const.PeekingBubbleMinScale, 1f);
+			bubbleAnchor.localScale = new Vector3(scale, scale, scale);
+
+			BubbleRenderer.material = info.IsPeeking ? BubbleMaterial : DisabledBubbleMaterial;
+
+			PeekingBubble.text =
+				(info.Peeking.FirstDiscovered ? "X" : info.Peeking.DigitIndex > 0 ? "?" : "_") +
+				(info.Peeking.SecondDiscovered ? "X" : info.Peeking.DigitIndex > 1 ? "?" : "_") +
+				(info.Peeking.ThirdDiscovered ? "X" : info.Peeking.DigitIndex > 2 ? "?" : "_") +
+				(info.Peeking.FourthDiscovered ? "X" : info.Peeking.DigitIndex > 3 ? "?" : "_");
+		}
+		else if (bubbleAnchor.gameObject.activeSelf)
+		{
+			_peekingLastTimer += Time.deltaTime;
+			if (_peekingLastTimer > Const.PeekingStaysTime)
+			{
+				_peekingLastTimer = 0f;
+				bubbleAnchor.gameObject.SetActive(false);
+			}
+		}
 	}
 }

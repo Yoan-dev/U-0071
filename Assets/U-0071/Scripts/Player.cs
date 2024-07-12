@@ -74,5 +74,14 @@ namespace U0071
 		}
 	}
 
+	public struct PeekingInfoComponent : IComponentData
+	{
+		public PeekingComponent Peeking;
+		public float2 Position;
+		public Entity DoorEntity;
+		public float DistanceRatio;
+		public bool IsPeeking;
+	};
+
 	public struct CameraComponent : IComponentData { }
 }

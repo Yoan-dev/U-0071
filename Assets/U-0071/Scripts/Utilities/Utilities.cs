@@ -1,8 +1,9 @@
 using System.Runtime.CompilerServices;
 using Unity.Entities;
 using Unity.Mathematics;
+using Unity.VisualScripting;
 using UnityEngine;
-using static UnityEngine.EventSystems.EventTrigger;
+using static UnityEngine.Rendering.DebugUI;
 
 namespace U0071
 {
@@ -154,6 +155,16 @@ namespace U0071
 		public static float EaseOutCubic(float value, float strength)
 		{
 			return 1f - math.pow(1f - value, strength);
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static float SmoothStep(float value, float start, float end)
+		{
+			if (value < start) return 0f;
+			if (value >= end) return 1f;
+			
+			value = (value - start) / (end - start);
+			return value * value * (3 - 2 * value);
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]

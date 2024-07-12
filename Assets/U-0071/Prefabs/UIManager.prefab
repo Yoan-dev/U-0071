@@ -34,7 +34,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 0.4}
+  m_AnchoredPosition: {x: 0, y: 5}
   m_SizeDelta: {x: 7, y: 1}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!23 &3222835982065974293
@@ -201,7 +201,7 @@ Transform:
   m_GameObject: {fileID: 1821871744561497427}
   serializedVersion: 2
   m_LocalRotation: {x: 0.7071068, y: -0, z: -0, w: 0.7071068}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0.15, y: 0, z: 0.45}
   m_LocalScale: {x: 1.5, y: 1.5, z: 1.5}
   m_ConstrainProportionsScale: 1
   m_Children: []
@@ -309,6 +309,11 @@ MonoBehaviour:
   PopTextPrefab: {fileID: 5481345951632752470, guid: 7c94aa8c6076ea14ba6c9db0d8611b3d,
     type: 3}
   HeightOffset: 1.4
+  PeekingBubble: {fileID: 4724446430298217585}
+  BubbleRenderer: {fileID: 7221773394808562955}
+  BubbleMaterial: {fileID: 2100000, guid: bea02ff6617d1f04299fc9ab648a873d, type: 2}
+  DisabledBubbleMaterial: {fileID: 2100000, guid: 422598c8d96ca8e418c6a0c5c24953be,
+    type: 2}
 --- !u!114 &3597952234028054746
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -338,7 +343,7 @@ GameObject:
   - component: {fileID: 7194824336631968860}
   - component: {fileID: 4724446430298217585}
   m_Layer: 0
-  m_Name: Text (TMP)
+  m_Name: PeekingText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -352,7 +357,7 @@ RectTransform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5190796135914544844}
   m_LocalRotation: {x: 0.7071068, y: -0, z: -0, w: 0.7071068}
-  m_LocalPosition: {x: 0, y: 0, z: 0.11}
+  m_LocalPosition: {x: 0, y: 0, z: 0.56}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -360,7 +365,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 0.1}
+  m_AnchoredPosition: {x: 0.15, y: 0.1}
   m_SizeDelta: {x: 20, y: 5}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!23 &7194824336631968860
@@ -591,7 +596,7 @@ Transform:
   m_GameObject: {fileID: 7815741536503539085}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 5, z: 0}
+  m_LocalPosition: {x: 1.5, y: 4, z: 1.5}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 1
   m_Children:
