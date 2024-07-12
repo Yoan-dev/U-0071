@@ -34,6 +34,7 @@ namespace U0071
 		public ActionInfo PrimaryAction;
 		public ActionInfo SecondaryAction;
 		public float ActionTimer;
+		public AreaAuthorization CachedDoorAuthorization;
 
 		public bool HasPrimaryAction => PrimaryAction.Has;
 		public bool HasSecondaryAction => SecondaryAction.Has;

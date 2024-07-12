@@ -4,7 +4,6 @@ using U0071;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
-using Unity.VisualScripting;
 using UnityEngine;
 using static U0071.DebugSystem;
 
@@ -21,6 +20,7 @@ public class DebugManager : MonoBehaviour
 	public bool ShowBlue;
 	public bool ShowYellow;
 	public bool ShowCyan;
+	public bool ShowMagenta;
 
 	[Header("Miscellaneous")]	
 	public TMP_Text RoomElementPrefab;
@@ -114,6 +114,7 @@ public class DebugManager : MonoBehaviour
 			if (ShowBlue) TryDraw(Color.blue, from, info.Blue);
 			if (ShowYellow) TryDraw(Color.yellow, from, info.Yellow);
 			if (ShowCyan) TryDraw(Color.cyan, from, info.Cyan);
+			if (ShowMagenta) TryDraw(Color.magenta, from, info.Magenta);
 		}
 	}
 

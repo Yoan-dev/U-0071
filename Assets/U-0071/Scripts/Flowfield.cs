@@ -21,6 +21,7 @@ namespace U0071
 		public float2 ToFood;
 		public float2 ToWork;
 		public float2 ToDestroy;
+		public float2 ToProcess;
 		public float2 ToWander;
 		public float2 ToRelax;
 	}
@@ -97,6 +98,7 @@ namespace U0071
 				AIGoal.Eat => cell.ToFood,
 				AIGoal.Work => cell.ToWork,
 				AIGoal.Destroy => cell.ToDestroy,
+				AIGoal.Process => cell.ToProcess,
 				AIGoal.Wander => cell.ToWander,
 				AIGoal.Relax => cell.ToRelax,
 				AIGoal.Flee => cell.ToRelax.Equals(float2.zero) ? cell.ToWander : cell.ToRelax,

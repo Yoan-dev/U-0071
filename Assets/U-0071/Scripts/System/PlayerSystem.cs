@@ -1,10 +1,7 @@
-using System.Diagnostics;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
-using Unity.VisualScripting;
-using UnityEditor.Searcher;
 using UnityEngine;
 
 namespace U0071
@@ -177,6 +174,7 @@ namespace U0071
 								{
 									// stop resolving manually (enter code UI)
 									controller.PrimaryAction.Data.Time = int.MaxValue;
+									controller.CachedDoorAuthorization = shouldEnterCode ? door.AreaFlag : 0;
 								}
 								break;
 							}

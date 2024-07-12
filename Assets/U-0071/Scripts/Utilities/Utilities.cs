@@ -2,8 +2,6 @@ using System.Runtime.CompilerServices;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
-using static UnityEngine.GraphicsBuffer;
-using UnityEngine.UIElements;
 
 namespace U0071
 {

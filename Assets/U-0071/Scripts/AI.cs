@@ -12,6 +12,7 @@ namespace U0071
 		Wander, // find new opportunities
 		Flee,
 		Destroy, // find a place to destroy carried item
+		Process, // find a place to process carried raw food
 	}
 
 	public struct AIController : IComponentData
@@ -38,6 +39,7 @@ namespace U0071
 				ReassessmentTimer <= 0f || 
 				Goal == AIGoal.Eat && hungerRatio >= Const.AILightHungerRatio ||
 				Goal == AIGoal.Destroy && !hasItem ||
+				Goal == AIGoal.Process && !hasItem ||
 				Goal == AIGoal.Wander && LastMovementInput.Equals(float2.zero);
 		}
 
@@ -48,11 +50,11 @@ namespace U0071
 				EatWeight > WorkWeight && EatWeight > RelaxWeight ? AIGoal.Eat :
 				WorkWeight > RelaxWeight ? AIGoal.Work :
 				AIGoal.Relax;
-
-			if (Goal == AIGoal.Destroy && hasItem && !IsCriticalGoal(newGoal))
+			
+			if ((Goal == AIGoal.Destroy || Goal == AIGoal.Process) && hasItem && !IsCriticalGoal(newGoal))
 			{
-				// keep going for destroy
-				Goal = AIGoal.Destroy; 
+				// keep going for destroy/process
+				newGoal = Goal; 
 			}
 
 			if (Goal == AIGoal.Work)

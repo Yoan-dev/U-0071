@@ -183,6 +183,7 @@ namespace U0071
 				bool eatGoal = controller.Goal == AIGoal.Eat;
 				bool workGoal = controller.Goal == AIGoal.Work;
 				bool destroyGoal = controller.Goal == AIGoal.Destroy;
+				bool processGoal = controller.Goal == AIGoal.Process;
 
 				// retrieve relevant action types
 				ActionFlag actionFilter =
@@ -190,6 +191,7 @@ namespace U0071
 					eatGoal ? ActionFlag.Pick | ActionFlag.Eat | ActionFlag.Collect :
 					workGoal ? ActionFlag.Pick | ActionFlag.Store | ActionFlag.Destroy | ActionFlag.Collect | ActionFlag.Search :
 					destroyGoal ? ActionFlag.Destroy :
+					processGoal ? ActionFlag.Store :
 					ActionFlag.Search;
 				ItemFlag itemFilter =
 					eatGoal ? ItemFlag.Food :
@@ -290,7 +292,7 @@ namespace U0071
 				{
 					if (carry.HasItem && !controller.HasCriticalGoal)
 					{
-						controller.Goal = AIGoal.Destroy;
+						controller.Goal = Utilities.HasItemFlag(carry.Flags, ItemFlag.RawFood) ? AIGoal.Process : AIGoal.Destroy;
 					}
 
 					// start/continue pathing (flowfield)

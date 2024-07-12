@@ -45,3 +45,7 @@
     padding-left: 0;
     background-image: url("project://database/Assets/U-0071/Textures/UI/T_codepad_7.png?fileID=2800000&guid=268ca19005106b648a2d440c311a156e&type=3#T_codepad_7");
 }
+
+.jam-button-codepad-pressed {
+    -unity-background-image-tint-color: rgb(132, 132, 132);
+}

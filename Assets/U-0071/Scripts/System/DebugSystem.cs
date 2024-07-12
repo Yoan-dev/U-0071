@@ -27,6 +27,7 @@ namespace U0071
 			public float2 Blue;
 			public float2 Yellow;
 			public float2 Cyan;
+			public float2 Magenta;
 		}
 
 		private EntityQuery _query;
@@ -131,8 +132,9 @@ namespace U0071
 						Red = cell.ToDestroy,
 						Green = cell.ToFood,
 						Blue = cell.ToWork,
-						Yellow = cell.ToWander,
-						Cyan = cell.ToRelax,
+						Yellow = cell.ToProcess,
+						Cyan = cell.ToWander,
+						Magenta = cell.ToRelax,
 					};
 				}
 			}

@@ -51,6 +51,9 @@ namespace U0071
 		public const float SickHungerDepleteRate = 0.1f;
 		public const float SickTime = 10f;
 
+		// UI
+		public const float CodepadButtonFeedbackTime = 0.175f;
+
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static float GetActionTime(ActionFlag type, float baseTime)
 		{
@@ -76,6 +79,7 @@ namespace U0071
 				AIGoal.Wander => 15f,
 				AIGoal.Flee => 5f,
 				AIGoal.Destroy => 10f,
+				AIGoal.Process => 10f,
 				_ => 10f,
 			};
 		}

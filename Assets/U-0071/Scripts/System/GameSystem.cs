@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using Unity.Burst;
 using Unity.Collections;
@@ -113,6 +114,7 @@ namespace U0071
 			FlowfieldBuilder toFood = new FlowfieldBuilder(areaFlag, 0, ItemFlag.Food, in partition);
 			FlowfieldBuilder toWork = new FlowfieldBuilder(areaFlag, 0, 0, in partition, true);
 			FlowfieldBuilder toDestroy = new FlowfieldBuilder(areaFlag, ActionFlag.Destroy, ItemFlag.Trash, in partition);
+			FlowfieldBuilder toProcess = new FlowfieldBuilder(areaFlag, ActionFlag.Store, ItemFlag.RawFood, in partition);
 			FlowfieldBuilder toWander = new FlowfieldBuilder(areaFlag, 0, 0, in partition);
 			FlowfieldBuilder toRelax = new FlowfieldBuilder(areaFlag, 0, 0, in partition); // TODO
 
@@ -122,6 +124,7 @@ namespace U0071
 				ToFoodBuilder = toFood,
 				ToWorkBuilder = toWork,
 				ToDestroyBuilder = toDestroy,
+				ToProcessBuilder = toProcess,
 			}.ScheduleParallel(state.Dependency);
 
 			state.Dependency = new WandererFlowfieldInitJob
@@ -133,12 +136,14 @@ namespace U0071
 			state.Dependency = new FlowfieldSpreadJob { Builder = toFood }.Schedule(state.Dependency);
 			state.Dependency = new FlowfieldSpreadJob { Builder = toWork }.Schedule(state.Dependency);
 			state.Dependency = new FlowfieldSpreadJob { Builder = toDestroy }.Schedule(state.Dependency);
+			state.Dependency = new FlowfieldSpreadJob { Builder = toProcess }.Schedule(state.Dependency);
 			state.Dependency = new FlowfieldSpreadJob { Builder = toWander }.Schedule(state.Dependency);
 			state.Dependency = new FlowfieldSpreadJob { Builder = toRelax }.Schedule(state.Dependency);
 
 			state.Dependency = new FlowfieldDirectionJob { Builder = toFood }.ScheduleParallel(size, Const.ParallelForCount, state.Dependency);
 			state.Dependency = new FlowfieldDirectionJob { Builder = toWork }.ScheduleParallel(size, Const.ParallelForCount, state.Dependency);
 			state.Dependency = new FlowfieldDirectionJob { Builder = toDestroy }.ScheduleParallel(size, Const.ParallelForCount, state.Dependency);
+			state.Dependency = new FlowfieldDirectionJob { Builder = toProcess }.ScheduleParallel(size, Const.ParallelForCount, state.Dependency);
 			state.Dependency = new FlowfieldDirectionJob { Builder = toWander }.ScheduleParallel(size, Const.ParallelForCount, state.Dependency);
 			state.Dependency = new FlowfieldDirectionJob { Builder = toRelax }.ScheduleParallel(size, Const.ParallelForCount, state.Dependency);
 
@@ -153,6 +158,7 @@ namespace U0071
 					ToFood = toFood.Flowfield[i],
 					ToWork = toWork.Flowfield[i],
 					ToDestroy = toDestroy.Flowfield[i],
+					ToProcess = toProcess.Flowfield[i],
 					ToRelax = toRelax.Flowfield[i],
 
 					// overlay goToWander on wander flowfield
@@ -164,6 +170,7 @@ namespace U0071
 			toFood.Dispose();
 			toWork.Dispose();
 			toDestroy.Dispose();
+			toProcess.Dispose();
 			toWander.Dispose();
 			toRelax.Dispose();
 		}
@@ -331,6 +338,7 @@ namespace U0071
 			[NativeDisableParallelForRestriction] public FlowfieldBuilder ToFoodBuilder;
 			[NativeDisableParallelForRestriction] public FlowfieldBuilder ToWorkBuilder;
 			[NativeDisableParallelForRestriction] public FlowfieldBuilder ToDestroyBuilder;
+			[NativeDisableParallelForRestriction] public FlowfieldBuilder ToProcessBuilder;
 
 			public void Execute(in InteractableComponent interactable, in LocalTransform transform)
 			{
@@ -340,6 +348,7 @@ namespace U0071
 
 				ToFoodBuilder.ProcessDevice(in interactable, in Partition, position, size);
 				ToDestroyBuilder.ProcessDevice(in interactable, in Partition, position, size);
+				ToProcessBuilder.ProcessDevice(in interactable, in Partition, position, size);
 				ToWorkBuilder.ProcessDevice(in interactable, in Partition, position, size);
 			}
 		}

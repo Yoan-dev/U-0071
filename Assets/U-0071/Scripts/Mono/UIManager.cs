@@ -14,9 +14,9 @@ public class UIManager : MonoBehaviour
 	public TMP_Text PopTextPrefab;
 	public float HeightOffset = 1.4f;
 
-	// queries
-	private EntityQuery _playerQuery;
-	private EntityQuery _cycleQuery;
+	// entites
+	public Entity _player;
+	public Entity _gameSingleton;
 
 	// HUD
 	private VisualElement _root;
@@ -24,6 +24,9 @@ public class UIManager : MonoBehaviour
 	private Label _creditsLabel;
 	private Label _cycleLabel;
 	private Label _codeLabel;
+
+	// codepad
+	private Codepad _codepad;
 
 	// miscellaneous
 	private int _lastCreditsValue;
@@ -35,33 +38,48 @@ public class UIManager : MonoBehaviour
 		_creditsLabel = _root.Q<Label>("info_credits");
 		_cycleLabel = _root.Q<Label>("info_cycle");
 		_codeLabel = _root.Q<Label>("info_code");
-	}
-
-	public void Start()
-	{
-		_playerQuery = new EntityQueryBuilder(Allocator.Temp).WithAll<PlayerController>().Build(Utilities.GetEntityManager());
-		_cycleQuery = new EntityQueryBuilder(Allocator.Temp).WithAll<CycleComponent>().Build(Utilities.GetEntityManager());
+		_codepad = new Codepad(_root.Q<VisualElement>("codepad"));
 	}
 
 	public void Update()
 	{
-		if (_playerQuery.HasSingleton<PlayerController>())
-		{
-			Entity player = _playerQuery.GetSingletonEntity();
-			CycleComponent cycle = _cycleQuery.GetSingleton<CycleComponent>();
+		EntityManager entityManager = Utilities.GetEntityManager();
 
-			EntityManager entityManager = Utilities.GetEntityManager();
-			PlayerController playerController = entityManager.GetComponentData<PlayerController>(player);
-			CreditsComponent credits = entityManager.GetComponentData<CreditsComponent>(player);
-			HungerComponent hunger = entityManager.GetComponentData<HungerComponent>(player);
-			float3 position = entityManager.GetComponentData<LocalTransform>(player).Position;
+		if (_player == Entity.Null)
+		{
+			EntityQuery query = new EntityQueryBuilder(Allocator.Temp).WithAll<PlayerController>().Build(Utilities.GetEntityManager());
+			if (query.HasSingleton<PlayerController>())
+			{
+				_player = query.GetSingletonEntity();
+			}
+		}
+		if (_gameSingleton == Entity.Null)
+		{
+			EntityQuery query = new EntityQueryBuilder(Allocator.Temp).WithAll<CycleComponent>().Build(Utilities.GetEntityManager());
+			if (query.HasSingleton<PlayerController>())
+			{
+				_gameSingleton = query.GetSingletonEntity();
+			}
+		}
+		if (_player != Entity.Null && _gameSingleton != Entity.Null)
+		{
+			_root.style.display = DisplayStyle.Flex;
+
+			PlayerController playerController = entityManager.GetComponentData<PlayerController>(_player);
+			ActionController actionController = entityManager.GetComponentData<ActionController>(_player);
+			CreditsComponent credits = entityManager.GetComponentData<CreditsComponent>(_player);
+			HungerComponent hunger = entityManager.GetComponentData<HungerComponent>(_player);
+			float3 position = entityManager.GetComponentData<LocalTransform>(_player).Position;
+			CycleComponent cycle = entityManager.GetComponentData<CycleComponent>(_gameSingleton);
 
 			UpdateHUD(in credits, in hunger, in cycle);
 			UpdateInteraction(in playerController, position);
 			ProcessPopEvents(in credits, position);
+			UpdateCodepad(in entityManager, in playerController, in actionController, in cycle);
 		}
 		else
 		{
+			_root.style.display = DisplayStyle.None;
 			Interaction.gameObject.SetActive(false);
 		}
 	}
@@ -84,7 +102,7 @@ public class UIManager : MonoBehaviour
 		string textOne = GetInteractionText(in playerController.PrimaryAction);
 		string textTwo = GetInteractionText(in playerController.SecondaryAction);
 
-		bool shouldDisplayTimer = playerController.ActionTimer > 0f && playerController.ActionTimer < int.MaxValue;
+		bool shouldDisplayTimer = playerController.ActionTimer > 0f && playerController.ActionTimer < 9999f;
 
 		Interaction.gameObject.SetActive(shouldDisplayTimer || textOne != "" || textTwo != "");
 
@@ -134,5 +152,70 @@ public class UIManager : MonoBehaviour
 			ActionFlag.Push => "Push",
 			_ => "none",
 		};
+	}
+
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	private void UpdateCodepad(in EntityManager entityManager, in PlayerController playerController, in ActionController actionController, in CycleComponent cycle)
+	{
+		// done in managed class for ease
+		
+		// TODO: only from front (cache in player controller)
+
+		if (actionController.IsResolving && playerController.CachedDoorAuthorization != 0 && actionController.Action.HasActionFlag(ActionFlag.Open))
+		{
+			// is interacting with a door
+			if (_codepad.IsShown())
+			{
+				if (!playerController.MoveInput.Equals(float2.zero) || 
+					Input.GetKeyDown(KeyCode.Escape) || 
+					entityManager.IsComponentEnabled<DoorComponent>(actionController.Action.Target))
+				{
+					// cancel
+					ActionController controller = entityManager.GetComponentData<ActionController>(_player);
+					controller.Stop();
+					entityManager.SetComponentData(_player, controller);
+					entityManager.SetComponentEnabled<IsActing>(_player, false);
+					return;
+				}
+
+				int numeric = -1;
+				bool validate = false;
+				bool cancel = false;
+				if (Input.GetKeyDown(KeyCode.KeypadEnter)) validate = true;
+				else if (Input.GetKeyDown(KeyCode.KeypadPeriod)) cancel = true;
+				else if (Input.GetKeyDown(KeyCode.Keypad0)) numeric = 0;
+				else if (Input.GetKeyDown(KeyCode.Keypad1)) numeric = 1;
+				else if (Input.GetKeyDown(KeyCode.Keypad2)) numeric = 2;
+				else if (Input.GetKeyDown(KeyCode.Keypad3)) numeric = 3;
+				else if (Input.GetKeyDown(KeyCode.Keypad4)) numeric = 4;
+				else if (Input.GetKeyDown(KeyCode.Keypad5)) numeric = 5;
+				else if (Input.GetKeyDown(KeyCode.Keypad6)) numeric = 6;
+				else if (Input.GetKeyDown(KeyCode.Keypad7)) numeric = 7;
+				else if (Input.GetKeyDown(KeyCode.Keypad8)) numeric = 8;
+				else if (Input.GetKeyDown(KeyCode.Keypad9)) numeric = 9;
+
+				// update
+				_codepad.UpdateCodepad(Time.deltaTime, in cycle, numeric, validate, cancel);
+			}
+			else
+			{
+				// start
+				_codepad.ShowCodepad(playerController.CachedDoorAuthorization, in cycle, OnDoorInteractionSucceed);
+			}
+		}
+		else if (_codepad.IsShown())
+		{
+			// not interacting with door anymore
+			_codepad.ExitScreen();
+		}
+	}
+
+	private void OnDoorInteractionSucceed()
+	{
+		// resolve action
+		EntityManager entityManager = Utilities.GetEntityManager();
+		ActionController controller = entityManager.GetComponentData<ActionController>(_player);
+		controller.Action.Time = 0f;
+		entityManager.SetComponentData(_player, controller);
 	}
 }

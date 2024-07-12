@@ -1,4 +1,5 @@
 using System;
+using Unity.Entities.UniversalDelegates;
 using UnityEngine.UIElements;
 
 namespace U0071
@@ -7,11 +8,9 @@ namespace U0071
 	{
 		private VisualElement _root;
 		private Label _screenText;
-		private Button[] _numberButtons;
-		private Button _cancelButton;
-		private Button _validateButton;
-		private Action _callback;
+		private CodepadButton[] _buttons;
 
+		private Action _callback;
 		private AreaAuthorization _authorization;
 		private int _cycleCounter;
 		private int _requiredCode;
@@ -21,17 +20,13 @@ namespace U0071
 		{
 			_root = root;
 			_screenText = root.Q<Label>("screen_text");
-			_cancelButton = root.Q<Button>("button_X");
-			_validateButton = root.Q<Button>("button_V");
-			_numberButtons = new Button[10];
-			for (int i = 0; i < _numberButtons.Length; i++)
+			_buttons = new CodepadButton[12];
+			for (int i = 0; i < 10; i++)
 			{
-				Button button = root.Q<Button>("button_" + i);
-				button.RegisterCallback<ClickEvent>(clickEvent => OnNumberButtonClicked(i));
-				_numberButtons[i] = button;
+				_buttons[i] = new CodepadButton(root.Q<VisualElement>("button_" + i), i, OnNumberButtonClicked);
 			}
-			_cancelButton.RegisterCallback<ClickEvent>(clickEvent => OnCancelButtonClicked());
-			_validateButton.RegisterCallback<ClickEvent>(clickEvent => OnValidateButtonClicked());
+			_buttons[10] = new CodepadButton(root.Q<VisualElement>("button_v"), 10, OnValidateButtonClicked);
+			_buttons[11] = new CodepadButton(root.Q<VisualElement>("button_x"), 11, OnCancelButtonClicked);
 		}
 
 		public void ShowCodepad(AreaAuthorization authorization, in CycleComponent cycle, Action callback)
@@ -46,17 +41,45 @@ namespace U0071
 				authorization == AreaAuthorization.Red ? cycle.RedCode :
 				authorization == AreaAuthorization.Blue ? cycle.BlueCode :
 				authorization == AreaAuthorization.Yellow ? cycle.YellowCode : 1234;
-			
+
+			if (callback != null)
+			{
+				// if null, comes from update
+				_callback = callback;
+			}
+
 			UpdateScreenText();
 			_root.style.display = DisplayStyle.Flex;
 		}
 
-		public void UpdateCodepad(in CycleComponent cycle)
+		public void UpdateCodepad(float deltaTime, in CycleComponent cycle, int numeric, bool validate, bool cancel)
 		{
 			// live update
-			// TODO: can click on buttons but does nothing
-			// TODO: reset text (effect tbd how ? coroutine ? tick from UIManager ?)
-			// TBD
+			if (cycle.CycleCounter != _cycleCounter)
+			{
+				// cycle changed, update infos
+				ShowCodepad(_authorization, in cycle, null);
+
+				// TODO: can click on buttons but does nothing + cool text shuffle effect
+			}
+
+			if (numeric != -1)
+			{
+				OnNumberButtonClicked(numeric);
+			}
+			else if (validate)
+			{
+				OnValidateButtonClicked(10);
+			}
+			else if (cancel)
+			{
+				OnCancelButtonClicked(11);
+			}
+
+			foreach (CodepadButton button in _buttons)
+			{
+				button.Update(deltaTime);
+			}
 		}
 
 		public void ExitScreen()
@@ -65,8 +88,14 @@ namespace U0071
 			_root.style.display = DisplayStyle.None;
 		}
 
+		public bool IsShown()
+		{
+			return _root.style.display == DisplayStyle.Flex;
+		}
+
 		private void OnNumberButtonClicked(int number)
 		{
+			_buttons[number].StartFeedback();
 			if (_code.Length < 4)
 			{
 				_code += number.ToString();
@@ -78,15 +107,17 @@ namespace U0071
 			}
 		}
 
-		private void OnCancelButtonClicked()
+		private void OnCancelButtonClicked(int i)
 		{
 			// TODO: sound feedback "reset"
+			_buttons[i].StartFeedback();
 			_code = "";
 			UpdateScreenText();
 		}
 
-		private void OnValidateButtonClicked()
+		private void OnValidateButtonClicked(int i)
 		{
+			_buttons[i].StartFeedback();
 			if (_code.Length < 4)
 			{
 				// TODO: negative sound feedback "incomplete"
@@ -95,6 +126,7 @@ namespace U0071
 			{
 				// TODO: positive sound feedback "granted"
 				_callback?.Invoke();
+				ExitScreen();
 				// TODO: lock screen until door is closed (TBD)
 			}
 			else
