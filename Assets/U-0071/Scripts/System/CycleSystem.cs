@@ -23,9 +23,11 @@ namespace U0071
 			ref CycleComponent cycle = ref SystemAPI.GetSingletonRW<CycleComponent>().ValueRW;
 
 			cycle.CycleTimer -= SystemAPI.Time.DeltaTime;
+			cycle.CycleChanged = false;
 
 			if (cycle.CycleTimer < 0f)
 			{
+				cycle.CycleChanged = true;
 				cycle.CycleTimer = config.CycleDuration;
 				cycle.CycleCounter++;
 

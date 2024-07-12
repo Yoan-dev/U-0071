@@ -3,6 +3,7 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
+using static UnityEngine.EventSystems.EventTrigger;
 
 namespace U0071
 {
@@ -158,6 +159,11 @@ namespace U0071
 				DeltaTime = SystemAPI.Time.DeltaTime,
 			}.ScheduleParallel(state.Dependency);
 
+			state.Dependency = new ForcedDropActionJob
+			{
+				PickDropEvents = _pickDropEvents.AsParallelWriter(),
+			}.ScheduleParallel(state.Dependency);
+			
 			state.Dependency = new ResolvePickedActionJob
 			{
 				Ecb = ecbs.CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter(),
@@ -391,6 +397,27 @@ namespace U0071
 		}
 
 		[BurstCompile]
+		public partial struct ForcedDropActionJob : IJobEntity
+		{
+			public NativeQueue<PickDropEvent>.ParallelWriter PickDropEvents;
+
+			public void Execute(Entity entity, ref ActionController controller, in PositionComponent position, in Orientation orientation, in CarryComponent carry)
+			{
+				if (controller.ShouldDropFlag)
+				{
+					controller.ShouldDropFlag = false;
+					PickDropEvents.Enqueue(new PickDropEvent
+					{
+						Source = entity,
+						Target = carry.Picked,
+						Position = position.Value + Const.GetDropOffset(orientation.Value),
+						Pick = false,
+					});
+				}
+			}
+		}
+
+		[BurstCompile]
 		public partial struct StopActionJob : IJobEntity
 		{
 			public NativeQueue<ChangeInteractableEvent>.ParallelWriter ChangeInteractableEvents;
@@ -410,6 +437,7 @@ namespace U0071
 					}
 					controller.Action.Target = Entity.Null;
 					controller.Action.ActionFlag = 0;
+					controller.Timer = 0;
 					controller.IsResolving = false;
 					controller.ShouldStopFlag = false;
 					isActing.ValueRW = false;
@@ -626,13 +654,13 @@ namespace U0071
 					{
 						PickableLookup.GetRefRW(carry.Picked).ValueRW.Carrier = Entity.Null;
 						PickableLookup.SetComponentEnabled(carry.Picked, false);
+
+						ref PositionComponent position = ref PositionLookup.GetRefRW(carry.Picked).ValueRW;
+						position.Value = TeleporterLookup[teleportEvent.Target].Destination;
+						position.BaseYOffset = Const.PickableYOffset;
+						carry.Picked = Entity.Null;
 					}
 
-					ref PositionComponent position = ref PositionLookup.GetRefRW(carry.Picked).ValueRW;
-					position.Value = TeleporterLookup[teleportEvent.Target].Destination;
-					position.BaseYOffset = Const.PickableYOffset;
-
-					carry.Picked = Entity.Null;
 					carry.Flags = 0;
 					PickLookup.SetComponentEnabled(teleportEvent.Source, false);
 				}

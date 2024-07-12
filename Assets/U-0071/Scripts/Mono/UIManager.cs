@@ -181,7 +181,7 @@ public class UIManager : MonoBehaviour
 				{
 					// cancel
 					ActionController controller = entityManager.GetComponentData<ActionController>(_player);
-					controller.Stop();
+					controller.Stop(false);
 					entityManager.SetComponentData(_player, controller);
 					_codepad.ExitScreen();
 					return;
@@ -251,12 +251,12 @@ public class UIManager : MonoBehaviour
 		}
 		else if (bubbleAnchor.gameObject.activeSelf)
 		{
-			_peekingLastTimer += Time.deltaTime;
-			if (_peekingLastTimer > Const.PeekingStaysTime)
-			{
-				_peekingLastTimer = 0f;
+			//_peekingLastTimer += Time.deltaTime;
+			//if (_peekingLastTimer > Const.PeekingStaysTime)
+			//{
+				//_peekingLastTimer = 0f;
 				bubbleAnchor.gameObject.SetActive(false);
-			}
+			//}
 		}
 	}
 }

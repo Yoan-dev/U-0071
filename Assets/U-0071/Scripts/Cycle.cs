@@ -12,5 +12,6 @@ namespace U0071
 		public int YellowCode;
 		public float CycleTimer;
 		public uint CycleCounter;
+		public bool CycleChanged;
 	}
 }

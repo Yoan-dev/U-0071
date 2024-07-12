@@ -1,17 +1,13 @@
-using System;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
-using Unity.VisualScripting.FullSerializer;
-using UnityEngine.Rendering.Universal;
-using Random = Unity.Mathematics.Random;
 
 namespace U0071
 {
 	[UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
 	[UpdateAfter(typeof(RoomSystem))]
-	[UpdateBefore(typeof(MovementSystem))]
+	[UpdateBefore(typeof(ActionSystem))]
 	public partial struct AIControllerSystem : ISystem
 	{
 		private BufferLookup<RoomElementBufferElement> _roomElementLookup;
@@ -20,7 +16,6 @@ namespace U0071
 		private ComponentLookup<PickableComponent> _pickableLookup;
 		private ComponentLookup<DoorComponent> _doorLookup;
 		private EntityQuery _query;
-		private float _timer;
 
 		[BurstCompile]
 		public void OnCreate(ref SystemState state)
@@ -46,39 +41,33 @@ namespace U0071
 		[BurstCompile]
 		public void OnUpdate(ref SystemState state)
 		{
-			// TODO: batching
-			_timer += SystemAPI.Time.DeltaTime;
-			if (_timer >= Const.AITick)
+			_roomElementLookup.Update(ref state);
+			_interactableLookup.Update(ref state);
+			_roomLookup.Update(ref state);
+			_pickableLookup.Update(ref state);
+			_doorLookup.Update(ref state);
+
+			state.Dependency = new AIUnitInitJob
 			{
-				_timer -= Const.AITick;
+				Partition = SystemAPI.GetSingleton<Partition>(),
+				Config = SystemAPI.GetSingleton<Config>(),
+			}.ScheduleParallel(state.Dependency);
 
-				_roomElementLookup.Update(ref state);
-				_interactableLookup.Update(ref state);
-				_roomLookup.Update(ref state);
-				_pickableLookup.Update(ref state);
-				_doorLookup.Update(ref state);
+			state.Dependency = new AIActionJob
+			{
+				RoomElementBufferLookup = _roomElementLookup,
+				InteractableLookup = _interactableLookup,
+				RoomLookup = _roomLookup,
+				PickableLookup = _pickableLookup,
+				DoorLookup = _doorLookup,
+				Cycle = SystemAPI.GetSingleton<CycleComponent>(),
+				DeltaTime = Const.AITick,
+			}.ScheduleParallel(_query, state.Dependency);
 
-				state.Dependency = new AIUnitInitJob
-				{
-					Partition = SystemAPI.GetSingleton<Partition>(),
-					Config = SystemAPI.GetSingleton<Config>(),
-				}.ScheduleParallel(state.Dependency);
-
-				state.Dependency = new AIActionJob
-				{
-					RoomElementBufferLookup = _roomElementLookup,
-					InteractableLookup = _interactableLookup,
-					RoomLookup = _roomLookup,
-					PickableLookup = _pickableLookup,
-					DoorLookup = _doorLookup,
-					DeltaTime = Const.AITick,
-				}.ScheduleParallel(_query, state.Dependency);
-
-				state.Dependency = new AIMovementJob
-				{
-					FlowfieldCollection = SystemAPI.GetSingleton<FlowfieldCollection>(),
-				}.ScheduleParallel(state.Dependency);
-			}
+			state.Dependency = new AIMovementJob
+			{
+				FlowfieldCollection = SystemAPI.GetSingleton<FlowfieldCollection>(),
+			}.ScheduleParallel(state.Dependency);
 		}
 		
 		[BurstCompile]
@@ -95,6 +84,7 @@ namespace U0071
 			public ComponentLookup<InteractableComponent> InteractableLookup;
 			[ReadOnly]
 			public ComponentLookup<DoorComponent> DoorLookup;
+			public CycleComponent Cycle;
 			public float DeltaTime;
 
 			public void Execute(
@@ -111,6 +101,15 @@ namespace U0071
 				EnabledRefRO<DeathComponent> death,
 				EnabledRefRO<PushedComponent> pushed)
 			{
+				if (Cycle.CycleChanged && actionController.IsResolving && actionController.Action.ActionFlag == ActionFlag.Open)
+				{
+					// stop interacting with door if cycle changed
+					actionController.Stop(death.ValueRO || pushed.ValueRO);
+					return;
+				}
+
+				if (pushed.ValueRO) controller.LastMovementInput = float2.zero;
+
 				if (Utilities.ProcessUnitControllerStart(entity, ref actionController, ref orientation, in position, in carry, in partition, isActing, death, pushed, in InteractableLookup, in PickableLookup))
 				{
 					return;
@@ -213,21 +212,14 @@ namespace U0071
 
 						if (target.CanBeUsed && target.HasActionFlag(ActionFlag.Open))
 						{
-							// we check relative position to door thanks to last movement input
-							// (AI always path vertically/horizontally in door "rooms")
 							DoorComponent door = DoorLookup[target.Entity];
-							bool shouldEnterCode =
-								door.CodeRequirementFacing.x != 0f && controller.LastMovementInput.x == -door.CodeRequirementFacing.x ||
-								door.CodeRequirementFacing.y != 0f && controller.LastMovementInput.y == -door.CodeRequirementFacing.y;
-							if (shouldEnterCode ||
-								controller.LastMovementInput.x == door.CodeRequirementFacing.x ||
-								controller.LastMovementInput.y == door.CodeRequirementFacing.y)
+							if (door.CodeRequirementFacing.x != 0f && math.abs(controller.LastMovementInput.x) == 1f ||
+								door.CodeRequirementFacing.y != 0f && math.abs(controller.LastMovementInput.y) == 1f)
 							{
 								actionController.Action = target.ToActionData(ActionFlag.Open, target.ItemFlags, carry.Flags);
-								if (shouldEnterCode)
+								if (door.IsOnEnterCodeSide(position.Value, target.Position))
 								{
 									// override time if needs to enter code
-									// TODO: start other stuff
 									actionController.Action.Time = Const.AIUnitEnterCodeTime;
 								}
 								break;
@@ -304,7 +296,7 @@ namespace U0071
 			{
 				movement.IsRunning = controller.Goal == AIGoal.Flee;
 
-				if (controller.IsPathing)
+				if (!actionController.IsResolving && controller.IsPathing)
 				{
 					movement.Input = FlowfieldCollection.GetDirection(authorisation.AreaFlag, controller.Goal, position.Value);
 					if (movement.Input.Equals(float2.zero))

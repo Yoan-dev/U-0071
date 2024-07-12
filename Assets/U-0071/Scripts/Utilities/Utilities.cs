@@ -39,14 +39,7 @@ namespace U0071
 
 			if (death.ValueRO || pushed.ValueRO)
 			{
-				if (!controller.IsResolving && carry.HasItem)
-				{
-					QueueDropAction(ref controller, ref orientation, in position, in carry, isActing);
-				}
-				else
-				{
-					controller.Stop();
-				}
+				controller.Stop(true);
 				return true;
 			}
 
@@ -57,8 +50,8 @@ namespace U0071
 				!interactable.HasActionFlag(controller.Action.ActionFlag)))
 			{
 				// target is being solo-used or has been destroyed/picked/disabled
-				controller.Stop();
-				return false;
+				controller.Stop(false);
+				return true;
 			}
 
 			// cannot act if not in partition or already acting

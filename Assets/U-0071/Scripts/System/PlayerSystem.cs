@@ -42,7 +42,7 @@ namespace U0071
 
 	[UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
 	[UpdateAfter(typeof(RoomSystem))]
-	[UpdateBefore(typeof(MovementSystem))]
+	[UpdateBefore(typeof(ActionSystem))]
 	public partial struct PlayerControllerSystem : ISystem
 	{
 		private BufferLookup<RoomElementBufferElement> _roomElementLookup;
@@ -177,13 +177,12 @@ namespace U0071
 							if (target.HasActionFlag(ActionFlag.Open))
 							{
 								DoorComponent door = DoorLookup[target.Entity];
-								bool shouldEnterCode = door.IsOnEnterCodeSide(position.Value, target.Position);
 								controller.SetPrimaryAction(target.ToActionData(ActionFlag.Open, target.ItemFlags, carry.Flags), in NameLookup, in ActionNameLookup, carry.Picked);
-								if (shouldEnterCode)
+								if (door.IsOnEnterCodeSide(position.Value, target.Position))
 								{
 									// stop resolving manually (enter code UI)
 									controller.PrimaryAction.Data.Time = int.MaxValue;
-									controller.CachedDoorAuthorization = shouldEnterCode ? door.AreaFlag : 0;
+									controller.CachedDoorAuthorization = door.AreaFlag;
 								}
 								break;
 							}

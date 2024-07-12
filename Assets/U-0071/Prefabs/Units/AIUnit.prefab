@@ -100,14 +100,17 @@ MonoBehaviour:
   Name: U-0000
   Speed: 3
   Hunger: 10
+  Authorisation: 0
   Credits: 30
-  Range: 0.5
+  CollisionRadius: 0.2
+  Range: 0.6
   Time: 1
   ShirtColor: {r: 0.60784316, g: 0.6784314, b: 0.7176471, a: 1}
   SkinColor: {r: 0.9333334, g: 0.76470596, b: 0.6039216, a: 1}
-  ShortHairColor: {r: 0.56078434, g: 0.3372549, b: 0.23137257, a: 1}
-  LongHairColor: {r: 0.9333334, g: 0.76470596, b: 0.6039216, a: 1}
-  BeardColor: {r: 0.9333334, g: 0.76470596, b: 0.6039216, a: 1}
+  HairColor: {r: 0, g: 0, b: 0, a: 0}
+  HasShortHair: 0
+  HasLongHair: 0
+  HasBeard: 0
 --- !u!114 &3479681225550186914
 MonoBehaviour:
   m_ObjectHideFlags: 0
