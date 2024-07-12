@@ -2,8 +2,6 @@ using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
-using UnityEngine;
-using UnityEngine.UIElements.Experimental;
 
 namespace U0071
 {
@@ -57,14 +55,11 @@ namespace U0071
 				// not relying on partition here because entities in different rooms cannot detect each other (doorway = single tile room)
 				if (peeking.StartedFlag || interactable.CurrentUser != Entity.Null && interactable.CurrentUser != PlayerEntity)
 				{
-					// TBC direction towards check
 					float2 playerPosition = PositionLookup[PlayerEntity].Value;
-					bool isPeeking =
-						position.IsInRange(playerPosition, Const.PeekingRange) &&
-						door.IsOnEnterCodeSide(playerPosition, position.Value) &&
-						Utilities.IsDirectionTowards(playerPosition, position.Value - playerPosition, position.Value, Const.PeekingAngle);
+					bool isInRange = position.IsInRange(playerPosition, Const.PeekingStartRange) && door.IsOnEnterCodeSide(playerPosition, position.Value);
+					bool isPeeking = isInRange && position.IsInRange(playerPosition, Const.PeekingRange);
 
-					if (isPeeking && !peeking.StartedFlag && door.IsOnEnterCodeSide(PositionLookup[interactable.CurrentUser].Value, position.Value))
+					if (isInRange && !peeking.StartedFlag && door.IsOnEnterCodeSide(PositionLookup[interactable.CurrentUser].Value, position.Value))
 					{
 						// init
 						ActionController controller = ActionLookup[interactable.CurrentUser];
@@ -73,8 +68,6 @@ namespace U0071
 						peeking.FirstDiscovered = peeking.SecondDiscovered = peeking.ThirdDiscovered = peeking.FourthDiscovered = false;
 						peeking.StaysTimer = 0f;
 						peeking.Suspicion = 0f;
-
-						Debug.Log("Peeking started at digit index " + peeking.DigitIndex);
 					}
 					else if (peeking.StartedFlag && interactable.CurrentUser != Entity.Null)
 					{
@@ -87,11 +80,6 @@ namespace U0071
 							peeking.RevealDigit(peeking.DigitIndex);
 						}
 						peeking.DigitIndex = newDigitIndex;
-
-						Debug.Log(
-							(peeking.FirstDiscovered ? "X" : peeking.DigitIndex > 0 ? "?" : "_") +
-							(peeking.SecondDiscovered ? "X" : peeking.DigitIndex > 1 ? "?" : "_") +
-							(peeking.ThirdDiscovered ? "X" : peeking.DigitIndex > 2 ? "?" : "_") + "_");
 					}
 					else if (peeking.StartedFlag) // interaction stopped
 					{
@@ -104,12 +92,6 @@ namespace U0071
 							peeking.DigitIndex = 4;
 						}
 						// else interaction was cancelled
-
-						Debug.Log(
-							(peeking.FirstDiscovered ? "X" : "?") +
-							(peeking.SecondDiscovered ? "X" : "?") +
-							(peeking.ThirdDiscovered ? "X" : "?") +
-							(peeking.FourthDiscovered ? "X" : "?"));
 					}
 				}
 			}

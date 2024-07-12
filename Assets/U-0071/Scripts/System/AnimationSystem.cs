@@ -65,7 +65,6 @@ namespace U0071
 		}
 
 		[BurstCompile]
-		[WithAll(typeof(PlayerController))]
 		public partial struct AnimationJob : IJobEntity
 		{
 			public float DeltaTime;

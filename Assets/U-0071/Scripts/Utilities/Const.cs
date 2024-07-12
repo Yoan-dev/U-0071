@@ -19,7 +19,8 @@ namespace U0071
 		public const float AIRelaxWeight = 0.2f;
 
 		// doors
-		public const float AIUnitEnterCodeTime = 3f;
+		public const float AIUnitEnterCodeTime = 4f;
+		public const float PeekingStartRange = 4f;
 		public const float PeekingRange = 2f;
 		public const float PeekingAngle = math.PI / 4f;
 		public const float PeekingStaysTime = 0.5f;

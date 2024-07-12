@@ -395,7 +395,7 @@ PrefabInstance:
     - target: {fileID: 4271635748625732498, guid: a153a4c14592d0646afb9e802275efe5,
         type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6182060189481554560, guid: a153a4c14592d0646afb9e802275efe5,
         type: 3}
@@ -978,7 +978,7 @@ PrefabInstance:
     - target: {fileID: 4271635748625732498, guid: a153a4c14592d0646afb9e802275efe5,
         type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6182060189481554560, guid: a153a4c14592d0646afb9e802275efe5,
         type: 3}
@@ -1502,7 +1502,7 @@ PrefabInstance:
     - target: {fileID: 4271635748625732498, guid: a153a4c14592d0646afb9e802275efe5,
         type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6182060189481554560, guid: a153a4c14592d0646afb9e802275efe5,
         type: 3}
@@ -2115,7 +2115,7 @@ PrefabInstance:
     - target: {fileID: 4271635748625732498, guid: a153a4c14592d0646afb9e802275efe5,
         type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6182060189481554560, guid: a153a4c14592d0646afb9e802275efe5,
         type: 3}
@@ -2400,7 +2400,7 @@ PrefabInstance:
     - target: {fileID: 4271635748625732498, guid: a153a4c14592d0646afb9e802275efe5,
         type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -2661,7 +2661,7 @@ PrefabInstance:
     - target: {fileID: 4271635748625732498, guid: a153a4c14592d0646afb9e802275efe5,
         type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6182060189481554560, guid: a153a4c14592d0646afb9e802275efe5,
         type: 3}
@@ -3047,7 +3047,7 @@ PrefabInstance:
     - target: {fileID: 4271635748625732498, guid: a153a4c14592d0646afb9e802275efe5,
         type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6182060189481554560, guid: a153a4c14592d0646afb9e802275efe5,
         type: 3}
