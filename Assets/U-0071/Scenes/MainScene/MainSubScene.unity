@@ -892,6 +892,12 @@ Transform:
     type: 3}
   m_PrefabInstance: {fileID: 1700858935}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1700858937 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4478438157653224650, guid: df64bed592328d0489d39030b772e561,
+    type: 3}
+  m_PrefabInstance: {fileID: 1700858935}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &2040275911336154897
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -905,6 +911,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Config
       objectReference: {fileID: 0}
+    - target: {fileID: 6028477158879148215, guid: 34a601e08c9e8e349b26b257805dd771,
+        type: 3}
+      propertyPath: LastDoor
+      value: 
+      objectReference: {fileID: 1700858937}
     - target: {fileID: 6028477158879148215, guid: 34a601e08c9e8e349b26b257805dd771,
         type: 3}
       propertyPath: WorldDimensions.x

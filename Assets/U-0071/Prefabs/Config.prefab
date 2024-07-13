@@ -49,6 +49,12 @@ MonoBehaviour:
     y: 64
   Seed: 1
   CycleDuration: 20
+  HaveEnding: 1
+  EndingPhaseOneY: 15
+  EndingPhaseTwoY: 21
+  EndingPhaseThreeY: 27
+  EndingPhaseThreeAbsX: 6
+  LastDoor: {fileID: 0}
   CharacterIdle:
     StartIndex: 0
     Duration: 4
@@ -84,6 +90,11 @@ MonoBehaviour:
     Duration: 6
     FrameTime: 0.075
     Looping: 1
+  CharacterDepixelate:
+    StartIndex: 40
+    Duration: 12
+    FrameTime: 0.2
+    Looping: 0
   SkinColors:
   - {r: 0.4433962, g: 0.3374874, b: 0.25725347, a: 1}
   - {r: 0.5568628, g: 0.427451, b: 0.32941177, a: 1}

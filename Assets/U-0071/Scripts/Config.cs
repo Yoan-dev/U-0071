@@ -48,5 +48,20 @@ namespace U0071
 		public uint Seed;
 	}
 
+	public struct Ending : IComponentData
+	{
+		public Animation CharacterDepixelate;
+		public Entity LastDoorEntity;
+		public float EndingPhaseOneY;
+		public float EndingPhaseTwoY;
+		public float EndingPhaseThreeY;
+		public float EndingPhaseThreeAbsX;
+		public bool PhaseOneTriggered;
+		public bool PhaseTwoTriggered;
+		public bool PhaseThreeTriggered;
+		public bool PhaseFourTriggered;
+		public bool HaveEnding;
+	}
+
 	public struct GameInitFlag : IComponentData { }
 }

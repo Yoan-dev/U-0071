@@ -30,11 +30,11 @@ namespace U0071
 	public struct PlayerController : IComponentData
 	{
 		public float2 MoveInput;
-		public float2 LookInput;
 		public ActionInfo PrimaryAction;
 		public ActionInfo SecondaryAction;
 		public float ActionTimer;
 		public AreaAuthorization CachedDoorAuthorization;
+		public bool Locked;
 
 		public bool HasPrimaryAction => PrimaryAction.Has;
 		public bool HasSecondaryAction => SecondaryAction.Has;

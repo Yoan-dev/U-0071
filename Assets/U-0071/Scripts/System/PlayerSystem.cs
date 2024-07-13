@@ -34,9 +34,6 @@ namespace U0071
 			{
 				controller.SecondaryAction.IsPressed = true;
 			}
-
-			// TODO
-			controller.LookInput = new float2();
 		}
 	}
 
@@ -96,7 +93,7 @@ namespace U0071
 		{
 			public void Execute(ref MovementComponent movement, in PlayerController controller, in ActionController actionController)
 			{
-				movement.Input = actionController.IsResolving ? float2.zero : controller.MoveInput;
+				movement.Input = actionController.IsResolving || controller.Locked ? float2.zero : controller.MoveInput;
 			}
 		}
 

@@ -11,6 +11,7 @@ public class ManagedData : MonoBehaviour
 	public string[] RespawnLines;
 	public string[] GoCrazyDeathLines;
 	public string[] GoCrazyEndLines;
+	public string[] EndingLines;
 
 	private void Awake()
 	{
@@ -27,8 +28,8 @@ public class ManagedData : MonoBehaviour
 		return GoCrazyDeathLines[new Random((uint)(iteration + inc)).NextInt(0, GoCrazyDeathLines.Length)];
 	}
 
-	public string GetCrazyEndLine(int iteration, int inc)
+	public string GetEndingLine(int phase)
 	{
-		return GoCrazyEndLines[new Random((uint)(iteration + inc)).NextInt(0, GoCrazyEndLines.Length)];
+		return EndingLines[phase];
 	}
 }

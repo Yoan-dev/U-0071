@@ -7,6 +7,9 @@ namespace U0071
 	{
 		public const int ParallelForCount = 256;
 
+		// Ending
+		public const float EndingPhaseFourTime = 3f;
+
 		// Simulation Reset
 		public const float SimulationFirstResetTime = 8f;
 		public const float SimulationRespawnResetTime = 5f;

@@ -29,6 +29,8 @@ namespace U0071
 
 	public struct ResolveDeathTag : IComponentData, IEnableableComponent { }
 
+	public struct InvincibleTag : IComponentData { }
+
 	public struct SickComponent : IComponentData, IEnableableComponent
 	{
 		public float Timer;

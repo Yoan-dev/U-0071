@@ -53,6 +53,7 @@ namespace U0071
 
 		[BurstCompile]
 		[WithNone(typeof(DeathComponent))]
+		[WithNone(typeof(InvincibleTag))]
 		public partial struct HungerJob : IJobEntity
 		{
 			public EntityCommandBuffer.ParallelWriter Ecb;
@@ -160,6 +161,7 @@ namespace U0071
 
 		[BurstCompile]
 		[WithNone(typeof(DeathComponent))]
+		[WithNone(typeof(InvincibleTag))]
 		public partial struct SickJob : IJobEntity
 		{
 			public float DeltaTime;

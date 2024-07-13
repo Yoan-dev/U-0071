@@ -1,4 +1,3 @@
-using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
@@ -13,6 +12,14 @@ namespace U0071
 		public uint Seed;
 		public float CycleDuration;
 
+		[Header("Ending")]
+		public bool HaveEnding = true;
+		public float EndingPhaseOneY;
+		public float EndingPhaseTwoY;
+		public float EndingPhaseThreeY;
+		public float EndingPhaseThreeAbsX;
+		public GameObject LastDoor;
+
 		[Header("Animations")]
 		public Animation CharacterIdle;
 		public Animation CharacterWalk;
@@ -21,6 +28,7 @@ namespace U0071
 		public Animation CharacterCrushed;
 		public Animation CharacterCrushedFromBelow;
 		public Animation CharacterFlee;
+		public Animation CharacterDepixelate;
 
 		[Header("Unit Rendering")]
 		public Color[] SkinColors;
@@ -67,6 +75,18 @@ namespace U0071
 					AdminShirtColor = authoring.AdminShirtColor.linear.ToFloat4(),
 					UnitArrayMaxIndex = authoring.UnitArrayMaxIndex,
 				};
+				if (authoring.HaveEnding)
+				{
+					AddComponent(entity, new Ending
+					{
+						CharacterDepixelate = authoring.CharacterDepixelate,
+						EndingPhaseOneY = authoring.EndingPhaseOneY,
+						EndingPhaseTwoY = authoring.EndingPhaseTwoY,
+						EndingPhaseThreeY = authoring.EndingPhaseThreeY,
+						EndingPhaseThreeAbsX = authoring.EndingPhaseThreeAbsX,
+						LastDoorEntity = GetEntity(authoring.LastDoor, TransformUsageFlags.Dynamic),
+					});
+				}
 
 				AddComponent(entity, config);
 				AddComponent(entity, new CycleComponent());

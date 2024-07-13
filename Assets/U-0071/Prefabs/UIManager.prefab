@@ -326,6 +326,7 @@ MonoBehaviour:
   _usedLineTime: 0
   _saidStartingLine: 0
   _initialized: 0
+  EndingLineTime: 3
   GoCrazyFirstStartTime: 4
   GoCrazyRespawnStartTime: 1
   _goCrazyTimer: 0

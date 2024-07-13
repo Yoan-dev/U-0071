@@ -5,6 +5,7 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
+using Unity.VisualScripting.FullSerializer;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -30,6 +31,12 @@ public class UIManager : MonoBehaviour
 	public float _usedLineTime;
 	public bool _saidStartingLine;
 	public bool _initialized;
+
+	// would have been cleaner to do a generic line saying call with timer management
+	[Header("Ending")]
+	public float EndingLineTime;
+	private float _endingLineTimer;
+
 
 	[Header("Go Crazy")]
 	public float GoCrazyFirstStartTime;
@@ -60,11 +67,18 @@ public class UIManager : MonoBehaviour
 
 	// miscellaneous
 	private int _lastCreditsValue;
+
+	// death random effects
 	private int _goCrazyHungerInc = 1;
 	private int _goCrazyCreditsInc = 100000;
 	private int _goCrazyCycleInc = 200000;
 	private int _goCrazyCodeInc = 300000;
 	private int _goCrazyInteractionInc = 400000;
+
+	// ending
+	private bool _endingPhaseOneProcessed;
+	private bool _endingPhaseTwoProcessed;
+	private bool _endingPhaseThreeProcessed;
 
 	private void OnEnable()
 	{
@@ -123,12 +137,55 @@ public class UIManager : MonoBehaviour
 				}
 				if (_initialized)
 				{
-					TickPlayerLine(in config, position);
+					TickPlayerSpawn(in config, position);
 				}
 			}
 			else
 			{
-				if (entityManager.IsComponentEnabled<DeathComponent>(_player))
+				Ending ending = entityManager.GetComponentData<Ending>(_gameSingleton);
+				if (ending.PhaseOneTriggered)
+				{
+					if (!_endingPhaseOneProcessed)
+					{
+						_endingPhaseOneProcessed = true;
+						_hungerLabel.style.display = DisplayStyle.None;
+						_creditsLabel.style.display = DisplayStyle.None;
+						_cycleLabel.style.display = DisplayStyle.None;
+						_codeLabel.style.display = DisplayStyle.None;
+
+						_endingLineTimer = EndingLineTime;
+						Interaction.text = ManagedData.Instance.GetEndingLine(0);
+						Interaction.gameObject.SetActive(true);
+					}
+					else if (ending.PhaseTwoTriggered && !_endingPhaseTwoProcessed)
+					{
+						_endingPhaseTwoProcessed = true;
+
+						_endingLineTimer = EndingLineTime;
+						Interaction.color = Color.black;
+						Interaction.text = ManagedData.Instance.GetEndingLine(1);
+						Interaction.gameObject.SetActive(true);
+					}
+					else if (ending.PhaseThreeTriggered && !_endingPhaseThreeProcessed)
+					{
+						_endingPhaseThreeProcessed = true;
+
+						_endingLineTimer = EndingLineTime;
+						Interaction.text = ManagedData.Instance.GetEndingLine(2);
+						Interaction.gameObject.SetActive(true);
+					}
+
+					if (_endingLineTimer > 0)
+					{
+						_endingLineTimer -= Time.deltaTime;
+						Interaction.transform.SetLocalPositionAndRotation(new float3(position.x, position.y + 5f, position.z + HeightOffset), Interaction.transform.rotation);
+					}
+					else
+					{
+						Interaction.gameObject.SetActive(false);
+					}
+				}
+				else if (entityManager.IsComponentEnabled<DeathComponent>(_player))
 				{
 					GoCrazy(GameSimulationSystem.CachedIteration, position);
 				}
@@ -314,7 +371,7 @@ public class UIManager : MonoBehaviour
 		}
 	}
 
-	private void TickPlayerLine(in Config config, float3 position)
+	private void TickPlayerSpawn(in Config config, float3 position)
 	{
 		_playerLineTimer += Time.deltaTime;
 		if (!_saidStartingLine && _playerLineTimer > _usedLineTime)
