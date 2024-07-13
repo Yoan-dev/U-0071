@@ -61,6 +61,7 @@ namespace U0071
 				position.y > ending.EndingPhaseTwoY && math.abs(position.x) > ending.EndingPhaseThreeAbsX))
 			{
 				ending.PhaseThreeTriggered = true;
+				SystemAPI.GetComponentRW<PlayerController>(playerEntity).ValueRW.Locked = true;
 			}
 			else if (!ending.PhaseFourTriggered && ending.PhaseThreeTriggered)
 			{
@@ -69,7 +70,6 @@ namespace U0071
 				{
 					ending.PhaseFourTriggered = true;
 					SystemAPI.GetComponentRW<AnimationController>(playerEntity).ValueRW.StartAnimation(ending.CharacterDepixelate);
-					SystemAPI.GetComponentRW<PlayerController>(playerEntity).ValueRW.Locked = true;
 					state.EntityManager.AddComponent<SimpleAnimationTag>(playerEntity);
 				}
 			}
