@@ -6,7 +6,8 @@ namespace U0071
 	public static class Const
 	{
 		public const int ParallelForCount = 256;
-		public const float SimulationResetTime = 1f;
+		public const float SimulationFirstResetTime = 8f;
+		public const float SimulationRespawnResetTime = 5f;
 
 		// Cycle
 		public const uint CycleCounterSeedIndex = 123456;

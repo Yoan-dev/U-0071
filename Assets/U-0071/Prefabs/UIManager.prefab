@@ -326,6 +326,16 @@ MonoBehaviour:
   _usedLineTime: 0
   _saidStartingLine: 0
   _initialized: 0
+  GoCrazyFirstStartTime: 4
+  GoCrazyRespawnStartTime: 1
+  _goCrazyTimer: 0
+  _usedGoCrazyTime: 0
+  _goCrazyHungerTimer: 0
+  _goCrazyCreditsTimer: 0.5
+  _goCrazyCycleTimer: 2
+  _goCrazyCodeTimer: 1.5
+  _goCrazyInteractionTimer: 1
+  _goCrazyRandomTextTimer: 1
 --- !u!114 &3597952234028054746
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -47,7 +47,7 @@ namespace U0071
 			if (_resetStarted)
 			{
 				_resetTimer += SystemAPI.Time.DeltaTime;
-				if (_resetTimer > Const.SimulationResetTime)
+				if (_resetTimer > (CachedIteration == 0 ? Const.SimulationFirstResetTime : Const.SimulationRespawnResetTime))
 				{
 					_iterationInitialized = false;
 					_resetStarted = false;

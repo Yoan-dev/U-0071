@@ -31,6 +31,18 @@ public class UIManager : MonoBehaviour
 	public bool _saidStartingLine;
 	public bool _initialized;
 
+	[Header("Go Crazy")]
+	public float GoCrazyFirstStartTime;
+	public float GoCrazyRespawnStartTime;
+	public float _goCrazyTimer;
+	public float _usedGoCrazyTime;
+	public float _goCrazyHungerTimer = 0f;
+	public float _goCrazyCreditsTimer = 0.5f;
+	public float _goCrazyCycleTimer = 2f;
+	public float _goCrazyCodeTimer = 1.5f;
+	public float _goCrazyInteractionTimer = 1f;
+	public float _goCrazyRandomTextTimer = 1f;
+
 	// ECS
 	private Entity _player;
 	private Entity _gameSingleton;
@@ -48,6 +60,11 @@ public class UIManager : MonoBehaviour
 
 	// miscellaneous
 	private int _lastCreditsValue;
+	private int _goCrazyHungerInc = 1;
+	private int _goCrazyCreditsInc = 100000;
+	private int _goCrazyCycleInc = 200000;
+	private int _goCrazyCodeInc = 300000;
+	private int _goCrazyInteractionInc = 400000;
 
 	private void OnEnable()
 	{
@@ -100,6 +117,7 @@ public class UIManager : MonoBehaviour
 				{
 					_initialized = true;
 					_usedLineTime = GameSimulationSystem.CachedIteration == 0 ? StartLineTime : RespawnLineTime;
+					_usedGoCrazyTime = GameSimulationSystem.CachedIteration == 0 ? GoCrazyFirstStartTime : GoCrazyRespawnStartTime;
 					_fadeScreen.style.display = GameSimulationSystem.CachedIteration == 0 ? DisplayStyle.Flex : DisplayStyle.None;
 				}
 				if (_initialized)
@@ -109,18 +127,25 @@ public class UIManager : MonoBehaviour
 			}
 			else
 			{
-				PlayerController playerController = entityManager.GetComponentData<PlayerController>(_player);
-				ActionController actionController = entityManager.GetComponentData<ActionController>(_player);
-				CreditsComponent credits = entityManager.GetComponentData<CreditsComponent>(_player);
-				HungerComponent hunger = entityManager.GetComponentData<HungerComponent>(_player);
-				PeekingInfoComponent peekingInfo = entityManager.GetComponentData<PeekingInfoComponent>(_player);
-				CycleComponent cycle = entityManager.GetComponentData<CycleComponent>(_gameSingleton);
+				if (entityManager.IsComponentEnabled<DeathComponent>(_player))
+				{
+					GoCrazy(GameSimulationSystem.CachedIteration);
+				}
+				else
+				{
+					PlayerController playerController = entityManager.GetComponentData<PlayerController>(_player);
+					ActionController actionController = entityManager.GetComponentData<ActionController>(_player);
+					CreditsComponent credits = entityManager.GetComponentData<CreditsComponent>(_player);
+					HungerComponent hunger = entityManager.GetComponentData<HungerComponent>(_player);
+					PeekingInfoComponent peekingInfo = entityManager.GetComponentData<PeekingInfoComponent>(_player);
+					CycleComponent cycle = entityManager.GetComponentData<CycleComponent>(_gameSingleton);
 
-				UpdateInteraction(in playerController, position);
-				UpdateHUD(in credits, in hunger, in cycle);
-				ProcessPopEvents(in credits, position);
-				UpdateCodepad(in entityManager, in playerController, in actionController, in cycle);
-				UpdatePeekingBubble(in peekingInfo, in cycle);
+					UpdateInteraction(in playerController, position);
+					UpdateHUD(in credits, in hunger, in cycle);
+					ProcessPopEvents(in credits, position);
+					UpdateCodepad(in entityManager, in playerController, in actionController, in cycle);
+					UpdatePeekingBubble(in peekingInfo, in cycle);
+				}
 			}
 		}
 	}
@@ -313,5 +338,37 @@ public class UIManager : MonoBehaviour
 			_fadeScreen.style.opacity = Utilities.EaseOutCubic(1f - (_playerLineTimer / StartLineTime), 3f);
 		}
 		Interaction.transform.SetLocalPositionAndRotation(new float3(position.x, position.y + 5f, position.z + HeightOffset), Interaction.transform.rotation);
+	}
+
+	private void GoCrazy(int iteration)
+	{
+		_goCrazyTimer += Time.deltaTime;
+		if (_goCrazyTimer > _usedGoCrazyTime)
+		{
+			TickGoCrazyLabel(iteration, ref _goCrazyHungerInc, _hungerLabel, ref _goCrazyHungerTimer);
+			TickGoCrazyLabel(iteration, ref _goCrazyCreditsInc, _creditsLabel, ref _goCrazyCreditsTimer);
+			TickGoCrazyLabel(iteration, ref _goCrazyCycleInc, _cycleLabel, ref _goCrazyCycleTimer);
+			TickGoCrazyLabel(iteration, ref _goCrazyCodeInc, _codeLabel, ref _goCrazyCodeTimer);
+
+			_goCrazyInteractionTimer -= Time.deltaTime;
+			if (_goCrazyInteractionTimer <= 0f)
+			{
+				_goCrazyInteractionTimer = _goCrazyRandomTextTimer;
+				Interaction.text = ManagedData.Instance.GetCrazyDeathLine(iteration, _goCrazyInteractionInc);
+				_goCrazyInteractionInc += 33333;
+				Interaction.gameObject.SetActive(true);
+			}
+		}
+	}
+
+	private void TickGoCrazyLabel(int iteration, ref int inc, Label label, ref float timer)
+	{
+		timer -= Time.deltaTime;
+		if (timer <= 0f)
+		{
+			timer = _goCrazyRandomTextTimer;
+			label.text = ManagedData.Instance.GetCrazyDeathLine(iteration, inc);
+			inc += 33333;
+		}
 	}
 }

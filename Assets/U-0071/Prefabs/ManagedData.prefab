@@ -71,3 +71,12 @@ MonoBehaviour:
   - Just another cycle.
   - Ugh...
   - Make it stop.
+  GoCrazyDeathLines:
+  - ezfc2r*NullReferenceException:dzfze$U-0071c$$d
+  - "\xE9#MemoryLeak##Detected#Enable###Journaling{{For&&&&&"
+  - "dzf\"{[[[~&&'[##\xE0"
+  GoCrazyEndLines:
+  - d#"<UnitOutOf##e$^Bounds
+  - ezfc2r*NullReferenceException:dzfze$U-0071c$$d
+  - "\xE9#MemoryLeak##Detected#Enable###Journaling{{For&&&&&"
+  - "dzf\"{[[[~&&'[##\xE0"
