@@ -88,8 +88,6 @@ namespace U0071
 			}
 			_updates.Clear();
 
-			state.Dependency = new RoomInitJob().ScheduleParallel(state.Dependency);
-
 			state.Dependency = new RoomUpdateJob
 			{
 				Partition = partition,
@@ -106,6 +104,8 @@ namespace U0071
 			{
 				Updates = _updates,
 			}.ScheduleParallel(state.Dependency);
+
+			state.Dependency = new RoomInitJob().ScheduleParallel(state.Dependency);
 
 			state.Dependency = new WorkProviderJob
 			{
@@ -286,10 +286,10 @@ namespace U0071
 					{
 						int opportunityCount = room.Capacity - room.Population;
 
-						if (room.Area == AreaAuthorization.LevelOne) info.LevelOneOpportunityCount += opportunityCount;
-						else if (room.Area == AreaAuthorization.LevelTwo) info.LevelTwoOpportunityCount += opportunityCount;
-						else if (room.Area == AreaAuthorization.LevelThree) info.LevelThreeOpportunityCount += opportunityCount;
-						else if (room.Area == AreaAuthorization.Admin) info.AdminOpportunityCount += opportunityCount;
+						if (Utilities.HasAuthorization(room.Area, AreaAuthorization.LevelOne)) info.LevelOneOpportunityCount += opportunityCount;
+						else if (Utilities.HasAuthorization(room.Area, AreaAuthorization.LevelTwo)) info.LevelTwoOpportunityCount += opportunityCount;
+						else if (Utilities.HasAuthorization(room.Area, AreaAuthorization.LevelThree)) info.LevelThreeOpportunityCount += opportunityCount;
+						else if (Utilities.HasAuthorization(room.Area, AreaAuthorization.Admin)) info.AdminOpportunityCount += opportunityCount;
 					}
 				}
 			}

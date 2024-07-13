@@ -90,7 +90,8 @@ namespace U0071
 				AIGoal.Work => cell.ToWork,
 				AIGoal.Destroy => cell.ToDestroy,
 				AIGoal.Process => cell.ToProcess,
-				AIGoal.Wander => cell.ToWander,
+				AIGoal.BoredWander => cell.ToWander,
+				AIGoal.WorkWander => cell.ToWander,
 				AIGoal.Flee => cell.ToWander,
 				_ => float2.zero,
 			};

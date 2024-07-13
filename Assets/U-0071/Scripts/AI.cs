@@ -9,7 +9,8 @@ namespace U0071
 		None = 0,
 		Eat, // find a place to buy food
 		Work, // make money
-		Wander, // find new opportunities or take a break
+		BoredWander, // take a break
+		WorkWander, // search new opportunities
 		Flee, // someone died
 		Destroy, // find a place to destroy carried item
 		Process, // find a place to process carried raw food
@@ -26,7 +27,6 @@ namespace U0071
 		public float EatWeight;
 		public float WorkWeight;
 
-		public bool IsBoredomWander;
 		public bool IsPathing;
 
 		// for debugging
@@ -35,22 +35,23 @@ namespace U0071
 		public bool HasCriticalGoal => IsCriticalGoal(Goal);
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public bool ShouldReassess(float hungerRatio, bool hasItem, bool hasOpportunity)
+		public bool ShouldReassess(float hungerRatio, bool hasItem, bool hasOpportunity, bool isFired)
 		{
 			return 
 				ReassessmentTimer <= 0f || 
 				Goal == AIGoal.Eat && hungerRatio >= Const.AILightHungerRatio ||
 				Goal == AIGoal.Destroy && !hasItem ||
 				Goal == AIGoal.Process && !hasItem ||
-				Goal == AIGoal.Wander && !IsBoredomWander && hasOpportunity;
+				Goal == AIGoal.WorkWander && hasOpportunity ||
+				Goal == AIGoal.Work && isFired;
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void ChooseGoal(Entity entity, bool hasItem, in ComponentLookup<RoomComponent> roomLookup, Entity currentRoom)
+		public void ChooseGoal(Entity entity, bool hasItem, bool isFired, in ComponentLookup<RoomComponent> roomLookup, Entity currentRoom)
 		{
 			AIGoal newGoal =
 				EatWeight >= WorkWeight && EatWeight >= BoredomValue ? AIGoal.Eat :
-				BoredomValue >= WorkWeight ? AIGoal.Wander :
+				BoredomValue >= WorkWeight ? AIGoal.BoredWander :
 				AIGoal.Work;
 
 			if ((Goal == AIGoal.Destroy || Goal == AIGoal.Process) && hasItem && !IsCriticalGoal(newGoal))
@@ -59,17 +60,9 @@ namespace U0071
 				newGoal = Goal; 
 			}
 
-			IsBoredomWander = newGoal == AIGoal.Wander; // for debugging
-
-			if (Goal == AIGoal.Work)
+			if (Goal == AIGoal.Work && isFired)
 			{
-				// verify that we are not in a crowded workplace
-				RoomComponent room = roomLookup[currentRoom];
-				if (room.Capacity > 0 && room.Population > room.Capacity && room.FiredWorker == entity)
-				{
-					// look for new opportunities
-					newGoal = AIGoal.Wander;
-				}
+				newGoal = AIGoal.WorkWander;
 			}
 
 			Goal = newGoal;

@@ -68,7 +68,7 @@ namespace U0071
 				PickableLookup = _pickableLookup,
 				DoorLookup = _doorLookup,
 				Cycle = SystemAPI.GetSingleton<CycleComponent>(),
-				DeltaTime = Const.AITick,
+				DeltaTime = SystemAPI.Time.DeltaTime,
 			}.ScheduleParallel(_query, state.Dependency);
 
 			state.Dependency = new AIMovementJob
@@ -111,7 +111,7 @@ namespace U0071
 				EnabledRefRO<DeathComponent> death,
 				EnabledRefRO<PushedComponent> pushed)
 			{
-				bool isInActivity = actionController.IsResolving || controller.Goal == AIGoal.Destroy || controller.Goal == AIGoal.Process || controller.Goal == AIGoal.Wander;
+				bool isInActivity = actionController.IsResolving || controller.Goal == AIGoal.Destroy || controller.Goal == AIGoal.Process || controller.Goal == AIGoal.WorkWander || controller.Goal == AIGoal.BoredWander;
 				controller.BoredomValue = math.clamp(controller.BoredomValue + DeltaTime * (isInActivity ? Const.AIFulfilmentSpeed : Const.AIBoredomSpeed), 0f, Const.AIMaxBoredomWeight);
 				controller.ReassessmentTimer -= DeltaTime;
 				controller.ReassessedLastFrame = false;
@@ -146,13 +146,24 @@ namespace U0071
 				}
 
 				bool isAdmin = authorization.IsAdmin;
+				bool hasOpportunity = false;
+				bool isFired = false;
 
 				// look for job opportunities
-				bool hasOpportunity = false;
-				if (controller.Goal == AIGoal.Wander && !controller.IsBoredomWander && WorkInfoLookup.HasComponent(partition.CurrentRoom))
+				if (controller.Goal == AIGoal.WorkWander && WorkInfoLookup.HasComponent(partition.CurrentRoom))
 				{
 					WorkInfoComponent workInfo = WorkInfoLookup[partition.CurrentRoom];
 					hasOpportunity = workInfo.ShouldStopHere(authorization.Flag);
+				}
+
+				// check if in a crowded workplace and fired
+				if (controller.Goal == AIGoal.Work)
+				{
+					RoomComponent room = RoomLookup[partition.CurrentRoom];
+					if (room.Capacity > 0 && room.Population > room.Capacity && room.FiredWorker == entity)
+					{
+						isFired = true;
+					}
 				}
 
 				// attempt at a rough mid-term goal AI
@@ -167,7 +178,7 @@ namespace U0071
 						Utilities.QueueDropAction(ref actionController, ref orientation, in position, in carry, isActing);
 					}
 				}
-				else if (controller.ShouldReassess(hungerRatio, carry.HasItem, hasOpportunity))
+				else if (controller.ShouldReassess(hungerRatio, carry.HasItem, hasOpportunity, isFired))
 				{
 					controller.ReassessedLastFrame = true;
 
@@ -178,7 +189,7 @@ namespace U0071
 					float classCreditsRatio = 1f - credits.Value / classCredits;
 					controller.WorkWeight = math.clamp(Const.AIBaseWorkWeight + classCreditsRatio * (1f - Const.AIBaseWorkWeight), 0f, 1f);
 
-					controller.ChooseGoal(entity, carry.HasItem, in RoomLookup, partition.CurrentRoom);
+					controller.ChooseGoal(entity, carry.HasItem, isFired, in RoomLookup, partition.CurrentRoom);
 				}
 
 				// look for new target
