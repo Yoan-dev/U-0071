@@ -33,6 +33,9 @@ namespace U0071
 		public float ChanceOfLongHair;
 		public float ChanceOfBeard;
 
+		[Header("Respawn Random")]
+		public int UnitArrayMaxIndex;
+
 		[Header("Miscellaneous")]
 		public GameObject OrganicWastePrefab;
 
@@ -62,6 +65,7 @@ namespace U0071
 					LevelTwoShirtColor = authoring.LevelTwoShirtColor.linear.ToFloat4(),
 					LevelThreeShirtColor = authoring.LevelThreeShirtColor.linear.ToFloat4(),
 					AdminShirtColor = authoring.AdminShirtColor.linear.ToFloat4(),
+					UnitArrayMaxIndex = authoring.UnitArrayMaxIndex,
 				};
 
 				AddComponent(entity, config);

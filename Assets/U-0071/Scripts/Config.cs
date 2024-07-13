@@ -44,6 +44,7 @@ namespace U0071
 		public float ChanceOfBeard;
 		public float CycleDuration;
 		public int Iteration;
+		public int UnitArrayMaxIndex;
 		public uint Seed;
 	}
 

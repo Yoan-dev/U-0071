@@ -85,6 +85,7 @@ public class UIManager : MonoBehaviour
 		_codeLabel.style.display = DisplayStyle.None;
 		_fadeScreen.style.display = DisplayStyle.Flex;
 		Interaction.gameObject.SetActive(false);
+		PeekingBubble.transform.parent.gameObject.SetActive(false);
 	}
 
 	public void Update()
@@ -129,7 +130,7 @@ public class UIManager : MonoBehaviour
 			{
 				if (entityManager.IsComponentEnabled<DeathComponent>(_player))
 				{
-					GoCrazy(GameSimulationSystem.CachedIteration);
+					GoCrazy(GameSimulationSystem.CachedIteration, position);
 				}
 				else
 				{
@@ -340,7 +341,7 @@ public class UIManager : MonoBehaviour
 		Interaction.transform.SetLocalPositionAndRotation(new float3(position.x, position.y + 5f, position.z + HeightOffset), Interaction.transform.rotation);
 	}
 
-	private void GoCrazy(int iteration)
+	private void GoCrazy(int iteration, float3 position)
 	{
 		_goCrazyTimer += Time.deltaTime;
 		if (_goCrazyTimer > _usedGoCrazyTime)
@@ -355,6 +356,7 @@ public class UIManager : MonoBehaviour
 			{
 				_goCrazyInteractionTimer = _goCrazyRandomTextTimer;
 				Interaction.text = ManagedData.Instance.GetCrazyDeathLine(iteration, _goCrazyInteractionInc);
+				Interaction.transform.SetLocalPositionAndRotation(new float3(position.x, position.y + 5f, position.z + HeightOffset), Interaction.transform.rotation);
 				_goCrazyInteractionInc += 33333;
 				Interaction.gameObject.SetActive(true);
 			}

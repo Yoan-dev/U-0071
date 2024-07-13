@@ -108,5 +108,6 @@ MonoBehaviour:
   ChanceOfShortHair: 0.9
   ChanceOfLongHair: 0.6
   ChanceOfBeard: 0.3
+  UnitArrayMaxIndex: 39
   OrganicWastePrefab: {fileID: 1708813368808323750, guid: 80f746a3980560c40addf3b8fbca1168,
     type: 3}
