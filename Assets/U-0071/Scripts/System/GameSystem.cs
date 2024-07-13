@@ -214,7 +214,6 @@ namespace U0071
 					ToWork = toWork.Flowfield[i],
 					ToDestroy = toDestroy.Flowfield[i],
 					ToProcess = toProcess.Flowfield[i],
-					ToRelax = toRelax.Flowfield[i],
 
 					// overlay goToWander on wander flowfield
 					// (get out of the rooms => wander in loop)

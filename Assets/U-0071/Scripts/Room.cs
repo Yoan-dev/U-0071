@@ -60,7 +60,8 @@ namespace U0071
 				EvaluateActionFlag(ActionFlag.Collect, current, actionFilter, carriedFlag, out selected) ||
 				EvaluateActionFlag(ActionFlag.Search, current, actionFilter, carriedFlag, out selected) ||
 				EvaluateActionFlag(ActionFlag.Pick, current, actionFilter, carriedFlag, out selected, pickHavePriority) ||
-				EvaluateActionFlag(ActionFlag.Push, current, actionFilter, carriedFlag, out selected);
+				EvaluateActionFlag(ActionFlag.Push, current, actionFilter, carriedFlag, out selected) ||
+				EvaluateActionFlag(ActionFlag.Administrate, current, actionFilter, carriedFlag, out selected);
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]

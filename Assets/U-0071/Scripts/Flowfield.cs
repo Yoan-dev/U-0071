@@ -23,7 +23,6 @@ namespace U0071
 		public float2 ToDestroy;
 		public float2 ToProcess;
 		public float2 ToWander;
-		public float2 ToRelax;
 	}
 
 	public struct FlowfieldCollection : IComponentData, IDisposable
@@ -92,8 +91,7 @@ namespace U0071
 				AIGoal.Destroy => cell.ToDestroy,
 				AIGoal.Process => cell.ToProcess,
 				AIGoal.Wander => cell.ToWander,
-				AIGoal.Relax => cell.ToRelax,
-				AIGoal.Flee => cell.ToRelax.Equals(float2.zero) ? cell.ToWander : cell.ToRelax,
+				AIGoal.Flee => cell.ToWander,
 				_ => float2.zero,
 			};
 		}

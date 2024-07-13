@@ -6,11 +6,11 @@ namespace U0071
 {
 	public enum AIGoal
 	{
-		Eat = 0,
-		Work,
-		Relax, // chill
-		Wander, // find new opportunities
-		Flee,
+		None = 0,
+		Eat, // find a place to buy food
+		Work, // make money
+		Wander, // find new opportunities or take a break
+		Flee, // someone died
 		Destroy, // find a place to destroy carried item
 		Process, // find a place to process carried raw food
 	}
@@ -25,10 +25,12 @@ namespace U0071
 		// cached for debug purposes
 		public float EatWeight;
 		public float WorkWeight;
-		public float RelaxWeight;
 
-		// pathing
 		public bool IsPathing;
+
+		// for debugging
+		public bool IsBoredomWander;
+		public bool ReassessedLastFrame;
 
 		public bool HasCriticalGoal => IsCriticalGoal(Goal);
 
@@ -46,15 +48,17 @@ namespace U0071
 		public void ChooseGoal(Entity entity, bool hasItem, in ComponentLookup<RoomComponent> roomLookup, Entity currentRoom)
 		{
 			AIGoal newGoal =
-				EatWeight > WorkWeight && EatWeight > RelaxWeight ? AIGoal.Eat :
-				WorkWeight > RelaxWeight ? AIGoal.Work :
-				AIGoal.Relax;
-			
+				EatWeight >= WorkWeight && EatWeight >= BoredomValue ? AIGoal.Eat :
+				BoredomValue >= WorkWeight ? AIGoal.Wander :
+				AIGoal.Work;
+
 			if ((Goal == AIGoal.Destroy || Goal == AIGoal.Process) && hasItem && !IsCriticalGoal(newGoal))
 			{
 				// keep going for destroy/process
 				newGoal = Goal; 
 			}
+
+			IsBoredomWander = newGoal == AIGoal.Wander; // for debugging
 
 			if (Goal == AIGoal.Work)
 			{
@@ -70,7 +74,7 @@ namespace U0071
 			Goal = newGoal;
 			ReassessmentTimer = Const.GetReassessmentTimer(newGoal);
 
-			// flee goal will be set outside of controller
+			// flee/destroy/process goals set outside of controller
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]

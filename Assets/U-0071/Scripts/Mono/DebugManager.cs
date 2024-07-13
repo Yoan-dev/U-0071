@@ -20,7 +20,6 @@ public class DebugManager : MonoBehaviour
 	public bool ShowToFood;
 	public bool ShowToWork;
 	public bool ShowWander;
-	public bool ShowRelax;
 
 	[Header("Miscellaneous")]	
 	public TMP_Text RoomElementPrefab;
@@ -114,7 +113,6 @@ public class DebugManager : MonoBehaviour
 			if (ShowToWork) TryDraw(Color.blue, from, info.Workd);
 			if (ShowToProcess) TryDraw(Color.yellow, from, info.Process);
 			if (ShowWander) TryDraw(Color.cyan, from, info.Wander);
-			if (ShowRelax) TryDraw(Color.magenta, from, info.Relax);
 		}
 	}
 

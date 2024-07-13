@@ -25,11 +25,8 @@ namespace U0071
 		public static bool ProcessUnitControllerStart(
 			Entity entity,
 			ref ActionController controller,
-			ref Orientation orientation,
 			in PositionComponent position,
-			in CarryComponent carry,
 			in PartitionComponent partition,
-			EnabledRefRW<IsActing> isActing,
 			EnabledRefRO<DeathComponent> death,
 			EnabledRefRO<PushedComponent> pushed,
 			in ComponentLookup<InteractableComponent> interactableLookup,
@@ -45,6 +42,7 @@ namespace U0071
 
 			if (controller.HasTarget && (
 				!interactableLookup.TryGetComponent(controller.Action.Target, out InteractableComponent interactable) ||
+				(controller.IsResolving && !position.IsInRange(controller.Action.Position, interactable.Range)) ||
 				interactable.CurrentUser != Entity.Null && interactable.CurrentUser != entity ||
 				!controller.IsResolving && interactable.HasActionFlag(ActionFlag.Pick) && pickableLookup.IsComponentEnabled(controller.Action.Target) ||
 				!interactable.HasActionFlag(controller.Action.ActionFlag)))

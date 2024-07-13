@@ -13,11 +13,13 @@ namespace U0071
 
 		// AI goal
 		public const float AITick = 0.1f;
-		public const float AILightHungerRatio = 0.8f;
-		public const float AIStarvingRatio = 0.2f;
+		public const float AILightHungerRatio = 0.85f;
+		public const float AIStarvingRatio = 0.15f;
 		public const int AIDesiredCreditsToEat = 10;
-		public const int AIDesiredCreditsPerLevel = 50;
-		public const float AIRelaxWeight = 0.2f;
+		public const float AIBaseWorkWeight = 0.5f;
+		public const float AIMaxBoredomWeight = 0.7f;
+		public const float AIBoredomSpeed = 0.001f;
+		public const float AIFulfilmentSpeed = -0.002f; // decrease boredom
 
 		// doors
 		public const float AIUnitEnterCodeTime = 4f;
@@ -50,7 +52,7 @@ namespace U0071
 		public const float DeathSkinToneOffset = 0.15f;
 		public const float DecollisionStrength = 0.6f;
 		public const float CharacterZOffset = 0.3f;
-		public const float PlayerInteractionZOffset = -0.3f;
+		public const float UnitInteractionZOffset = -0.3f;
 		public const float Small = 0.0001f;
 
 		// sickness
@@ -82,9 +84,8 @@ namespace U0071
 		{
 			return goal switch
 			{
-				AIGoal.Eat => 10f,
+				AIGoal.Eat => 15f,
 				AIGoal.Work => 5f,
-				AIGoal.Relax => 20f,
 				AIGoal.Wander => 15f,
 				AIGoal.Flee => 5f,
 				AIGoal.Destroy => 10f,

@@ -27,7 +27,6 @@ namespace U0071
 			public float2 Workd;
 			public float2 Process;
 			public float2 Wander;
-			public float2 Relax;
 		}
 
 		private EntityQuery _query;
@@ -135,7 +134,6 @@ namespace U0071
 						Workd = cell.ToWork,
 						Process = cell.ToProcess,
 						Wander = cell.ToWander,
-						Relax = cell.ToRelax,
 					};
 				}
 			}

@@ -135,7 +135,7 @@ namespace U0071
 				controller.SecondaryAction.Reset();
 				controller.ActionTimer = 0f;
 
-				if (Utilities.ProcessUnitControllerStart(entity, ref actionController, ref orientation, in position, in carry, in partition, isActing, death, pushed, in InteractableLookup, in PickableLookup))
+				if (Utilities.ProcessUnitControllerStart(entity, ref actionController, in position, in partition, death, pushed, in InteractableLookup, in PickableLookup))
 				{
 					if (actionController.IsResolving)
 					{
@@ -164,7 +164,7 @@ namespace U0071
 				}
 
 				// player assess all elements in range
-				float2 interactionOffset = new float2(0f, Const.PlayerInteractionZOffset);
+				float2 interactionOffset = new float2(0f, Const.UnitInteractionZOffset);
 				DynamicBuffer<RoomElementBufferElement> elements = RoomElementBufferLookup[partition.CurrentRoom];
 				using (var enumerator = elements.GetEnumerator())
 				{

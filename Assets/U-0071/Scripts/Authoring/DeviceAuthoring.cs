@@ -192,6 +192,7 @@ namespace U0071
 				if (authoring.AdminStation)
 				{
 					actionFlags |= ActionFlag.Administrate;
+					isWorkingStation = true;
 				}
 
 				// interactable

@@ -1,6 +1,8 @@
+using JetBrains.Annotations;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Entities.UniversalDelegates;
 using Unity.Mathematics;
 
 namespace U0071
@@ -103,6 +105,11 @@ namespace U0071
 				EnabledRefRO<DeathComponent> death,
 				EnabledRefRO<PushedComponent> pushed)
 			{
+				bool isInActivity = actionController.IsResolving || controller.Goal == AIGoal.Destroy || controller.Goal == AIGoal.Process || controller.Goal == AIGoal.Wander;
+				controller.BoredomValue = math.clamp(controller.BoredomValue + DeltaTime * (isInActivity ? Const.AIFulfilmentSpeed : Const.AIBoredomSpeed), 0f, Const.AIMaxBoredomWeight);
+				controller.ReassessmentTimer -= DeltaTime;
+				controller.ReassessedLastFrame = false;
+
 				if (Cycle.CycleChanged && actionController.IsResolving && actionController.Action.ActionFlag == ActionFlag.Open)
 				{
 					// stop interacting with door if cycle changed
@@ -112,12 +119,10 @@ namespace U0071
 
 				if (pushed.ValueRO) controller.LastMovementInput = float2.zero;
 
-				if (Utilities.ProcessUnitControllerStart(entity, ref actionController, ref orientation, in position, in carry, in partition, isActing, death, pushed, in InteractableLookup, in PickableLookup))
+				if (Utilities.ProcessUnitControllerStart(entity, ref actionController, in position, in partition, death, pushed, in InteractableLookup, in PickableLookup))
 				{
 					return;
 				}
-
-				controller.ReassessmentTimer -= DeltaTime;
 
 				// re-evaluate current target
 				if (actionController.HasTarget)
@@ -150,23 +155,16 @@ namespace U0071
 				}
 				else if (controller.ShouldReassess(hungerRatio, carry.HasItem))
 				{
-					controller.EatWeight = hungerRatio <= Const.AILightHungerRatio && credits.Value >= Const.AIDesiredCreditsToEat ?
-						1f - math.unlerp(Const.AIStarvingRatio, Const.AILightHungerRatio, hungerRatio) : 0f;
+					controller.ReassessedLastFrame = true;
 
-					// TODO multiply by level
-					int creditsTarget = Const.AIDesiredCreditsPerLevel;
-					controller.WorkWeight = credits.Value < creditsTarget ? (1f - credits.Value / creditsTarget) : 0f;
+					bool shouldEat = hungerRatio <= Const.AILightHungerRatio && credits.Value >= Const.AIDesiredCreditsToEat;
+					controller.EatWeight = shouldEat ? math.clamp(1f - math.unlerp(Const.AIStarvingRatio, Const.AILightHungerRatio, hungerRatio), 0f, 1f) : 0f;
 
-					controller.RelaxWeight = Const.AIRelaxWeight;
+					int classCredits = Const.GetStartingCredits(authorization.Flag);
+					float classCreditsRatio = 1f - credits.Value / classCredits;
+					controller.WorkWeight = math.clamp(Const.AIBaseWorkWeight + classCreditsRatio * (1f - Const.AIBaseWorkWeight), 0f, 1f);
 
 					controller.ChooseGoal(entity, carry.HasItem, in RoomLookup, partition.CurrentRoom);
-				}
-
-				if (controller.Goal == AIGoal.Relax)
-				{
-					// life is good
-					// TODO: go to a cozy place
-					return;
 				}
 
 				// look for new target
@@ -188,7 +186,7 @@ namespace U0071
 				ItemFlag itemFilter =
 					eatGoal ? ItemFlag.Food :
 					workGoal && !isAdmin ? ItemFlag.RawFood | ItemFlag.Trash : 0;
-
+				
 				if (carry.HasItem)
 				{
 					actionFilter &= ~ActionFlag.Pick;
@@ -304,7 +302,7 @@ namespace U0071
 
 				if (!actionController.IsResolving && controller.IsPathing)
 				{
-					movement.Input = FlowfieldCollection.GetDirection(authorisation.AreaFlag, controller.Goal, position.Value);
+					movement.Input = FlowfieldCollection.GetDirection(authorisation.Flag, controller.Goal, position.Value);
 					if (movement.Input.Equals(float2.zero))
 					{
 						// arrived
@@ -350,10 +348,10 @@ namespace U0071
 		{
 			initTag.ValueRW = false;
 
-			authorization.AreaFlag = Utilities.GetLowestAuthorization(Partition.GetAuthorization(position.Value));
+			authorization.Flag = Utilities.GetLowestAuthorization(Partition.GetAuthorization(position.Value));
 
 			credits.AdminCard = authorization.IsAdmin;
-			credits.Value = Const.GetStartingCredits(authorization.AreaFlag);
+			credits.Value = Const.GetStartingCredits(authorization.Flag);
 
 			UnitIdentity identity = Config.UnitIdentityData.Value.Identities[entity.Index % Config.UnitIdentityData.Value.Identities.Length];
 
@@ -371,9 +369,9 @@ namespace U0071
 			beard.Value = pilosity.HasBeard ? hairColor : skinColor;
 
 			shirt.Value =
-				authorization.AreaFlag == AreaAuthorization.LevelOne ? Config.LevelOneShirtColor :
-				authorization.AreaFlag == AreaAuthorization.LevelTwo ? Config.LevelTwoShirtColor :
-				authorization.AreaFlag == AreaAuthorization.LevelThree ? Config.LevelThreeShirtColor : Config.AdminShirtColor;
+				authorization.Flag == AreaAuthorization.LevelOne ? Config.LevelOneShirtColor :
+				authorization.Flag == AreaAuthorization.LevelTwo ? Config.LevelTwoShirtColor :
+				authorization.Flag == AreaAuthorization.LevelThree ? Config.LevelThreeShirtColor : Config.AdminShirtColor;
 		}
 	}
 }

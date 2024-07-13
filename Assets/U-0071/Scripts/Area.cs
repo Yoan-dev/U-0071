@@ -21,8 +21,8 @@ namespace U0071
 
 	public struct AuthorizationComponent : IComponentData
 	{
-		public AreaAuthorization AreaFlag;
-		public bool IsAdmin => AreaFlag == AreaAuthorization.Admin;
+		public AreaAuthorization Flag;
+		public bool IsAdmin => Flag == AreaAuthorization.Admin;
 	}
 
 	public struct DoorComponent : IComponentData, IEnableableComponent
