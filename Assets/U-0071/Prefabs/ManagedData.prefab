@@ -61,3 +61,13 @@ MonoBehaviour:
   - {r: 0.7176471, g: 0.32941177, b: 0.15686275, a: 1}
   - {r: 0.10702207, g: 0.11743503, b: 0.122641504, a: 1}
   - {r: 0.6792453, g: 0.47083536, b: 0.36845854, a: 1}
+  StartingLines:
+  - Where am I ?
+  - Did I... die ?
+  - I need to get out of this place.
+  RespawnLines:
+  - Here we go again.
+  - ...
+  - Just another cycle.
+  - Ugh...
+  - Make it stop.

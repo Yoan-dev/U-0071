@@ -22,12 +22,22 @@ public class UIManager : MonoBehaviour
 	public Material DisabledBubbleMaterial;
 	public Material BustedBubbleMaterial;
 
+	[Header("Player Lines")]
+	public float StartLineTime;
+	public float StayLineTime;
+	public float RespawnLineTime;
+	public float _playerLineTimer;
+	public float _usedLineTime;
+	public bool _saidStartingLine;
+	public bool _initialized;
+
 	// ECS
 	private Entity _player;
 	private Entity _gameSingleton;
 
 	// HUD
 	private VisualElement _root;
+	private VisualElement _fadeScreen;
 	private Label _hungerLabel;
 	private Label _creditsLabel;
 	private Label _cycleLabel;
@@ -46,7 +56,18 @@ public class UIManager : MonoBehaviour
 		_creditsLabel = _root.Q<Label>("info_credits");
 		_cycleLabel = _root.Q<Label>("info_cycle");
 		_codeLabel = _root.Q<Label>("info_code");
+		_fadeScreen = _root.Q<VisualElement>("fadescreen");
 		_codepad = new Codepad(_root.Q<VisualElement>("codepad"));
+	}
+
+	private void Start()
+	{
+		_hungerLabel.style.display = DisplayStyle.None;
+		_creditsLabel.style.display = DisplayStyle.None;
+		_cycleLabel.style.display = DisplayStyle.None;
+		_codeLabel.style.display = DisplayStyle.None;
+		_fadeScreen.style.display = DisplayStyle.Flex;
+		Interaction.gameObject.SetActive(false);
 	}
 
 	public void Update()
@@ -55,7 +76,7 @@ public class UIManager : MonoBehaviour
 
 		if (_player == Entity.Null)
 		{
-			EntityQuery query = new EntityQueryBuilder(Allocator.Temp).WithAll<PlayerController>().Build(Utilities.GetEntityManager());
+			EntityQuery query = new EntityQueryBuilder(Allocator.Temp).WithAll<PlayerController>().Build(entityManager);
 			if (query.HasSingleton<PlayerController>())
 			{
 				_player = query.GetSingletonEntity();
@@ -63,7 +84,7 @@ public class UIManager : MonoBehaviour
 		}
 		if (_gameSingleton == Entity.Null)
 		{
-			EntityQuery query = new EntityQueryBuilder(Allocator.Temp).WithAll<CycleComponent>().Build(Utilities.GetEntityManager());
+			EntityQuery query = new EntityQueryBuilder(Allocator.Temp).WithAll<CycleComponent>().Build(entityManager);
 			if (query.HasSingleton<PlayerController>())
 			{
 				_gameSingleton = query.GetSingletonEntity();
@@ -71,27 +92,36 @@ public class UIManager : MonoBehaviour
 		}
 		if (_player != Entity.Null && _gameSingleton != Entity.Null)
 		{
-			_root.style.display = DisplayStyle.Flex;
-
-			PlayerController playerController = entityManager.GetComponentData<PlayerController>(_player);
-			ActionController actionController = entityManager.GetComponentData<ActionController>(_player);
-			CreditsComponent credits = entityManager.GetComponentData<CreditsComponent>(_player);
-			HungerComponent hunger = entityManager.GetComponentData<HungerComponent>(_player);
-			PeekingInfoComponent peekingInfo = entityManager.GetComponentData<PeekingInfoComponent>(_player);
 			float3 position = entityManager.GetComponentData<LocalTransform>(_player).Position;
-			CycleComponent cycle = entityManager.GetComponentData<CycleComponent>(_gameSingleton);
+			if (_playerLineTimer < StartLineTime + StayLineTime)
+			{
+				Config config = entityManager.GetComponentData<Config>(_gameSingleton);
+				if (!_initialized)
+				{
+					_initialized = true;
+					_usedLineTime = GameSimulationSystem.CachedIteration == 0 ? StartLineTime : RespawnLineTime;
+					_fadeScreen.style.display = GameSimulationSystem.CachedIteration == 0 ? DisplayStyle.Flex : DisplayStyle.None;
+				}
+				if (_initialized)
+				{
+					TickPlayerLine(in config, position);
+				}
+			}
+			else
+			{
+				PlayerController playerController = entityManager.GetComponentData<PlayerController>(_player);
+				ActionController actionController = entityManager.GetComponentData<ActionController>(_player);
+				CreditsComponent credits = entityManager.GetComponentData<CreditsComponent>(_player);
+				HungerComponent hunger = entityManager.GetComponentData<HungerComponent>(_player);
+				PeekingInfoComponent peekingInfo = entityManager.GetComponentData<PeekingInfoComponent>(_player);
+				CycleComponent cycle = entityManager.GetComponentData<CycleComponent>(_gameSingleton);
 
-			UpdateHUD(in credits, in hunger, in cycle);
-			UpdateInteraction(in playerController, position);
-			ProcessPopEvents(in credits, position);
-			UpdateCodepad(in entityManager, in playerController, in actionController, in cycle);
-
-			UpdatePeekingBubble(in peekingInfo, in cycle);
-		}
-		else
-		{
-			_root.style.display = DisplayStyle.None;
-			Interaction.gameObject.SetActive(false);
+				UpdateInteraction(in playerController, position);
+				UpdateHUD(in credits, in hunger, in cycle);
+				ProcessPopEvents(in credits, position);
+				UpdateCodepad(in entityManager, in playerController, in actionController, in cycle);
+				UpdatePeekingBubble(in peekingInfo, in cycle);
+			}
 		}
 	}
 
@@ -256,5 +286,32 @@ public class UIManager : MonoBehaviour
 		{
 			bubbleAnchor.gameObject.SetActive(false);
 		}
+	}
+
+	private void TickPlayerLine(in Config config, float3 position)
+	{
+		_playerLineTimer += Time.deltaTime;
+		if (!_saidStartingLine && _playerLineTimer > _usedLineTime)
+		{
+			Interaction.text = ManagedData.Instance.GetStartingLine(config.Iteration);
+			Interaction.gameObject.SetActive(true);
+			_saidStartingLine = true;
+			_fadeScreen.style.display = DisplayStyle.None;
+		}
+		else if (_saidStartingLine && _playerLineTimer > _usedLineTime + StayLineTime)
+		{
+			Interaction.text = "";
+			Interaction.gameObject.SetActive(false);
+
+			_hungerLabel.style.display = DisplayStyle.Flex;
+			_creditsLabel.style.display = DisplayStyle.Flex;
+			_cycleLabel.style.display = DisplayStyle.Flex;
+			_codeLabel.style.display = DisplayStyle.Flex;
+		}
+		else if (_fadeScreen.style.display == DisplayStyle.Flex)
+		{
+			_fadeScreen.style.opacity = Utilities.EaseOutCubic(1f - (_playerLineTimer / StartLineTime), 3f);
+		}
+		Interaction.transform.SetLocalPositionAndRotation(new float3(position.x, position.y + 5f, position.z + HeightOffset), Interaction.transform.rotation);
 	}
 }

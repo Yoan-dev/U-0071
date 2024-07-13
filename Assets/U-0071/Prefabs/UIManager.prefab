@@ -35,7 +35,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 5}
-  m_SizeDelta: {x: 7, y: 1}
+  m_SizeDelta: {x: 12, y: 1}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!23 &3222835982065974293
 MeshRenderer:
@@ -101,7 +101,10 @@ MonoBehaviour:
       m_Calls: []
   m_text: 'E: Action (Name)
 
-    F: Action (Name)'
+    F: Action (Name)
+
+    This is a very very very very
+    long phrase.'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 3678f9b20baacda40914105f230a20a0, type: 2}
   m_sharedMaterial: {fileID: 4003637104924357179, guid: 3678f9b20baacda40914105f230a20a0,
@@ -316,6 +319,13 @@ MonoBehaviour:
     type: 2}
   BustedBubbleMaterial: {fileID: 2100000, guid: 0a194aaa62ea41d4288ae6dcf786aa51,
     type: 2}
+  StartLineTime: 2.5
+  StayLineTime: 3
+  RespawnLineTime: 0.75
+  _playerLineTimer: 0
+  _usedLineTime: 0
+  _saidStartingLine: 0
+  _initialized: 0
 --- !u!114 &3597952234028054746
 MonoBehaviour:
   m_ObjectHideFlags: 0

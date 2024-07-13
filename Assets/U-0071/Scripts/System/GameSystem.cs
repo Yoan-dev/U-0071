@@ -15,6 +15,8 @@ namespace U0071
 	[UpdateBefore(typeof(GameInitSystem))]
 	public partial struct GameSimulationSystem : ISystem
 	{
+		public static int CachedIteration = 0; // for UI
+
 		private uint _seed;
 		private int _iteration;
 		private float _resetTimer;
@@ -51,7 +53,8 @@ namespace U0071
 					_resetStarted = false;
 					_resetTimer = 0;
 					_iteration++;
-					SceneManager.LoadScene("Testing", LoadSceneMode.Single);
+					CachedIteration++;
+					SceneManager.LoadScene("MainScene", LoadSceneMode.Single);
 				}
 			}
 			else
