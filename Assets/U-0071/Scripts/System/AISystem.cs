@@ -191,7 +191,7 @@ namespace U0071
 					float classCreditsRatio = 1f - credits.Value / classCredits;
 					controller.WorkWeight = math.clamp(Const.AIBaseWorkWeight + classCreditsRatio * (1f - Const.AIBaseWorkWeight), 0f, 1f);
 
-					controller.ChooseGoal(entity, carry.HasItem, isFired, in RoomLookup, partition.CurrentRoom);
+					controller.ChooseGoal(carry.HasItem, isFired);
 				}
 
 				// look for new target

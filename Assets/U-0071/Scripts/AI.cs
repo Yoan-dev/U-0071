@@ -48,7 +48,7 @@ namespace U0071
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void ChooseGoal(Entity entity, bool hasItem, bool isFired, in ComponentLookup<RoomComponent> roomLookup, Entity currentRoom)
+		public void ChooseGoal(bool hasItem, bool isFired)
 		{
 			AIGoal newGoal =
 				EatWeight >= WorkWeight && EatWeight >= BoredomValue ? AIGoal.Eat :

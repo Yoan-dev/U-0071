@@ -24,6 +24,7 @@ public class UIManager : MonoBehaviour
 	public Material BustedBubbleMaterial;
 
 	[Header("Player Lines")]
+	public bool DisableIntro;
 	public float StartLineTime;
 	public float StayLineTime;
 	public float RespawnLineTime;
@@ -36,7 +37,6 @@ public class UIManager : MonoBehaviour
 	[Header("Ending")]
 	public float EndingLineTime;
 	private float _endingLineTimer;
-
 
 	[Header("Go Crazy")]
 	public float GoCrazyFirstStartTime;
@@ -93,13 +93,24 @@ public class UIManager : MonoBehaviour
 
 	private void Start()
 	{
-		_hungerLabel.style.display = DisplayStyle.None;
-		_creditsLabel.style.display = DisplayStyle.None;
-		_cycleLabel.style.display = DisplayStyle.None;
-		_codeLabel.style.display = DisplayStyle.None;
-		_fadeScreen.style.display = DisplayStyle.Flex;
-		Interaction.gameObject.SetActive(false);
-		PeekingBubble.transform.parent.gameObject.SetActive(false);
+		if (DisableIntro)
+		{
+			_hungerLabel.style.display = DisplayStyle.Flex;
+			_creditsLabel.style.display = DisplayStyle.Flex;
+			_cycleLabel.style.display = DisplayStyle.Flex;
+			_codeLabel.style.display = DisplayStyle.Flex;
+			_fadeScreen.style.display = DisplayStyle.None;
+		}
+		else
+		{
+			_hungerLabel.style.display = DisplayStyle.None;
+			_creditsLabel.style.display = DisplayStyle.None;
+			_cycleLabel.style.display = DisplayStyle.None;
+			_codeLabel.style.display = DisplayStyle.None;
+			_fadeScreen.style.display = DisplayStyle.Flex;
+			Interaction.gameObject.SetActive(false);
+			PeekingBubble.transform.parent.gameObject.SetActive(false);
+		}
 	}
 
 	public void Update()
@@ -125,7 +136,7 @@ public class UIManager : MonoBehaviour
 		if (_player != Entity.Null && _gameSingleton != Entity.Null)
 		{
 			float3 position = entityManager.GetComponentData<LocalTransform>(_player).Position;
-			if (_playerLineTimer < StartLineTime + StayLineTime)
+			if (!DisableIntro && _playerLineTimer < StartLineTime + StayLineTime)
 			{
 				Config config = entityManager.GetComponentData<Config>(_gameSingleton);
 				if (!_initialized)
