@@ -12,6 +12,10 @@ namespace U0071
 		public int CapacityModifier;
 		public bool IsWanderPath;
 
+		[Header("Work Info Provider")]
+		public GameObject Room1;
+		public GameObject Room2;
+
 		public class Baker : Baker<RoomAuthoring>
 		{
 			public override void Bake(RoomAuthoring authoring)
@@ -36,6 +40,15 @@ namespace U0071
 					Capacity = authoring.CapacityModifier,
 				});
 				AddComponent<RoomInitTag>(entity);
+				
+				if (authoring.Room1 != null || authoring.Room2 != null)
+				{
+					AddComponent(entity, new WorkInfoComponent
+					{
+						Room1 = authoring.Room1 != null ? GetEntity(authoring.Room1, TransformUsageFlags.Dynamic) : Entity.Null,
+						Room2 = authoring.Room2 != null ? GetEntity(authoring.Room2, TransformUsageFlags.Dynamic) : Entity.Null,
+					});
+				}
 
 				AddBuffer<RoomElementBufferElement>(entity);
 			}

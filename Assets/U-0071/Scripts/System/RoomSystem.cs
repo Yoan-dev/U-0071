@@ -28,6 +28,7 @@ namespace U0071
 			public RoomUpdateType Type;
 		}
 
+		private ComponentLookup<RoomComponent> _roomLookup;
 		private NativeParallelMultiHashMap<Entity, RoomUpdateEvent> _updates;
 		private EntityQuery _query;
 		private EntityQuery _deviceQuery;
@@ -49,6 +50,7 @@ namespace U0071
 				.Build();
 
 			_updates = new NativeParallelMultiHashMap<Entity, RoomUpdateEvent>(0, Allocator.Persistent);
+			_roomLookup = state.GetComponentLookup<RoomComponent>(true);
 		}
 
 		[BurstCompile]
@@ -76,6 +78,8 @@ namespace U0071
 		{
 			Partition partition = SystemAPI.GetSingleton<Partition>();
 
+			_roomLookup.Update(ref state);
+
 			// map should be able to receive an add and leave event per moving entity and one per device
 			int count = _query.CalculateEntityCount() * 2 + _deviceQuery.CalculateEntityCount();
 			if (_updates.Capacity < count)
@@ -83,6 +87,8 @@ namespace U0071
 				_updates.Capacity = count;
 			}
 			_updates.Clear();
+
+			state.Dependency = new RoomInitJob().ScheduleParallel(state.Dependency);
 
 			state.Dependency = new RoomUpdateJob
 			{
@@ -101,7 +107,10 @@ namespace U0071
 				Updates = _updates,
 			}.ScheduleParallel(state.Dependency);
 
-			state.Dependency = new RoomInitJob().ScheduleParallel(state.Dependency);
+			state.Dependency = new WorkProviderJob
+			{
+				RoomLookup = _roomLookup,
+			}.ScheduleParallel(state.Dependency);
 		}
 
 		[BurstCompile]
@@ -244,6 +253,43 @@ namespace U0071
 					if (room.Population > room.Capacity)
 					{
 						room.FiredWorker = lowest;
+					}
+				}
+			}
+		}
+
+		[BurstCompile]
+		public partial struct WorkProviderJob : IJobEntity
+		{
+			[ReadOnly]
+			public ComponentLookup<RoomComponent> RoomLookup;
+
+			public void Execute(ref WorkInfoComponent info)
+			{
+				// reset
+				info.LevelOneOpportunityCount = 0;
+				info.LevelTwoOpportunityCount = 0;
+				info.LevelThreeOpportunityCount = 0;
+				info.AdminOpportunityCount = 0;
+
+				// get new info
+				ProcessRoom(info.Room1, ref info);
+				ProcessRoom(info.Room2, ref info);
+			}
+
+			private void ProcessRoom(Entity entity, ref WorkInfoComponent info)
+			{
+				if (entity != Entity.Null)
+				{
+					RoomComponent room = RoomLookup[entity];
+					if (room.Capacity > 0 && room.Capacity > room.Population)
+					{
+						int opportunityCount = room.Capacity - room.Population;
+
+						if (room.Area == AreaAuthorization.LevelOne) info.LevelOneOpportunityCount += opportunityCount;
+						else if (room.Area == AreaAuthorization.LevelTwo) info.LevelTwoOpportunityCount += opportunityCount;
+						else if (room.Area == AreaAuthorization.LevelThree) info.LevelThreeOpportunityCount += opportunityCount;
+						else if (room.Area == AreaAuthorization.Admin) info.AdminOpportunityCount += opportunityCount;
 					}
 				}
 			}

@@ -115,6 +115,44 @@ namespace U0071
 		}
 	}
 
+	public struct WorkInfoComponent : IComponentData
+	{
+		public int LevelOneOpportunityCount;
+		public int LevelTwoOpportunityCount;
+		public int LevelThreeOpportunityCount;
+		public int AdminOpportunityCount;
+
+		// TODO: buffer that auto-fills after world init
+		public Entity Room1;
+		public Entity Room2;
+
+		// for debug purposes
+		public bool ShouldLevelOneStop;
+		public bool ShouldLevelTwoStop;
+		public bool ShouldLevelThreeStop;
+		public bool ShouldAdminStop;
+
+		public bool ShouldStopHere(AreaAuthorization authorization)
+		{
+			return authorization switch
+			{
+				AreaAuthorization.LevelOne => LevelOneOpportunityCount > 0,
+				AreaAuthorization.LevelTwo => LevelTwoOpportunityCount > 0,
+				AreaAuthorization.LevelThree => LevelThreeOpportunityCount > 0,
+				AreaAuthorization.Admin => AdminOpportunityCount > 0,
+				_ => false,
+			};
+		}
+
+		public void ProcessDebug()
+		{
+			ShouldLevelOneStop = ShouldStopHere(AreaAuthorization.LevelOne);
+			ShouldLevelTwoStop = ShouldStopHere(AreaAuthorization.LevelTwo);
+			ShouldLevelThreeStop = ShouldStopHere(AreaAuthorization.LevelThree);
+			ShouldAdminStop = ShouldStopHere(AreaAuthorization.Admin);
+		}
+	}
+
 	public struct CorridorOverrideComponent : IComponentData
 	{
 		public float2 Position;

@@ -26,22 +26,23 @@ namespace U0071
 		public float EatWeight;
 		public float WorkWeight;
 
+		public bool IsBoredomWander;
 		public bool IsPathing;
 
 		// for debugging
-		public bool IsBoredomWander;
 		public bool ReassessedLastFrame;
 
 		public bool HasCriticalGoal => IsCriticalGoal(Goal);
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public bool ShouldReassess(float hungerRatio, bool hasItem)
+		public bool ShouldReassess(float hungerRatio, bool hasItem, bool hasOpportunity)
 		{
 			return 
 				ReassessmentTimer <= 0f || 
 				Goal == AIGoal.Eat && hungerRatio >= Const.AILightHungerRatio ||
 				Goal == AIGoal.Destroy && !hasItem ||
-				Goal == AIGoal.Process && !hasItem;
+				Goal == AIGoal.Process && !hasItem ||
+				Goal == AIGoal.Wander && !IsBoredomWander && hasOpportunity;
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]

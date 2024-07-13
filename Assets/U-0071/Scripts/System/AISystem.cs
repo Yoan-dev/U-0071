@@ -14,6 +14,7 @@ namespace U0071
 	{
 		private BufferLookup<RoomElementBufferElement> _roomElementLookup;
 		private ComponentLookup<RoomComponent> _roomLookup;
+		private ComponentLookup<WorkInfoComponent> _workInfoLookup;
 		private ComponentLookup<InteractableComponent> _interactableLookup;
 		private ComponentLookup<PickableComponent> _pickableLookup;
 		private ComponentLookup<DoorComponent> _doorLookup;
@@ -36,6 +37,7 @@ namespace U0071
 
 			_roomElementLookup = state.GetBufferLookup<RoomElementBufferElement>(true);
 			_roomLookup = state.GetComponentLookup<RoomComponent>(true);
+			_workInfoLookup = state.GetComponentLookup<WorkInfoComponent>(true);
 			_interactableLookup = state.GetComponentLookup<InteractableComponent>(true);
 			_pickableLookup = state.GetComponentLookup<PickableComponent>(true);
 			_doorLookup = state.GetComponentLookup<DoorComponent>(true);
@@ -47,6 +49,7 @@ namespace U0071
 			_roomElementLookup.Update(ref state);
 			_interactableLookup.Update(ref state);
 			_roomLookup.Update(ref state);
+			_workInfoLookup.Update(ref state);
 			_pickableLookup.Update(ref state);
 			_doorLookup.Update(ref state);
 
@@ -61,6 +64,7 @@ namespace U0071
 				RoomElementBufferLookup = _roomElementLookup,
 				InteractableLookup = _interactableLookup,
 				RoomLookup = _roomLookup,
+				WorkInfoLookup = _workInfoLookup,
 				PickableLookup = _pickableLookup,
 				DoorLookup = _doorLookup,
 				Cycle = SystemAPI.GetSingleton<CycleComponent>(),
@@ -81,6 +85,8 @@ namespace U0071
 			public BufferLookup<RoomElementBufferElement> RoomElementBufferLookup;
 			[ReadOnly]
 			public ComponentLookup<RoomComponent> RoomLookup;
+			[ReadOnly]
+			public ComponentLookup<WorkInfoComponent> WorkInfoLookup;
 			[ReadOnly]
 			public ComponentLookup<PickableComponent> PickableLookup;
 			[ReadOnly]
@@ -141,6 +147,14 @@ namespace U0071
 
 				bool isAdmin = authorization.IsAdmin;
 
+				// look for job opportunities
+				bool hasOpportunity = false;
+				if (controller.Goal == AIGoal.Wander && !controller.IsBoredomWander && WorkInfoLookup.HasComponent(partition.CurrentRoom))
+				{
+					WorkInfoComponent workInfo = WorkInfoLookup[partition.CurrentRoom];
+					hasOpportunity = workInfo.ShouldStopHere(authorization.Flag);
+				}
+
 				// attempt at a rough mid-term goal AI
 				float hungerRatio = hunger.Value / Const.MaxHunger;
 				if (hungerRatio <= Const.AIStarvingRatio)
@@ -153,7 +167,7 @@ namespace U0071
 						Utilities.QueueDropAction(ref actionController, ref orientation, in position, in carry, isActing);
 					}
 				}
-				else if (controller.ShouldReassess(hungerRatio, carry.HasItem))
+				else if (controller.ShouldReassess(hungerRatio, carry.HasItem, hasOpportunity))
 				{
 					controller.ReassessedLastFrame = true;
 
