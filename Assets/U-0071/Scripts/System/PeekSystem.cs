@@ -126,8 +126,8 @@ namespace U0071
 						if (isPeeking)
 						{
 							// TODO: depends on authorization comparison
-							// increase suspicion
-							peeking.Suspicion += DeltaTime * Const.PeekingSuspicionSpeed;
+							// increase suspicion depending on player and user authorization
+							peeking.Suspicion += DeltaTime * Const.PeekingSuspicionSpeed * Const.GetSuspicionMultiplier(AuthorizationLookup[PlayerEntity].Flag, AuthorizationLookup[interactable.CurrentUser].Flag);
 							if (peeking.Suspicion >= 1f)
 							{
 								// busted !

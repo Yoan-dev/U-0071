@@ -97,6 +97,16 @@ namespace U0071
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static float GetSuspicionMultiplier(AreaAuthorization peekerAuthorization, AreaAuthorization authorization)
+		{
+			return peekerAuthorization == authorization ? 0f :
+				authorization == AreaAuthorization.LevelOne ? 0f :
+				authorization == AreaAuthorization.LevelTwo ? 1f :
+				authorization == AreaAuthorization.LevelThree ? 1.15f :
+				authorization == AreaAuthorization.Admin ? 1.3f : 0f;
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static float2 GetDropOffset(float orientation)
 		{
 			return new float2(DropOffsetX * orientation, DropOffsetY);
