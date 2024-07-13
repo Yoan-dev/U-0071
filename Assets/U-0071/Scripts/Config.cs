@@ -60,6 +60,7 @@ namespace U0071
 		public bool PhaseTwoTriggered;
 		public bool PhaseThreeTriggered;
 		public bool PhaseFourTriggered;
+		public bool PhaseFiveTriggered;
 		public bool HaveEnding;
 	}
 

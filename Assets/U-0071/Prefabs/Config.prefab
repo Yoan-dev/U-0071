@@ -49,7 +49,7 @@ MonoBehaviour:
     y: 64
   Seed: 1
   CycleDuration: 20
-  HaveEnding: 1
+  HaveEnding: 0
   EndingPhaseOneY: 15
   EndingPhaseTwoY: 21
   EndingPhaseThreeY: 27
@@ -92,7 +92,7 @@ MonoBehaviour:
     Looping: 1
   CharacterDepixelate:
     StartIndex: 40
-    Duration: 12
+    Duration: 17
     FrameTime: 0.2
     Looping: 0
   SkinColors:

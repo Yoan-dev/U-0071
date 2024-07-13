@@ -8,7 +8,9 @@ namespace U0071
 		public const int ParallelForCount = 256;
 
 		// Ending
-		public const float EndingPhaseFourTime = 3f;
+		public const float EndingPhaseFourTime = 2f;
+		public const float EndingPhaseFiveTime = 3f;
+		public const float EndCameraSpeed = 6f;
 
 		// Simulation Reset
 		public const float SimulationFirstResetTime = 8f;

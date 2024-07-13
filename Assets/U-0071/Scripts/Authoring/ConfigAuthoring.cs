@@ -79,6 +79,7 @@ namespace U0071
 				{
 					AddComponent(entity, new Ending
 					{
+						HaveEnding = authoring.HaveEnding,
 						CharacterDepixelate = authoring.CharacterDepixelate,
 						EndingPhaseOneY = authoring.EndingPhaseOneY,
 						EndingPhaseTwoY = authoring.EndingPhaseTwoY,

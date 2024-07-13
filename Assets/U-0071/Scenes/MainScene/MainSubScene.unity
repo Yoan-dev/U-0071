@@ -894,7 +894,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
 --- !u!1 &1700858937 stripped
 GameObject:
-  m_CorrespondingSourceObject: {fileID: 4478438157653224650, guid: df64bed592328d0489d39030b772e561,
+  m_CorrespondingSourceObject: {fileID: 3396549479148958699, guid: df64bed592328d0489d39030b772e561,
     type: 3}
   m_PrefabInstance: {fileID: 1700858935}
   m_PrefabAsset: {fileID: 0}
@@ -916,6 +916,11 @@ PrefabInstance:
       propertyPath: LastDoor
       value: 
       objectReference: {fileID: 1700858937}
+    - target: {fileID: 6028477158879148215, guid: 34a601e08c9e8e349b26b257805dd771,
+        type: 3}
+      propertyPath: HaveEnding
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 6028477158879148215, guid: 34a601e08c9e8e349b26b257805dd771,
         type: 3}
       propertyPath: WorldDimensions.x
@@ -1096,7 +1101,7 @@ PrefabInstance:
     - target: {fileID: 1383143700477064126, guid: 004121fae12db2a419a7e00a4223fc09,
         type: 3}
       propertyPath: m_LocalPosition.x
-      value: -3
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1383143700477064126, guid: 004121fae12db2a419a7e00a4223fc09,
         type: 3}
@@ -1106,7 +1111,7 @@ PrefabInstance:
     - target: {fileID: 1383143700477064126, guid: 004121fae12db2a419a7e00a4223fc09,
         type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0
+      value: 13.5
       objectReference: {fileID: 0}
     - target: {fileID: 1383143700477064126, guid: 004121fae12db2a419a7e00a4223fc09,
         type: 3}

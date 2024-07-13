@@ -8,7 +8,7 @@ namespace U0071
 	[UpdateAfter(typeof(TransformSystem))]
 	public partial struct EndingSystem : ISystem
 	{
-		private float _phaseFourTimer;
+		private float _endingTimer;
 
 		[BurstCompile]
 		public void OnCreate(ref SystemState state)
@@ -56,23 +56,37 @@ namespace U0071
 				ending.PhaseTwoTriggered = true;
 
 			}
-			else if (!ending.PhaseThreeTriggered && position.y > ending.EndingPhaseThreeY && math.abs(position.x) > ending.EndingPhaseThreeAbsX)
+			else if (!ending.PhaseThreeTriggered &&
+				(position.y > ending.EndingPhaseThreeY ||
+				position.y > ending.EndingPhaseTwoY && math.abs(position.x) > ending.EndingPhaseThreeAbsX))
 			{
 				ending.PhaseThreeTriggered = true;
-				
-				SystemAPI.GetComponentRW<AnimationController>(playerEntity).ValueRW.StartAnimation(ending.CharacterDepixelate);
-				SystemAPI.GetComponentRW<PlayerController>(playerEntity).ValueRW.Locked = true;
-
 			}
 			else if (!ending.PhaseFourTriggered && ending.PhaseThreeTriggered)
 			{
-				_phaseFourTimer += SystemAPI.Time.DeltaTime;
-				if (_phaseFourTimer > Const.EndingPhaseFourTime)
+				_endingTimer += SystemAPI.Time.DeltaTime;
+				if (_endingTimer > Const.EndingPhaseFourTime)
 				{
+					ending.PhaseFourTriggered = true;
+					SystemAPI.GetComponentRW<AnimationController>(playerEntity).ValueRW.StartAnimation(ending.CharacterDepixelate);
+					SystemAPI.GetComponentRW<PlayerController>(playerEntity).ValueRW.Locked = true;
+					state.EntityManager.AddComponent<SimpleAnimationTag>(playerEntity);
+				}
+			}
+			else if (ending.PhaseFourTriggered && !ending.PhaseFiveTriggered)
+			{
+				_endingTimer += SystemAPI.Time.DeltaTime;
+				if (_endingTimer > Const.EndingPhaseFiveTime)
+				{
+					ending.PhaseFiveTriggered = true;
 					SystemAPI.GetComponentRW<PlayerController>(playerEntity).ValueRW.Locked = false;
-					SystemAPI.GetComponentRW<MovementComponent>(playerEntity).ValueRW.FreeMovement = true;
+					ref MovementComponent movement = ref SystemAPI.GetComponentRW<MovementComponent>(playerEntity).ValueRW;
+					movement.FreeMovement = true;
+					movement.Speed = Const.EndCameraSpeed;
+
 					state.EntityManager.RemoveComponent<PartitionComponent>(playerEntity); // TBD if safe
 				}
+
 			}
 		}
 	}

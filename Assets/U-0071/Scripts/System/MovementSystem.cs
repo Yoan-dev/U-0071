@@ -75,7 +75,7 @@ namespace U0071
 				float2 newPosition = position.Value + input;
 				
 				// rough collision
-				if (!input.Equals(float2.zero) && Partition.IsPathable(newPosition))
+				if (!input.Equals(float2.zero) && Partition.IsPathable(newPosition) || movement.FreeMovement)
 				{
 					position.Value = newPosition;
 				}
