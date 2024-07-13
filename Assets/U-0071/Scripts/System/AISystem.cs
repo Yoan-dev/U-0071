@@ -27,7 +27,7 @@ namespace U0071
 			_query = SystemAPI.QueryBuilder()
 				.WithAllRW<AIController>()
 				.WithAllRW<ActionController, Orientation>()
-				.WithAll<PositionComponent, PartitionComponent, CreditsComponent, HungerComponent>()
+				.WithAll<PositionComponent, PartitionComponent, CreditsComponent, HungerComponent, AuthorizationComponent>()
 				.WithPresent<CarryComponent, DeathComponent, PushedComponent>()
 				.WithPresentRW<IsActing>()
 				.Build();
@@ -97,6 +97,7 @@ namespace U0071
 				in CarryComponent carry,
 				in PartitionComponent partition,
 				in CreditsComponent credits,
+				in AuthorizationComponent authorization,
 				in HungerComponent hunger,
 				EnabledRefRW<IsActing> isActing,
 				EnabledRefRO<DeathComponent> death,
@@ -132,6 +133,8 @@ namespace U0071
 					// start interacting or going to target
 					return;
 				}
+
+				bool isAdmin = authorization.IsAdmin;
 
 				// attempt at a rough mid-term goal AI
 				float hungerRatio = hunger.Value / Const.MaxHunger;
@@ -178,13 +181,13 @@ namespace U0071
 				ActionFlag actionFilter =
 					fleeGoal ? 0 :
 					eatGoal ? ActionFlag.Pick | ActionFlag.Eat | ActionFlag.Collect :
-					workGoal ? ActionFlag.Pick | ActionFlag.Store | ActionFlag.Destroy | ActionFlag.Collect | ActionFlag.Search :
+					workGoal ? isAdmin ? ActionFlag.Administrate : ActionFlag.Pick | ActionFlag.Store | ActionFlag.Destroy | ActionFlag.Collect | ActionFlag.Search :
 					destroyGoal ? ActionFlag.Destroy :
 					processGoal ? ActionFlag.Store :
 					ActionFlag.Search;
 				ItemFlag itemFilter =
 					eatGoal ? ItemFlag.Food :
-					workGoal ? ItemFlag.RawFood | ItemFlag.Trash : 0;
+					workGoal && !isAdmin ? ItemFlag.RawFood | ItemFlag.Trash : 0;
 
 				if (carry.HasItem)
 				{
@@ -349,10 +352,8 @@ namespace U0071
 
 			authorization.AreaFlag = Utilities.GetLowestAuthorization(Partition.GetAuthorization(position.Value));
 
-			if (authorization.AreaFlag == AreaAuthorization.Admin)
-			{
-				credits.AdminCard = true;
-			}
+			credits.AdminCard = authorization.IsAdmin;
+			credits.Value = Const.GetStartingCredits(authorization.AreaFlag);
 
 			UnitIdentity identity = Config.UnitIdentityData.Value.Identities[entity.Index % Config.UnitIdentityData.Value.Identities.Length];
 

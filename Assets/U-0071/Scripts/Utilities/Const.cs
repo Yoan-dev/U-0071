@@ -98,5 +98,18 @@ namespace U0071
 		{
 			return new float2(DropOffsetX * orientation, DropOffsetY);
 		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static int GetStartingCredits(AreaAuthorization authorization)
+		{
+			return authorization switch
+			{
+				AreaAuthorization.LevelOne => 20,
+				AreaAuthorization.LevelTwo => 30,
+				AreaAuthorization.LevelThree => 40,
+				AreaAuthorization.Admin => 100,
+				_ => 0,
+			};
+		}
 	}
 }

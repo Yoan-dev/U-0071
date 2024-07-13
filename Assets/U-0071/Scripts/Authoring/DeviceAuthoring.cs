@@ -18,6 +18,7 @@ namespace U0071
 		public float CollisionRange = 0.25f;
 		public bool Collide = true;
 		public bool CanBeMultiused = false;
+		public bool AdminStation = false;
 		public int Cost;
 
 		[Header("Door")]
@@ -187,6 +188,10 @@ namespace U0071
 					SetComponentEnabled<DoorComponent>(entity, false); // closed
 					AddComponent(entity, new TextureArrayIndex());
 					AddComponent(entity, new PeekingComponent());
+				}
+				if (authoring.AdminStation)
+				{
+					actionFlags |= ActionFlag.Administrate;
 				}
 
 				// interactable

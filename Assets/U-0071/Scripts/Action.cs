@@ -19,6 +19,7 @@ namespace U0071
 		Store = 1 << 7,
 		Teleport = 1 << 8,
 		Open = 1 << 9,
+		Administrate = 1 << 10,
 	}
 
 	public struct ActionData

@@ -166,6 +166,7 @@ namespace U0071
 				AreaAuthorization.Red => "RED",
 				AreaAuthorization.Blue => "BLUE",
 				AreaAuthorization.Yellow => "YELLOW",
+				AreaAuthorization.Admin => "ADMIN",
 				_ => "ERROR",
 			};
 		}

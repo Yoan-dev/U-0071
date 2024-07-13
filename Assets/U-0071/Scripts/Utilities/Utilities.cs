@@ -112,7 +112,8 @@ namespace U0071
 				HasAuthorization(areaFlags, AreaAuthorization.LevelThree) ? AreaAuthorization.LevelThree :
 				HasAuthorization(areaFlags, AreaAuthorization.Red) ? AreaAuthorization.Red :
 				HasAuthorization(areaFlags, AreaAuthorization.Blue) ? AreaAuthorization.Blue :
-				HasAuthorization(areaFlags, AreaAuthorization.Yellow) ? AreaAuthorization.Yellow : 0;
+				HasAuthorization(areaFlags, AreaAuthorization.Yellow) ? AreaAuthorization.Yellow :
+				HasAuthorization(areaFlags, AreaAuthorization.Admin) ? AreaAuthorization.Admin : 0;
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]

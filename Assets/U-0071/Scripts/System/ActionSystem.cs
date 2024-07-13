@@ -363,7 +363,7 @@ namespace U0071
 						{
 							Source = Entity.Null, // money printing/vanishing
 							Target = entity,
-							Value = -controller.Action.Cost,
+							Value = credits.AdminCard && controller.Action.Cost > 0 ? 0 : -controller.Action.Cost,
 						});
 					}
 				}
