@@ -35,6 +35,7 @@ namespace U0071
 		public float4 LevelOneShirtColor;
 		public float4 LevelTwoShirtColor;
 		public float4 LevelThreeShirtColor;
+		public float4 AdminShirtColor;
 		public int2 WorldDimensions;
 		public BlobAssetReference<UnitIdentityCollection> UnitIdentityData;
 		public Entity OrganicWastePrefab;

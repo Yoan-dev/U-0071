@@ -347,6 +347,13 @@ namespace U0071
 			initTag.ValueRW = false;
 
 			authorization.AreaFlag = Utilities.GetLowestAuthorization(Partition.GetAuthorization(position.Value));
+			
+			if (authorization.AreaFlag > AreaAuthorization.LevelThree)
+			{
+				// goal was to have separated admin colors
+				// no time so admins are generic and have access to all
+				authorization.AreaFlag = AreaAuthorization.Yellow;
+			}
 
 			UnitIdentity identity = Config.UnitIdentityData.Value.Identities[entity.Index % Config.UnitIdentityData.Value.Identities.Length];
 
@@ -366,7 +373,7 @@ namespace U0071
 			shirt.Value =
 				authorization.AreaFlag == AreaAuthorization.LevelOne ? Config.LevelOneShirtColor :
 				authorization.AreaFlag == AreaAuthorization.LevelTwo ? Config.LevelTwoShirtColor :
-				authorization.AreaFlag == AreaAuthorization.LevelThree ? Config.LevelThreeShirtColor : float4.zero;
+				authorization.AreaFlag == AreaAuthorization.LevelThree ? Config.LevelThreeShirtColor : Config.AdminShirtColor;
 		}
 	}
 }

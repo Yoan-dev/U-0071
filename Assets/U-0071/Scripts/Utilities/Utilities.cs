@@ -46,7 +46,7 @@ namespace U0071
 			if (controller.HasTarget && (
 				!interactableLookup.TryGetComponent(controller.Action.Target, out InteractableComponent interactable) ||
 				interactable.CurrentUser != Entity.Null && interactable.CurrentUser != entity ||
-				interactable.HasActionFlag(ActionFlag.Pick) && pickableLookup.IsComponentEnabled(controller.Action.Target) ||
+				!controller.IsResolving && interactable.HasActionFlag(ActionFlag.Pick) && pickableLookup.IsComponentEnabled(controller.Action.Target) ||
 				!interactable.HasActionFlag(controller.Action.ActionFlag)))
 			{
 				// target is being solo-used or has been destroyed/picked/disabled

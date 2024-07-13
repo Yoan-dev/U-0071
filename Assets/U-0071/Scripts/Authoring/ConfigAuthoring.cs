@@ -28,6 +28,7 @@ namespace U0071
 		public Color LevelOneShirtColor;
 		public Color LevelTwoShirtColor;
 		public Color LevelThreeShirtColor;
+		public Color AdminShirtColor;
 		public float ChanceOfShortHair;
 		public float ChanceOfLongHair;
 		public float ChanceOfBeard;
@@ -60,6 +61,7 @@ namespace U0071
 					LevelOneShirtColor = authoring.LevelOneShirtColor.linear.ToFloat4(),
 					LevelTwoShirtColor = authoring.LevelTwoShirtColor.linear.ToFloat4(),
 					LevelThreeShirtColor = authoring.LevelThreeShirtColor.linear.ToFloat4(),
+					AdminShirtColor = authoring.AdminShirtColor.linear.ToFloat4(),
 				};
 
 				AddComponent(entity, config);
