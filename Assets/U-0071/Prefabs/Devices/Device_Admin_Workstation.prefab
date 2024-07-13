@@ -124,7 +124,7 @@ MonoBehaviour:
   Destination: {fileID: 0}
   SecondaryDestination: {fileID: 0}
   DeathType: 0
-  Animated: 0
+  Animated: 1
   Animation:
     StartIndex: 0
     Duration: 4

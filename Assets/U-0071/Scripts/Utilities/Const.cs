@@ -52,7 +52,6 @@ namespace U0071
 		public const float DeathSkinToneOffset = 0.15f;
 		public const float DecollisionStrength = 0.6f;
 		public const float CharacterZOffset = 0.3f;
-		public const float UnitInteractionZOffset = -0.3f;
 		public const float Small = 0.0001f;
 
 		// sickness
