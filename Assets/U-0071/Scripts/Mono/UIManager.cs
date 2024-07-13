@@ -20,6 +20,7 @@ public class UIManager : MonoBehaviour
 	public MeshRenderer BubbleRenderer;
 	public Material BubbleMaterial;
 	public Material DisabledBubbleMaterial;
+	public Material BustedBubbleMaterial;
 
 	// ECS
 	private Entity _player;
@@ -37,7 +38,6 @@ public class UIManager : MonoBehaviour
 
 	// miscellaneous
 	private int _lastCreditsValue;
-	private float _peekingLastTimer;
 
 	private void OnEnable()
 	{
@@ -241,7 +241,8 @@ public class UIManager : MonoBehaviour
 			float scale = math.clamp(Const.PeekingBubbleMinScale + smoothedRatio * (1f - Const.PeekingBubbleMinScale), Const.PeekingBubbleMinScale, 1f);
 			bubbleAnchor.localScale = new Vector3(scale, scale, scale);
 
-			BubbleRenderer.material = info.IsPeeking ? BubbleMaterial : DisabledBubbleMaterial;
+			BubbleRenderer.material = 
+				info.IsPeeking ? info.Peeking.Suspicion >= Const.PeekingBustedFeedbackTreshold ? BustedBubbleMaterial : BubbleMaterial : DisabledBubbleMaterial;
 
 			char[] digits = cycle.GetCode(info.Authorization).ToString("0000").ToCharArray();
 			

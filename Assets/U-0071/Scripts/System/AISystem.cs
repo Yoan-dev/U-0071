@@ -111,8 +111,10 @@ namespace U0071
 				EnabledRefRO<DeathComponent> death,
 				EnabledRefRO<PushedComponent> pushed)
 			{
+				// AI timers
 				bool isInActivity = actionController.IsResolving || controller.Goal == AIGoal.Destroy || controller.Goal == AIGoal.Process || controller.Goal == AIGoal.WorkWander || controller.Goal == AIGoal.BoredWander;
 				controller.BoredomValue = math.clamp(controller.BoredomValue + DeltaTime * (isInActivity ? Const.AIFulfilmentSpeed : Const.AIBoredomSpeed), 0f, Const.AIMaxBoredomWeight);
+				controller.SuspicionValue = math.max(0f, controller.SuspicionValue - DeltaTime * Const.PeekingSuspicionDecreaseRate);
 				controller.ReassessmentTimer -= DeltaTime;
 				controller.ReassessedLastFrame = false;
 
@@ -324,8 +326,14 @@ namespace U0071
 			public void Execute(ref MovementComponent movement, ref AIController controller, in PositionComponent position, in ActionController actionController, in AuthorizationComponent authorisation)
 			{
 				movement.IsRunning = controller.Goal == AIGoal.Flee;
-
-				if (!actionController.IsResolving && controller.IsPathing)
+				
+				if (!actionController.IsResolving && actionController.HasTarget)
+				{
+					// go to target
+					float2 direction = actionController.Action.Position - position.Value;
+					movement.Input = math.lengthsq(direction) > math.pow(actionController.Action.Range, 2f) ? math.normalize(direction) : float2.zero;
+				}
+				else if (!actionController.IsResolving && controller.IsPathing)
 				{
 					movement.Input = FlowfieldCollection.GetDirection(authorisation.Flag, controller.Goal, position.Value);
 					if (movement.Input.Equals(float2.zero))
@@ -333,11 +341,6 @@ namespace U0071
 						// arrived
 						controller.IsPathing = false;
 					}
-				}
-				else if (!actionController.IsResolving && actionController.HasTarget)
-				{
-					float2 direction = actionController.Action.Position - position.Value;
-					movement.Input = math.lengthsq(direction) > math.pow(actionController.Action.Range, 2f) ? math.normalize(direction) : float2.zero;
 				}
 				else
 				{

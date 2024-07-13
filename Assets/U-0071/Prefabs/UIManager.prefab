@@ -314,6 +314,8 @@ MonoBehaviour:
   BubbleMaterial: {fileID: 2100000, guid: bea02ff6617d1f04299fc9ab648a873d, type: 2}
   DisabledBubbleMaterial: {fileID: 2100000, guid: 422598c8d96ca8e418c6a0c5c24953be,
     type: 2}
+  BustedBubbleMaterial: {fileID: 2100000, guid: 0a194aaa62ea41d4288ae6dcf786aa51,
+    type: 2}
 --- !u!114 &3597952234028054746
 MonoBehaviour:
   m_ObjectHideFlags: 0

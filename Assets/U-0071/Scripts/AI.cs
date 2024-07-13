@@ -22,6 +22,7 @@ namespace U0071
 		public AIGoal Goal;
 		public float ReassessmentTimer;
 		public float BoredomValue;
+		public float SuspicionValue;
 
 		// cached for debug purposes
 		public float EatWeight;
