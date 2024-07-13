@@ -278,14 +278,11 @@ namespace U0071
 
 					if (controller.Action.ActionFlag == ActionFlag.Eat)
 					{
-						if (Utilities.HasItemFlag(controller.Action.UsedItemFlags, ItemFlag.Contaminated))
+						bool contaminated = Utilities.HasItemFlag(controller.Action.UsedItemFlags, ItemFlag.Contaminated);
+						hunger.Value = math.min(Const.MaxHunger, hunger.Value + (contaminated ? Const.ContaminatedEatingHungerGain : Const.EatingHungerGain));
+						if (contaminated)
 						{
-							hunger.Value -= Const.ContaminatedEatingHungerLoss;
 							Ecb.SetComponentEnabled<SickComponent>(chunkIndex, entity, true);
-						}
-						else
-						{
-							hunger.Value = math.min(Const.MaxHunger, hunger.Value + Const.EatingHungerGain);
 						}
 					}
 					else if (controller.Action.ActionFlag == ActionFlag.Push)

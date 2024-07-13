@@ -526,6 +526,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5867020793553910981, guid: 415f6265e44187a4bbb94259ff6b3fc2,
         type: 3}
+      propertyPath: ShowToFood
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5867020793553910981, guid: 415f6265e44187a4bbb94259ff6b3fc2,
+        type: 3}
       propertyPath: ShowYellow
       value: 0
       objectReference: {fileID: 0}

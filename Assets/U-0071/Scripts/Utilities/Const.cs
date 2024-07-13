@@ -54,11 +54,11 @@ namespace U0071
 		public const float Small = 0.0001f;
 
 		// sickness
-		public const float ContaminatedEatingHungerLoss = 3f;
+		public const float ContaminatedEatingHungerGain = 3f;
 		public const float SickSkinToneOffset = 0.1f;
 		public const float SickSpeedMultiplier = 0.66f;
-		public const float SickHungerDepleteRate = 0.1f;
-		public const float SickTime = 10f;
+		public const float SickHungerDepleteRate = 0.05f;
+		public const float SickTime = 30f;
 
 		// UI
 		public const float CodepadButtonFeedbackTime = 0.175f;

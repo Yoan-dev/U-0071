@@ -143,7 +143,7 @@ namespace U0071
 			ProcessFlowfield(ref state, ref flowfieldCollection.LevelOne, AreaAuthorization.LevelOne, in wanderPath, in partition);
 			ProcessFlowfield(ref state, ref flowfieldCollection.LevelTwo, AreaAuthorization.LevelTwo, in wanderPath, in partition);
 			ProcessFlowfield(ref state, ref flowfieldCollection.LevelThree, AreaAuthorization.LevelThree, in wanderPath, in partition);
-			ProcessAdminFlowfields(ref state, ref flowfieldCollection, in partition);
+			ProcessFlowfield(ref state, ref flowfieldCollection.Admin, AreaAuthorization.Admin, in wanderPath, in partition);
 
 			wanderCells.Dispose();
 			wanderPath.Dispose();
@@ -228,40 +228,6 @@ namespace U0071
 			toProcess.Dispose();
 			toWander.Dispose();
 			toRelax.Dispose();
-		}
-
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		private void ProcessAdminFlowfields(ref SystemState state, ref FlowfieldCollection collection, in Partition partition)
-		{
-			int size = partition.Dimensions.x * partition.Dimensions.y;
-
-			FlowfieldBuilder toRed = new FlowfieldBuilder(AreaAuthorization.Red, 0, 0, in partition);
-			FlowfieldBuilder toBlue = new FlowfieldBuilder(AreaAuthorization.Blue, 0, 0, in partition);
-			FlowfieldBuilder toYellow = new FlowfieldBuilder(AreaAuthorization.Yellow, 0, 0, in partition);
-
-			// TODO retrieve starting cell(s) for each admin area
-
-			state.Dependency = new FlowfieldSpreadJob { Builder = toRed }.Schedule(state.Dependency);
-			state.Dependency = new FlowfieldSpreadJob { Builder = toBlue }.Schedule(state.Dependency);
-			state.Dependency = new FlowfieldSpreadJob { Builder = toYellow }.Schedule(state.Dependency);
-
-			state.Dependency = new FlowfieldDirectionJob { Builder = toRed }.ScheduleParallel(size, Const.ParallelForCount, state.Dependency);
-			state.Dependency = new FlowfieldDirectionJob { Builder = toBlue }.ScheduleParallel(size, Const.ParallelForCount, state.Dependency);
-			state.Dependency = new FlowfieldDirectionJob { Builder = toYellow }.ScheduleParallel(size, Const.ParallelForCount, state.Dependency);
-
-			state.Dependency.Complete();
-
-			// copy
-			for (int i = 0; i < size; i++)
-			{
-				collection.ToRedAdmin[i] = toRed.Flowfield[i];
-				collection.ToBlueAdmin[i] = toBlue.Flowfield[i];
-				collection.ToYellowAdmin[i] = toYellow.Flowfield[i];
-			}
-
-			toRed.Dispose();
-			toBlue.Dispose();
-			toYellow.Dispose();
 		}
 
 		[BurstCompile]

@@ -18,12 +18,9 @@ public class DebugManager : MonoBehaviour
 	public bool ShowToDestroy;
 	public bool ShowToProcess;
 	public bool ShowToFood;
-	public bool ShowToWorkd;
+	public bool ShowToWork;
 	public bool ShowWander;
 	public bool ShowRelax;
-	public bool ShowToRed;
-	public bool ShowToBlue;
-	public bool ShowToYellow;
 
 	[Header("Miscellaneous")]	
 	public TMP_Text RoomElementPrefab;
@@ -112,10 +109,10 @@ public class DebugManager : MonoBehaviour
 		foreach (var info in _flowfieldInfos)
 		{
 			Vector3 from = new Vector3(info.Position.x, 0.5f, info.Position.y);
-			if (ShowToDestroy || ShowToRed) TryDraw(Color.red, from, info.ToDestroyAndRed);
+			if (ShowToDestroy) TryDraw(Color.red, from, info.Destroy);
 			if (ShowToFood) TryDraw(Color.green, from, info.Food);
-			if (ShowToWorkd || ShowToBlue) TryDraw(Color.blue, from, info.WorkdAndBlue);
-			if (ShowToProcess || ShowToYellow) TryDraw(Color.yellow, from, info.ProcessAndYellow);
+			if (ShowToWork) TryDraw(Color.blue, from, info.Workd);
+			if (ShowToProcess) TryDraw(Color.yellow, from, info.Process);
 			if (ShowWander) TryDraw(Color.cyan, from, info.Wander);
 			if (ShowRelax) TryDraw(Color.magenta, from, info.Relax);
 		}

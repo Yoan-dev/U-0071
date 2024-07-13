@@ -22,10 +22,10 @@ namespace U0071
 		public struct FlowfieldInfo
 		{
 			public float2 Position;
-			public float2 ToDestroyAndRed;
+			public float2 Destroy;
 			public float2 Food;
-			public float2 WorkdAndBlue;
-			public float2 ProcessAndYellow;
+			public float2 Workd;
+			public float2 Process;
 			public float2 Wander;
 			public float2 Relax;
 		}
@@ -99,7 +99,8 @@ namespace U0071
 			}
 			if (CheckDebugFlowfield(KeyCode.Alpha4, ref _debugAdmin))
 			{
-				DebugAdminFlowfield();
+				FlowfieldCollection flowfieldCollection = SystemAPI.GetSingleton<FlowfieldCollection>();
+				DebugFlowfield(in flowfieldCollection.Admin);
 			}
 		}
 
@@ -129,34 +130,12 @@ namespace U0071
 					flowfieldInfos[i] = new FlowfieldInfo
 					{
 						Position = new float2(i % flowfield.Dimensions.x - flowfield.Dimensions.x / 2f + 0.5f, i / flowfield.Dimensions.x + 0.5f - flowfield.Dimensions.y / 2f),
-						ToDestroyAndRed = cell.ToDestroy,
+						Destroy = cell.ToDestroy,
 						Food = cell.ToFood,
-						WorkdAndBlue = cell.ToWork,
-						ProcessAndYellow = cell.ToProcess,
+						Workd = cell.ToWork,
+						Process = cell.ToProcess,
 						Wander = cell.ToWander,
 						Relax = cell.ToRelax,
-					};
-				}
-			}
-			DebugManager.Instance.UpdateFlowfieldElements(in flowfieldInfos);
-			flowfieldInfos.Dispose();
-		}
-
-		private void DebugAdminFlowfield()
-		{
-			Partition partition = SystemAPI.GetSingleton<Partition>();
-			FlowfieldCollection flowfieldCollection = SystemAPI.GetSingleton<FlowfieldCollection>();
-			NativeArray<FlowfieldInfo> flowfieldInfos = new NativeArray<FlowfieldInfo>(flowfieldCollection.ToRedAdmin.Length, Allocator.TempJob);
-			for (int i = 0; i < flowfieldCollection.ToRedAdmin.Length; i++)
-			{
-				if (partition.IsPathable(i))
-				{
-					flowfieldInfos[i] = new FlowfieldInfo
-					{
-						Position = new float2(i % partition.Dimensions.x - partition.Dimensions.x / 2f + 0.5f, i / partition.Dimensions.x + 0.5f - partition.Dimensions.y / 2f),
-						ToDestroyAndRed = flowfieldCollection.ToRedAdmin[i],
-						WorkdAndBlue = flowfieldCollection.ToBlueAdmin[i],
-						ProcessAndYellow = flowfieldCollection.ToYellowAdmin[i],
 					};
 				}
 			}

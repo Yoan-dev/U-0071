@@ -2,10 +2,11 @@ using System;
 using System.Runtime.CompilerServices;
 using Unity.Entities;
 using Unity.Mathematics;
-using Unity.VisualScripting;
 
 namespace U0071
 {
+	// goal was to have separated workforces, then separated admin colors
+	// no time so auth is incremental and admins have access to all
 	[Flags]
 	public enum AreaAuthorization
 	{
@@ -15,6 +16,7 @@ namespace U0071
 		Red = 1 << 3,
 		Blue = 1 << 4,
 		Yellow = 1 << 5,
+		Admin = 1 << 6,
 	}
 
 	public struct AuthorizationComponent : IComponentData

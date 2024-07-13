@@ -31,18 +31,14 @@ namespace U0071
 		public Flowfield LevelOne;
 		public Flowfield LevelTwo;
 		public Flowfield LevelThree;
-		public NativeArray<float2> ToRedAdmin;
-		public NativeArray<float2> ToBlueAdmin;
-		public NativeArray<float2> ToYellowAdmin;
+		public Flowfield Admin;
 
 		public FlowfieldCollection(int2 dimensions)
 		{
 			LevelOne = new Flowfield(dimensions);
 			LevelTwo = new Flowfield(dimensions);
 			LevelThree = new Flowfield(dimensions);
-			ToRedAdmin = new NativeArray<float2>(dimensions.x * dimensions.y, Allocator.Persistent);
-			ToBlueAdmin = new NativeArray<float2>(dimensions.x * dimensions.y, Allocator.Persistent);
-			ToYellowAdmin = new NativeArray<float2>(dimensions.x * dimensions.y, Allocator.Persistent);
+			Admin = new Flowfield(dimensions);
 		}
 
 		public void Dispose()
@@ -50,9 +46,7 @@ namespace U0071
 			LevelOne.Dispose();
 			LevelTwo.Dispose();
 			LevelThree.Dispose();
-			ToRedAdmin.Dispose();
-			ToBlueAdmin.Dispose();
-			ToYellowAdmin.Dispose();
+			Admin.Dispose();
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -63,9 +57,7 @@ namespace U0071
 				AreaAuthorization.LevelOne => LevelOne.GetDirection(goal, position),
 				AreaAuthorization.LevelTwo => LevelTwo.GetDirection(goal, position),
 				AreaAuthorization.LevelThree => LevelThree.GetDirection(goal, position),
-				AreaAuthorization.Red => LevelThree.GetDirection(goal, position),
-				AreaAuthorization.Blue => LevelThree.GetDirection(goal, position),
-				AreaAuthorization.Yellow => LevelThree.GetDirection(goal, position),
+				AreaAuthorization.Admin => Admin.GetDirection(goal, position),
 				_ => float2.zero,
 			};
 		}

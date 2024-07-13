@@ -334,6 +334,7 @@ namespace U0071
 		public void Execute(
 			Entity entity,
 			ref AuthorizationComponent authorization,
+			ref CreditsComponent credits,
 			ref NameComponent name,
 			ref SkinColor skin,
 			ref ShortHairColor shortHair,
@@ -347,12 +348,10 @@ namespace U0071
 			initTag.ValueRW = false;
 
 			authorization.AreaFlag = Utilities.GetLowestAuthorization(Partition.GetAuthorization(position.Value));
-			
-			if (authorization.AreaFlag > AreaAuthorization.LevelThree)
+
+			if (authorization.AreaFlag == AreaAuthorization.Admin)
 			{
-				// goal was to have separated admin colors
-				// no time so admins are generic and have access to all
-				authorization.AreaFlag = AreaAuthorization.Yellow;
+				credits.AdminCard = true;
 			}
 
 			UnitIdentity identity = Config.UnitIdentityData.Value.Identities[entity.Index % Config.UnitIdentityData.Value.Identities.Length];
