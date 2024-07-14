@@ -312,6 +312,8 @@ MonoBehaviour:
   PopTextPrefab: {fileID: 5481345951632752470, guid: 7c94aa8c6076ea14ba6c9db0d8611b3d,
     type: 3}
   HeightOffset: 1.4
+  ContaminationColor: {r: 0.6299317, g: 0.8490566, b: 0.27634388, a: 1}
+  HungerColor: {r: 1, g: 0.5803922, b: 0.60784316, a: 1}
   PeekingBubble: {fileID: 4724446430298217585}
   BubbleRenderer: {fileID: 7221773394808562955}
   BubbleMaterial: {fileID: 2100000, guid: bea02ff6617d1f04299fc9ab648a873d, type: 2}
@@ -319,6 +321,7 @@ MonoBehaviour:
     type: 2}
   BustedBubbleMaterial: {fileID: 2100000, guid: 0a194aaa62ea41d4288ae6dcf786aa51,
     type: 2}
+  DisableIntro: 0
   StartLineTime: 2.5
   StayLineTime: 3
   RespawnLineTime: 0.75

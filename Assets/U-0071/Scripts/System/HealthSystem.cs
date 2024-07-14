@@ -265,7 +265,7 @@ namespace U0071
 					sick.IsResolved = false;
 					movement.Speed /= Const.SickSpeedMultiplier;
 
-					float4 sickColorOffset = new float4(0f, skin.Value.y / (1f + Const.ContaminatedSkinGreenModifier), 0f, 0f);
+					float4 sickColorOffset = new float4(0f, skin.Value.y - (skin.Value.y / (1f + Const.ContaminatedSkinGreenModifier)), 0f, 0f);
 					if (!pilosity.HasShortHair) shortHair.Value -= sickColorOffset;
 					if (!pilosity.HasLongHair) longHair.Value -= sickColorOffset;
 					if (!pilosity.HasBeard) beard.Value -= sickColorOffset;

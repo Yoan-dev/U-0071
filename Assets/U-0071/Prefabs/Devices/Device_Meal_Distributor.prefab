@@ -96,14 +96,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f31f27170626c2c468cc12af570e0ac3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Name: Meal Distributor
-  ActionName: Buy
+  Name: 
+  ActionName: Buy Meal
   Range: 1
   Time: 1
   CollisionRange: 0.25
   Collide: 1
   CanBeMultiused: 0
   AdminStation: 0
+  CanContaminatedBeContaminated: 0
   Cost: 10
   AreaFlag: 0
   DoorSize: 0
@@ -114,6 +115,7 @@ MonoBehaviour:
   RawFood: 0
   Food: 1
   Trash: 0
+  Contaminated: 0
   Prefab: {fileID: 1708813368808323750, guid: 4f09a7b8018e3c54cbd6329c0998ba1d, type: 3}
   VariantPrefab: {fileID: 1708813368808323750, guid: 6a32439f82b032c47a03fe8b28995bb3,
     type: 3}

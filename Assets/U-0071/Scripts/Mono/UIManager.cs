@@ -5,7 +5,6 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
-using Unity.VisualScripting.FullSerializer;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -15,6 +14,10 @@ public class UIManager : MonoBehaviour
 	public TMP_Text Interaction;
 	public TMP_Text PopTextPrefab;
 	public float HeightOffset = 1.4f;
+
+	[Header("HUD")]
+	public Color ContaminationColor;
+	public Color HungerColor;
 
 	[Header("PeekingBubble")]
 	public TMP_Text PeekingBubble;
@@ -215,7 +218,7 @@ public class UIManager : MonoBehaviour
 					PeekingInfoComponent peekingInfo = entityManager.GetComponentData<PeekingInfoComponent>(_player);
 					CycleComponent cycle = entityManager.GetComponentData<CycleComponent>(_gameSingleton);
 
-					UpdateInteraction(in playerController, position);
+					UpdateInteraction(in playerController, in credits, position);
 					UpdateHUD(in credits, in hunger, in contaminationLevel, in cycle);
 					ProcessPopEvents(in credits, position);
 					UpdateCodepad(in entityManager, in playerController, in actionController, in cycle);
@@ -232,6 +235,9 @@ public class UIManager : MonoBehaviour
 		_contaminationLabel.text = "Contamination " + (contaminationLevel.Value > 1f || contaminationLevel.Value == 0f ? contaminationLevel.Value.ToString("0") : contaminationLevel.Value.ToString("0.0"));
 		_creditsLabel.text = "Credits " + credits.Value;
 
+		_hungerLabel.style.color = hunger.Value < 1f ? HungerColor : Color.white;
+		_contaminationLabel.style.color = contaminationLevel.IsSick || contaminationLevel.Value >= Const.ContaminationSicknessTreshold - 0.1f ? ContaminationColor : Color.white;
+
 		int minutes = (int)(cycle.CycleTimer / 60f);
 		int seconds = (int)(cycle.CycleTimer - minutes * 60);
 		_cycleLabel.text = minutes.ToString("00") + ":" + seconds.ToString("00") + " - Cycle " + cycle.CycleCounter.ToString();
@@ -239,10 +245,10 @@ public class UIManager : MonoBehaviour
 	}
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public void UpdateInteraction(in PlayerController playerController, float3 position)
+	public void UpdateInteraction(in PlayerController playerController, in CreditsComponent credits, float3 position)
 	{
-		string textOne = GetInteractionText(in playerController.PrimaryAction);
-		string textTwo = GetInteractionText(in playerController.SecondaryAction);
+		string textOne = GetInteractionText(in playerController.PrimaryAction, credits.Value);
+		string textTwo = GetInteractionText(in playerController.SecondaryAction, credits.Value);
 
 		bool shouldDisplayTimer = playerController.ActionTimer > 0f && playerController.ActionTimer < 9999f;
 
@@ -269,13 +275,13 @@ public class UIManager : MonoBehaviour
 	}
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	private string GetInteractionText(in ActionInfo info)
+	private string GetInteractionText(in ActionInfo info, int Credits)
 	{
 		return info.Data.Target != Entity.Null ? 
 			info.Key.ToString() + ": " + 
 			(info.ActionName.Length > 0 ? info.ActionName : GetActionName(info.Type, info.Cost)) + 
 			(info.TargetName.Length > 0 ? " " + info.TargetName : "") +
-			(info.Cost > 0f ? " (-" + info.Cost + "c)" : "") +
+			(info.Cost > 0 ? " (-" + info.Cost + (info.Cost > Credits ? "c, not enough credits)" : "c)") : "") +
 			(info.DeviceName.Length > 0 ? " (" + info.DeviceName + ")" : "") : "";
 	}
 
