@@ -1,6 +1,4 @@
 using System;
-using Unity.Entities.UniversalDelegates;
-using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace U0071
@@ -16,6 +14,7 @@ namespace U0071
 		private int _cycleCounter;
 		private int _requiredCode;
 		private string _code;
+		private bool _accessDenied;
 
 		public Codepad(VisualElement root)
 		{
@@ -41,6 +40,11 @@ namespace U0071
 			{
 				// if null, comes from update
 				_callback = callback;
+			}
+			else
+			{
+				// init if not coming from update
+				_accessDenied = false;
 			}
 
 			UpdateScreenText();
@@ -131,19 +135,20 @@ namespace U0071
 			else
 			{
 				// TODO: negative sound feedback "denied"
+				_accessDenied = true;
 				UpdateScreenText();
 			}
 		}
 
 		private void UpdateScreenText()
 		{
-			// TODO: depends on context (ACCESS DENIED / GRANTED / RESET / BEHAVE)
+			// TODO: depends on context (ACCESS DENIED / GRANTED / CYCLE RESET)
 			_screenText.text = GetDefaultText() + GetCodeText();
 		}
 
 		private string GetDefaultText()
 		{
-			return "Required Access\n" + GetAuthorizationText() + "-Cycle" + _cycleCounter + "\n";
+			return (_accessDenied ? "Access Denied\n" : "Required Access\n") + GetAuthorizationText() + "-Cycle" + _cycleCounter + "\n";
 		}
 
 		private string GetCodeText()

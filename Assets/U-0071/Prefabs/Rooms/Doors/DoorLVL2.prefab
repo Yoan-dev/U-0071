@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 3228817034398723558}
   - component: {fileID: 447045484328811134}
   m_Layer: 0
-  m_Name: Door
+  m_Name: DoorLVL2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -62,7 +62,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 70dbc24fb18126b46b0692f5cfd906d7, type: 2}
+  - {fileID: 2100000, guid: 0a081281bfc2b184abc2730ca7f5378b, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -106,7 +106,7 @@ MonoBehaviour:
   AdminStation: 0
   CanContaminatedBeContaminated: 0
   Cost: 0
-  AreaFlag: 1
+  AreaFlag: 2
   DoorSize: 0.85
   StaysOpenTime: 1.5
   AnimationCubicStrength: 12

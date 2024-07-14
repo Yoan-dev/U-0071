@@ -60,7 +60,7 @@ namespace U0071
 
 		public float2 GetFacingDirection(GameObject gameObject)
 		{
-			float yaw = gameObject.transform.localRotation.eulerAngles.z;
+			float yaw = gameObject.transform.localRotation.eulerAngles.y;
 			return
 				yaw == 0f ? new float2(0f, -1f) :
 				yaw == 90f ? new float2(-1f, 0f) :
@@ -69,7 +69,7 @@ namespace U0071
 
 		public float2 GetDoorCollision()
 		{
-			float yaw = gameObject.transform.localRotation.eulerAngles.z;
+			float yaw = gameObject.transform.localRotation.eulerAngles.y;
 			float scale = gameObject.transform.localScale.x; // assumed uniform
 			return yaw == 0f || yaw == 180f ?
 				new float2(scale / 2f, scale / 2f * DoorSize) :
