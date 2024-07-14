@@ -73,6 +73,8 @@ namespace U0071
 		public const float SickSkinToneOffset = 0.1f;
 		public const float SickSpeedMultiplier = 0.66f;
 		public const float SickHungerDepleteRate = 0.05f;
+		public const float SpreadSicknessTime = 9f;
+		public const float SpreadSicknessResolveTime = 1.35f;
 		public const float SickTime = 30f;
 
 		// UI

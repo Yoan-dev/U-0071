@@ -80,6 +80,7 @@ namespace U0071
 		public bool IsResolving;
 		public bool ShouldStopFlag;
 		public bool ShouldDropFlag;
+		public bool ShouldSpreadDiseaseFlag;
 
 		public bool HasTarget => Action.Has && !ShouldStopFlag;
 		public bool ShouldStop => Timer >= Action.Time || ShouldStopFlag;
@@ -92,9 +93,10 @@ namespace U0071
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void Stop(bool shouldDropItem)
+		public void Stop(bool shouldDropItem, bool shouldSpreadDisease)
 		{
 			ShouldDropFlag = shouldDropItem;
+			ShouldSpreadDiseaseFlag = shouldSpreadDisease;
 
 			if (IsResolving)
 			{

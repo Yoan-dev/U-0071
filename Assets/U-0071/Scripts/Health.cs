@@ -34,6 +34,7 @@ namespace U0071
 	public struct SickComponent : IComponentData, IEnableableComponent
 	{
 		public float Timer;
+		public float SpreadTimer;
 		public bool IsResolved;
 	}
 }

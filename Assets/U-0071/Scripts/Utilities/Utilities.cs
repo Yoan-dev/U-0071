@@ -1,9 +1,7 @@
 using System.Runtime.CompilerServices;
 using Unity.Entities;
 using Unity.Mathematics;
-using Unity.VisualScripting;
 using UnityEngine;
-using static UnityEngine.Rendering.DebugUI;
 
 namespace U0071
 {
@@ -25,8 +23,10 @@ namespace U0071
 		public static bool ProcessUnitControllerStart(
 			Entity entity,
 			ref ActionController controller,
+			in Orientation orientation,
 			in PositionComponent position,
 			in PartitionComponent partition,
+			EnabledRefRW<IsActing> isActing,
 			EnabledRefRO<DeathComponent> death,
 			EnabledRefRO<PushedComponent> pushed,
 			in ComponentLookup<InteractableComponent> interactableLookup,
@@ -36,7 +36,13 @@ namespace U0071
 
 			if (death.ValueRO || pushed.ValueRO)
 			{
-				controller.Stop(true);
+				controller.Stop(true, false);
+				return true;
+			}
+
+			if (controller.ShouldSpreadDiseaseFlag)
+			{
+				QueueSpreadDiseaseAction(ref controller, in orientation, in position, isActing);
 				return true;
 			}
 
@@ -48,7 +54,7 @@ namespace U0071
 				!interactable.HasActionFlag(controller.Action.ActionFlag)))
 			{
 				// target is being solo-used or has been destroyed/picked/disabled
-				controller.Stop(false);
+				controller.Stop(false, false);
 				return true;
 			}
 
@@ -64,12 +70,25 @@ namespace U0071
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static void QueueDropAction(
 			ref ActionController controller,
-			ref Orientation orientation,
+			in Orientation orientation,
 			in PositionComponent position,
 			in CarryComponent carry,
 			EnabledRefRW<IsActing> isActing)
 		{
 			controller.Action = new ActionData(carry.Picked, ActionFlag.Drop, 0, carry.Flags, position.Value + Const.GetDropOffset(orientation.Value), 0f, 0f, 0);
+			controller.Start();
+			isActing.ValueRW = true;
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static void QueueSpreadDiseaseAction(
+			ref ActionController controller,
+			in Orientation orientation,
+			in PositionComponent position,
+			EnabledRefRW<IsActing> isActing)
+		{
+			controller.ShouldSpreadDiseaseFlag = false;
+			controller.Action = new ActionData(Entity.Null, ActionFlag.SpreadDisease, 0, 0, position.Value + Const.GetDropOffset(orientation.Value), 0f, Const.SpreadSicknessResolveTime, 0);
 			controller.Start();
 			isActing.ValueRW = true;
 		}

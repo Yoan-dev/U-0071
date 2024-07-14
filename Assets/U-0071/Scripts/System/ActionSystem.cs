@@ -393,6 +393,10 @@ namespace U0071
 							Ecb.SetComponent(chunkIndex, Ecb.Instantiate(chunkIndex, Config.ContaminatedRawFoodPrefab), new PositionComponent { Value = position.Value });
 						}
 					}
+					else if (controller.Action.ActionFlag == ActionFlag.SpreadDisease)
+					{
+						Ecb.SetComponent(chunkIndex, Ecb.Instantiate(chunkIndex, Config.ContaminatedWastePrefab), new PositionComponent { Value = controller.Action.Position });
+					}
 
 					if (controller.Action.Cost != 0)
 					{
@@ -459,7 +463,7 @@ namespace U0071
 		{
 			public NativeQueue<ChangeInteractableEvent>.ParallelWriter ChangeInteractableEvents;
 
-			public void Execute(Entity entity, ref ActionController controller, EnabledRefRW<IsActing> isActing)
+			public void Execute(Entity entity, ref ActionController controller, in PositionComponent position, in Orientation orientation, EnabledRefRW<IsActing> isActing)
 			{
 				if (controller.ShouldStop)
 				{
@@ -480,6 +484,14 @@ namespace U0071
 					controller.IsResolving = false;
 					controller.ShouldStopFlag = false;
 					isActing.ValueRW = false;
+
+					// replace action
+					// would need a "next action data" for scheduling
+					// but too late in the jam to do it
+					if (controller.ShouldSpreadDiseaseFlag)
+					{
+						Utilities.QueueSpreadDiseaseAction(ref controller, in orientation, in position, isActing);
+					}
 				}
 			}
 		}

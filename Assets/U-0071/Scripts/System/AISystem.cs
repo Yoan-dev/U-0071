@@ -121,13 +121,13 @@ namespace U0071
 				if (Cycle.CycleChanged && actionController.IsResolving && actionController.Action.ActionFlag == ActionFlag.Open)
 				{
 					// stop interacting with door if cycle changed
-					actionController.Stop(death.ValueRO || pushed.ValueRO);
+					actionController.Stop(death.ValueRO || pushed.ValueRO, false);
 					return;
 				}
 
 				if (pushed.ValueRO) controller.LastMovementInput = float2.zero;
 
-				if (Utilities.ProcessUnitControllerStart(entity, ref actionController, in position, in partition, death, pushed, in InteractableLookup, in PickableLookup))
+				if (Utilities.ProcessUnitControllerStart(entity, ref actionController, in orientation, in position, in partition, isActing, death, pushed, in InteractableLookup, in PickableLookup))
 				{
 					return;
 				}
@@ -147,7 +147,7 @@ namespace U0071
 					controller.CantReachTimer += DeltaTime;
 					if (controller.CantReachTimer >= Const.AICantReachTime)
 					{
-						actionController.Stop(false);
+						actionController.Stop(false, false);
 					}
 
 					// start interacting or going to target
@@ -184,7 +184,7 @@ namespace U0071
 					controller.Goal = AIGoal.Eat;
 					if (carry.HasItem && !Utilities.HasItemFlag(carry.Flags, ItemFlag.Food))
 					{
-						Utilities.QueueDropAction(ref actionController, ref orientation, in position, in carry, isActing);
+						Utilities.QueueDropAction(ref actionController, in orientation, in position, in carry, isActing);
 					}
 				}
 				else if (controller.ShouldReassess(hungerRatio, carry.HasItem, hasOpportunity, isFired))
@@ -298,7 +298,7 @@ namespace U0071
 				{
 					// will not be able to interact with target
 					// drop item to be able on next tick
-					Utilities.QueueDropAction(ref actionController, ref orientation, in position, in carry, isActing);
+					Utilities.QueueDropAction(ref actionController, in orientation, in position, in carry, isActing);
 				}
 				else if (actionController.HasTarget && position.IsInRange(actionController.Action.Position, actionController.Action.Range))
 				{

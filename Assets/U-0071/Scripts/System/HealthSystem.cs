@@ -168,6 +168,7 @@ namespace U0071
 
 			public void Execute(
 				ref SickComponent sick,
+				ref ActionController controller,
 				ref MovementComponent movement,
 				ref SkinColor skin,
 				ref ShortHairColor shortHair,
@@ -192,8 +193,18 @@ namespace U0071
 				hunger.Value -= DeltaTime * Const.SickHungerDepleteRate;
 
 				sick.Timer += DeltaTime;
+				sick.SpreadTimer += DeltaTime;
+
+				if (sick.SpreadTimer > Const.SpreadSicknessTime)
+				{
+					sick.SpreadTimer -= Const.SpreadSicknessTime;
+					controller.Stop(true, true);
+				}
+
 				if (sick.Timer > Const.SickTime)
 				{
+					sick.Timer = 0f;
+					sick.SpreadTimer = 0;
 					sickRef.ValueRW = false;
 					sick.IsResolved = false;
 					movement.Speed /= Const.SickSpeedMultiplier;

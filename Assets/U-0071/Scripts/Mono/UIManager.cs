@@ -306,7 +306,7 @@ public class UIManager : MonoBehaviour
 				{
 					// cancel
 					ActionController controller = entityManager.GetComponentData<ActionController>(_player);
-					controller.Stop(false);
+					controller.Stop(false, false);
 					entityManager.SetComponentData(_player, controller);
 					_codepad.ExitScreen();
 					return;
