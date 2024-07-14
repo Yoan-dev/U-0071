@@ -121,7 +121,7 @@ public class DebugManager : MonoBehaviour
 		if (!direction.Equals(float2.zero))
 		{
 			Gizmos.color = color;
-			Gizmos.DrawLine(from, from + new Vector3(direction.x, 0f, direction.y) / 2f);
+			Gizmos.DrawLine(from, from + new Vector3(direction.x, 0f, direction.y));
 		}
 	}
 

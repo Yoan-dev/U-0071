@@ -98,7 +98,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Name: U-0000
-  Speed: 3
+  Speed: 11
   Hunger: 10
   Authorisation: 0
   Credits: 30

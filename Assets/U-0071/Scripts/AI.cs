@@ -69,6 +69,7 @@ namespace U0071
 			Goal = newGoal;
 			ReassessmentTimer = Const.GetReassessmentTimer(newGoal);
 
+			Goal = AIGoal.BoredWander; // DEBUG
 			// flee/destroy/process goals set outside of controller
 		}
 
