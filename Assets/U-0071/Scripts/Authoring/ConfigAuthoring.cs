@@ -18,7 +18,6 @@ namespace U0071
 		public float EndingPhaseTwoY;
 		public float EndingPhaseThreeY;
 		public float EndingPhaseThreeAbsX;
-		public GameObject LastDoor;
 
 		[Header("Animations")]
 		public Animation CharacterIdle;
@@ -92,7 +91,6 @@ namespace U0071
 						EndingPhaseTwoY = authoring.EndingPhaseTwoY,
 						EndingPhaseThreeY = authoring.EndingPhaseThreeY,
 						EndingPhaseThreeAbsX = authoring.EndingPhaseThreeAbsX,
-						LastDoorEntity = GetEntity(authoring.LastDoor, TransformUsageFlags.Dynamic),
 					});
 				}
 

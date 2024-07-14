@@ -41,11 +41,6 @@ namespace U0071
 				// if null, comes from update
 				_callback = callback;
 			}
-			else
-			{
-				// init if not coming from update
-				_accessDenied = false;
-			}
 
 			UpdateScreenText();
 			_root.style.display = DisplayStyle.Flex;
@@ -87,6 +82,7 @@ namespace U0071
 			{
 				button.Reset();
 			}
+			_accessDenied = false;
 			_callback = null;
 			_root.style.display = DisplayStyle.None;
 		}
@@ -136,6 +132,7 @@ namespace U0071
 			{
 				// TODO: negative sound feedback "denied"
 				_accessDenied = true;
+				_code = "";
 				UpdateScreenText();
 			}
 		}

@@ -57,7 +57,6 @@ namespace U0071
 	public struct Ending : IComponentData
 	{
 		public Animation CharacterDepixelate;
-		public Entity LastDoorEntity;
 		public float EndingPhaseOneY;
 		public float EndingPhaseTwoY;
 		public float EndingPhaseThreeY;
