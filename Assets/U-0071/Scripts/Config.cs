@@ -38,7 +38,8 @@ namespace U0071
 		public float4 AdminShirtColor;
 		public int2 WorldDimensions;
 		public BlobAssetReference<UnitIdentityCollection> UnitIdentityData;
-		public Entity OrganicWastePrefab;
+		public Entity ContaminatedWastePrefab;
+		public Entity ContaminatedRawFoodPrefab;
 		public float ChanceOfLongHair;
 		public float ChanceOfShortHair;
 		public float ChanceOfBeard;

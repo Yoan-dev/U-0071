@@ -285,6 +285,7 @@ public class UIManager : MonoBehaviour
 			ActionFlag.Drop => "Drop",
 			ActionFlag.Search => "Loot",
 			ActionFlag.Push => "Push",
+			ActionFlag.Contaminate => "Contaminate",
 			_ => "none",
 		};
 	}

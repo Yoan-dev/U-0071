@@ -44,8 +44,10 @@ namespace U0071
 		[Header("Respawn Random")]
 		public int UnitArrayMaxIndex;
 
+		// hard-coded, no modular logic
 		[Header("Miscellaneous")]
-		public GameObject OrganicWastePrefab;
+		public GameObject ContaminatedWastePrefab;
+		public GameObject ContaminatedRawFoodPrefab;
 
 		public class Baker : Baker<ConfigAuthoring>
 		{
@@ -68,7 +70,8 @@ namespace U0071
 					ChanceOfShortHair = authoring.ChanceOfShortHair,
 					ChanceOfLongHair = authoring.ChanceOfLongHair,
 					ChanceOfBeard = authoring.ChanceOfBeard,
-					OrganicWastePrefab = GetEntity(authoring.OrganicWastePrefab, TransformUsageFlags.Dynamic),
+					ContaminatedWastePrefab = GetEntity(authoring.ContaminatedWastePrefab, TransformUsageFlags.Dynamic),
+					ContaminatedRawFoodPrefab = GetEntity(authoring.ContaminatedRawFoodPrefab, TransformUsageFlags.Dynamic),
 					LevelOneShirtColor = authoring.LevelOneShirtColor.linear.ToFloat4(),
 					LevelTwoShirtColor = authoring.LevelTwoShirtColor.linear.ToFloat4(),
 					LevelThreeShirtColor = authoring.LevelThreeShirtColor.linear.ToFloat4(),

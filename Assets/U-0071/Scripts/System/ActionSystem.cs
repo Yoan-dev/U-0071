@@ -40,6 +40,11 @@ namespace U0071
 		public Entity Target;
 	}
 
+	public struct ContaminateEvent
+	{
+		public Entity Target;
+	}
+
 	public struct ChangeInteractableEvent
 	{
 		public Entity Target;
@@ -70,6 +75,7 @@ namespace U0071
 		private NativeQueue<SpawnerEvent> _spawnerEvents;
 		private NativeQueue<TeleportEvent> _teleportEvents;
 		private NativeQueue<OpenEvent> _openEvents;
+		private NativeQueue<ContaminateEvent> _contaminateEvent;
 		private NativeQueue<ChangeInteractableEvent> _changeInteractableEvents;
 
 		// lookups (alot)
@@ -85,6 +91,7 @@ namespace U0071
 		private ComponentLookup<TeleporterComponent> _teleporterLookup;
 		private ComponentLookup<StorageComponent> _storageLookup;
 		private ComponentLookup<DoorComponent> _doorLookup;
+		private ComponentLookup<GrowComponent> _growLookup;
 
 		[BurstCompile]
 		public void OnCreate(ref SystemState state)
@@ -97,6 +104,7 @@ namespace U0071
 			_spawnerEvents = new NativeQueue<SpawnerEvent>(Allocator.Persistent);
 			_teleportEvents = new NativeQueue<TeleportEvent>(Allocator.Persistent);
 			_openEvents = new NativeQueue<OpenEvent>(Allocator.Persistent);
+			_contaminateEvent = new NativeQueue<ContaminateEvent>(Allocator.Persistent);
 			_changeInteractableEvents = new NativeQueue<ChangeInteractableEvent>(Allocator.Persistent);
 
 			_roomElementLookup = state.GetBufferLookup<RoomElementBufferElement>();
@@ -110,6 +118,7 @@ namespace U0071
 			_pushedLookup = state.GetComponentLookup<PushedComponent>();
 			_teleporterLookup = state.GetComponentLookup<TeleporterComponent>();
 			_doorLookup = state.GetComponentLookup<DoorComponent>();
+			_growLookup = state.GetComponentLookup<GrowComponent>();
 			_storageLookup = state.GetComponentLookup<StorageComponent>(true);
 		}
 
@@ -122,6 +131,7 @@ namespace U0071
 			_spawnerEvents.Dispose();
 			_teleportEvents.Dispose();
 			_openEvents.Dispose();
+			_contaminateEvent.Dispose();
 			_changeInteractableEvents.Dispose();
 		}
 
@@ -141,6 +151,7 @@ namespace U0071
 			_storageLookup.Update(ref state);
 			_teleporterLookup.Update(ref state);
 			_pushedLookup.Update(ref state);
+			_growLookup.Update(ref state);
 			_doorLookup.Update(ref state);
 
 			// TODO: have generic events (destroyed, modifyCredits etc) written when processing actions and processed afterwards in // (avoid Lookup-fest)
@@ -155,8 +166,10 @@ namespace U0071
 				SpawnerEvents = _spawnerEvents.AsParallelWriter(),
 				TeleportEvents = _teleportEvents.AsParallelWriter(),
 				OpenEvents = _openEvents.AsParallelWriter(),
+				ContaminateEvents = _contaminateEvent.AsParallelWriter(),
 				ChangeInteractableEvents = _changeInteractableEvents.AsParallelWriter(),
 				StorageLookup = _storageLookup,
+				Config = SystemAPI.GetSingleton<Config>(),
 				DeltaTime = SystemAPI.Time.DeltaTime,
 			}.ScheduleParallel(state.Dependency);
 
@@ -164,7 +177,7 @@ namespace U0071
 			{
 				PickDropEvents = _pickDropEvents.AsParallelWriter(),
 			}.ScheduleParallel(state.Dependency);
-			
+
 			state.Dependency = new ResolvePickedActionJob
 			{
 				Ecb = ecbs.CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter(),
@@ -224,6 +237,12 @@ namespace U0071
 				ChangedInteractableEvents = _changeInteractableEvents.AsParallelWriter(),
 			}.Schedule(state.Dependency);
 
+			state.Dependency = new ContaminateEventJob
+			{
+				Events = _contaminateEvent,
+				GrowLookup = _growLookup,
+			}.Schedule(state.Dependency);
+
 			state.Dependency = new ChangeInteractableEventJob
 			{
 				Events = _changeInteractableEvents,
@@ -242,9 +261,11 @@ namespace U0071
 			public NativeQueue<SpawnerEvent>.ParallelWriter SpawnerEvents;
 			public NativeQueue<TeleportEvent>.ParallelWriter TeleportEvents;
 			public NativeQueue<OpenEvent>.ParallelWriter OpenEvents;
+			public NativeQueue<ContaminateEvent>.ParallelWriter ContaminateEvents;
 			public NativeQueue<ChangeInteractableEvent>.ParallelWriter ChangeInteractableEvents;
 			[ReadOnly]
 			public ComponentLookup<StorageComponent> StorageLookup;
+			public Config Config;
 			public float DeltaTime;
 
 			public void Execute(
@@ -356,6 +377,22 @@ namespace U0071
 							Target = controller.Action.Target,
 						});
 					}
+					else if (controller.Action.ActionFlag == ActionFlag.Contaminate)
+					{
+						// cancel cost
+						controller.Action.Cost = 0;
+
+						if (controller.Action.HasItemFlag(ItemFlag.Contaminated))
+						{
+							// contaminate device
+							ContaminateEvents.Enqueue(new ContaminateEvent { Target = controller.Action.Target });
+						}
+						else
+						{
+							// contaminate carried item
+							Ecb.SetComponent(chunkIndex, Ecb.Instantiate(chunkIndex, Config.ContaminatedRawFoodPrefab), new PositionComponent { Value = position.Value });
+						}
+					}
 
 					if (controller.Action.Cost != 0)
 					{
@@ -384,7 +421,7 @@ namespace U0071
 				EnabledRefRW<CarryComponent> pickRef)
 			{
 				if (controller.ShouldResolve(credits.Value) &&
-					(controller.Action.ActionFlag == ActionFlag.Destroy || controller.Action.ActionFlag == ActionFlag.Store || controller.Action.ActionFlag == ActionFlag.Eat))
+					controller.Action.HasActionFlag(ActionFlag.Destroy | ActionFlag.Store | ActionFlag.Eat | ActionFlag.Contaminate))
 				{
 					// destroy used item
 					Ecb.DestroyEntity(chunkIndex, carry.Picked);
@@ -421,7 +458,7 @@ namespace U0071
 		public partial struct StopActionJob : IJobEntity
 		{
 			public NativeQueue<ChangeInteractableEvent>.ParallelWriter ChangeInteractableEvents;
-			
+
 			public void Execute(Entity entity, ref ActionController controller, EnabledRefRW<IsActing> isActing)
 			{
 				if (controller.ShouldStop)
@@ -693,6 +730,26 @@ namespace U0071
 		}
 
 		[BurstCompile]
+		public partial struct ContaminateEventJob : IJob
+		{
+			public NativeQueue<ContaminateEvent> Events;
+			public ComponentLookup<GrowComponent> GrowLookup;
+
+			public void Execute()
+			{
+				while (Events.Count > 0)
+				{
+					ContaminateEvent contaminateEvent = Events.Dequeue();
+
+					if (GrowLookup.HasComponent(contaminateEvent.Target))
+					{
+						GrowLookup.GetRefRW(contaminateEvent.Target).ValueRW.SpawnVariantFlag = true;
+					}
+				}
+			}
+		}
+
+		[BurstCompile]
 		public partial struct ChangeInteractableEventJob : IJob
 		{
 			public NativeQueue<ChangeInteractableEvent> Events;
@@ -707,8 +764,8 @@ namespace U0071
 					// need to send assumed previous user because
 					// of concurrent accesses (2 units trying to acceed the same frame)
 					ref InteractableComponent interactable = ref InteractableLookup.GetRefRW(changeInteractableEvent.Target).ValueRW;
-					if (changeInteractableEvent.UserChange && 
-						!interactable.CanBeMultiused && 
+					if (changeInteractableEvent.UserChange &&
+						!interactable.CanBeMultiused &&
 						(interactable.CurrentUser == changeInteractableEvent.PreviousUser))
 					{
 						interactable.CurrentUser = changeInteractableEvent.NewUser;

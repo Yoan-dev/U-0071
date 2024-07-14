@@ -117,7 +117,7 @@ namespace U0071
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static bool RequireItem(ActionFlag actionFlag)
 		{
-			return actionFlag == ActionFlag.Store || actionFlag == ActionFlag.Destroy || actionFlag == ActionFlag.Teleport;
+			return actionFlag == ActionFlag.Store || actionFlag == ActionFlag.Destroy || actionFlag == ActionFlag.Teleport || actionFlag == ActionFlag.Contaminate;
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]

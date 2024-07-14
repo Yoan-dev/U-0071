@@ -146,7 +146,7 @@ namespace U0071
 				}
 
 				// retrieve relevant action types
-				ActionFlag primaryFilter = ActionFlag.Store | ActionFlag.Destroy | ActionFlag.Collect | ActionFlag.Search | ActionFlag.Push;
+				ActionFlag primaryFilter = ActionFlag.Store | ActionFlag.Destroy | ActionFlag.Collect | ActionFlag.Search | ActionFlag.Push | ActionFlag.Contaminate;
 
 				if (carry.HasItem)
 				{

@@ -19,6 +19,7 @@ namespace U0071
 		public bool Collide = true;
 		public bool CanBeMultiused = false;
 		public bool AdminStation = false;
+		public bool CanContaminatedBeContaminated = false;
 		public int Cost;
 
 		[Header("Door")]
@@ -35,6 +36,7 @@ namespace U0071
 		public bool RawFood;
 		public bool Food;
 		public bool Trash;
+		public bool Contaminated;
 
 		[Header("Spawner")]
 		public GameObject Prefab;
@@ -109,7 +111,7 @@ namespace U0071
 				{
 					// working stations are spawner of working materials
 					// rather than processing station (allow better AI)
-					isWorkingStation = authoring.RawFood || authoring.Trash;
+					isWorkingStation = authoring.Prefab != null && authoring.Cost <= 0f;
 
 					if (authoring.StartingCapacity > 0 && !authoring.AutoSpawner)
 					{
@@ -194,12 +196,17 @@ namespace U0071
 					actionFlags |= ActionFlag.Administrate;
 					isWorkingStation = true;
 				}
+				if (authoring.CanContaminatedBeContaminated)
+				{
+					actionFlags |= ActionFlag.Contaminate;
+				}
 
 				// interactable
 				ItemFlag itemFlags = 0;
 				if (authoring.RawFood) itemFlags |= ItemFlag.RawFood;
 				if (authoring.Food) itemFlags |= ItemFlag.Food;
 				if (authoring.Trash) itemFlags |= ItemFlag.Trash;
+				if (authoring.Contaminated) itemFlags |= ItemFlag.Contaminated;
 				AddComponent(entity, new InteractableComponent
 				{
 					ActionFlags = actionFlags,

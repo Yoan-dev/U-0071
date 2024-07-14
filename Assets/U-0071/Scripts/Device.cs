@@ -22,6 +22,7 @@ namespace U0071
 		public float Time;
 		public float Timer;
 		public int StageCount;
+		public bool SpawnVariantFlag;
 	}
 
 	public struct StorageComponent : IComponentData

@@ -1,3 +1,4 @@
+using TMPro;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
@@ -65,14 +66,33 @@ namespace U0071
 
 			public void Execute(ref GrowComponent grow, ref InteractableComponent interactable, ref SpawnerComponent spawner, ref TextureArrayIndex index)
 			{
-				if (spawner.Capacity > 0) return; // already grown
+				if (spawner.Capacity + spawner.VariantCapacity > 0)
+				{
+					// already grown
+					if (grow.SpawnVariantFlag)
+					{
+						// replace
+						spawner.VariantCapacity = 1;
+						spawner.Capacity = 0;
+						grow.SpawnVariantFlag = false; // consume flag
+					}
+					return;
+				}
 
 				grow.Timer += DeltaTime;
 
 				if (grow.Timer > grow.Time)
 				{
 					grow.Timer = 0f;
-					spawner.Capacity = 1;
+					if (grow.SpawnVariantFlag)
+					{
+						grow.SpawnVariantFlag = false; // consume flag
+						spawner.VariantCapacity = 1;
+					}
+					else
+					{
+						spawner.Capacity = 1;
+					}
 					interactable.ActionFlags |= ActionFlag.Collect;
 					interactable.Changed = true;
 					index.Value = grow.StageCount - 1;

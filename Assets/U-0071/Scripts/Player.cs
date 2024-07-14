@@ -54,15 +54,20 @@ namespace U0071
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		private void SetAction(ref ActionInfo action, in ActionData data, in ComponentLookup<NameComponent> nameLookup, in ComponentLookup<ActionNameComponent> actionNameLookup, Entity carried)
 		{
+			bool hasItem = carried != Entity.Null;
+			bool isContaminatingDevice = hasItem && data.ActionFlag == ActionFlag.Contaminate && Utilities.HasItemFlag(data.UsedItemFlags, ItemFlag.Contaminated);
+
 			action.Data = data;
 			action.ActionName =
-				actionNameLookup.HasComponent(data.Target) ? actionNameLookup[data.Target].Value :
+				data.ActionFlag != ActionFlag.Contaminate && actionNameLookup.HasComponent(data.Target) ? actionNameLookup[data.Target].Value :
 				new FixedString32Bytes();
 			action.TargetName =
+				isContaminatingDevice ? nameLookup[data.Target].Value :
 				data.HasActionFlag(ActionFlag.Pick | ActionFlag.Search | ActionFlag.Eat | ActionFlag.Drop) ? nameLookup[data.Target].Value :
-				Utilities.RequireItem(data.ActionFlag) && carried != Entity.Null ? nameLookup[carried].Value :
+				Utilities.RequireItem(data.ActionFlag) && hasItem ? nameLookup[carried].Value :
 				new FixedString32Bytes();
-			action.DeviceName = 
+			action.DeviceName =
+				isContaminatingDevice ? nameLookup[carried].Value :
 				!data.HasActionFlag(ActionFlag.Pick | ActionFlag.Drop | ActionFlag.Eat | ActionFlag.Search) ? nameLookup[data.Target].Value :
 				new FixedString32Bytes();
 		}

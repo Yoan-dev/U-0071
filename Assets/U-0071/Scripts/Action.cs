@@ -20,6 +20,7 @@ namespace U0071
 		Teleport = 1 << 8,
 		Open = 1 << 9,
 		Administrate = 1 << 10,
+		Contaminate = 1 << 11,
 	}
 
 	public struct ActionData
@@ -62,6 +63,12 @@ namespace U0071
 		public bool HasActionFlag(ActionFlag inFlag)
 		{
 			return Utilities.HasActionFlag(ActionFlag, inFlag);
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public bool HasItemFlag(ItemFlag inFlag)
+		{
+			return Utilities.HasItemFlag(ItemFlags, inFlag);
 		}
 	}
 

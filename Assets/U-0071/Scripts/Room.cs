@@ -55,6 +55,7 @@ namespace U0071
 		{
 			// retrieve eligible action in priority order
 			return
+				EvaluateActionFlag(ActionFlag.Contaminate, current, actionFilter, carriedFlag, out selected, false, canProcessTrash, canTeleportAll) ||
 				EvaluateActionFlag(ActionFlag.Store, current, actionFilter, carriedFlag, out selected, false, canProcessTrash, canTeleportAll) ||
 				EvaluateActionFlag(ActionFlag.Destroy, current, actionFilter, canDestroyAll ? ItemFlag.All : carriedFlag, out selected) ||
 				EvaluateActionFlag(ActionFlag.Collect, current, actionFilter, carriedFlag, out selected) ||
@@ -65,12 +66,14 @@ namespace U0071
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		private bool EvaluateActionFlag(ActionFlag checkedType, ActionFlag current, ActionFlag filter, ItemFlag itemFlag, out ActionFlag selected, bool hasPriority = false, bool canProcessTrash = false, bool canTeleportAll = false)
+		private bool EvaluateActionFlag(ActionFlag checkedType, ActionFlag current, ActionFlag filter, ItemFlag itemFlag, out ActionFlag selected, bool hasPriority = false, bool canProcessContaminated = false, bool canTeleportAll = false)
 		{
 			selected = 
 				(hasPriority || checkedType >= current) && 
 				(ActionFlags & filter & checkedType) != 0 && 
-				(!Utilities.RequireItem(checkedType) || HasItemFlag(itemFlag) || HasActionFlag(ActionFlag.Teleport) && canTeleportAll || (canProcessTrash && HasItemFlag(ItemFlag.RawFood) && Utilities.HasItemFlag(itemFlag, ItemFlag.Trash))) ? checkedType : 0;
+				(!Utilities.RequireItem(checkedType) || HasItemFlag(itemFlag) || HasActionFlag(ActionFlag.Teleport) && canTeleportAll || (canProcessContaminated && HasItemFlag(ItemFlag.RawFood) && Utilities.HasItemFlag(itemFlag, ItemFlag.Contaminated))) &&
+				(checkedType != ActionFlag.Contaminate || (HasItemFlag(ItemFlag.Contaminated) == Utilities.HasItemFlag(itemFlag, ItemFlag.Contaminated))) ? checkedType : 0;
+			
 			return selected != 0;
 		}
 
