@@ -312,8 +312,8 @@ namespace U0071
 				{
 					WandererComponent wanderer = Wanderers.Dequeue();
 					float2 direction = float2.zero;
-					if (!TryWander(in wanderer, new float2(wanderer.Direction.y, -wanderer.Direction.x), ref direction) && // right
-						!TryWander(in wanderer, wanderer.Direction, ref direction)) // front
+					if (TryWander(in wanderer, new float2(wanderer.Direction.y, -wanderer.Direction.x), ref direction) && // right
+						TryWander(in wanderer, wanderer.Direction, ref direction)) // front
 					{
 						TryWander(in wanderer, new float2(-wanderer.Direction.y, wanderer.Direction.x), ref direction); // left
 					}
@@ -336,14 +336,14 @@ namespace U0071
 							Position = newPosition,
 							Direction = newDirection,
 						});
-						return true;
 					}
 					else if (bestDirection.Equals(float2.zero))
 					{
 						bestDirection = newDirection;
 					}
+					return false;
 				}
-				return false;
+				return true;
 			}
 
 			[MethodImpl(MethodImplOptions.AggressiveInlining)]
