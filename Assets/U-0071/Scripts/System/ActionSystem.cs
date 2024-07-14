@@ -96,6 +96,7 @@ namespace U0071
 		[BurstCompile]
 		public void OnCreate(ref SystemState state)
 		{
+			state.RequireForUpdate<Config>();
 			state.RequireForUpdate<Partition>();
 
 			_pushEvents = new NativeQueue<PushEvent>(Allocator.Persistent);

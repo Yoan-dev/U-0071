@@ -48,13 +48,12 @@ MonoBehaviour:
     x: 64
     y: 64
   Seed: 1
-  CycleDuration: 20
+  CycleDuration: 300
   HaveEnding: 0
   EndingPhaseOneY: 15
   EndingPhaseTwoY: 26
   EndingPhaseThreeY: 33
   EndingPhaseThreeAbsX: 18
-  LastDoor: {fileID: 0}
   CharacterIdle:
     StartIndex: 0
     Duration: 4

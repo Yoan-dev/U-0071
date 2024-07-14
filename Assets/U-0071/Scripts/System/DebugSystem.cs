@@ -42,6 +42,8 @@ namespace U0071
 		{
 			//state.Enabled = false;
 
+			state.RequireForUpdate<Config>();
+
 			_query = SystemAPI.QueryBuilder()
 				.WithAll<PositionComponent, NameComponent, RoomElementBufferElement, RoomComponent>()
 				.Build();
