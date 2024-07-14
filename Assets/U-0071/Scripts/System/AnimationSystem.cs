@@ -36,30 +36,20 @@ namespace U0071
 
 			public void Execute(ref AnimationController controller, in MovementComponent movement, in PositionComponent position, in ActionController actionController)
 			{
-				if (actionController.IsResolving && actionController.Action.Time > 0f)
+				// should have animations as ids and just queue an id
+				// (with a blob asset)
+				Animation animation =
+					actionController.IsResolving && actionController.Action.Time > 0f ?
+					actionController.Action.ActionFlag == ActionFlag.Push ? Config.CharacterPush :
+					actionController.Action.ActionFlag == ActionFlag.SpreadDisease ? Config.CharacterSpreadDisease :
+					Config.CharacterInteract :
+					!movement.Input.Equals(float2.zero) && position.HasSlightlyMoved ?
+					movement.IsRunning ? Config.CharacterFlee :
+					Config.CharacterWalk :
+					Config.CharacterIdle;
+				if (!controller.IsPlaying(animation))
 				{
-					if (!controller.IsPlaying(in Config.CharacterInteract))
-					{
-						controller.StartAnimation(in Config.CharacterInteract);
-					}
-				}
-				else if (!movement.Input.Equals(float2.zero) && position.HasSlightlyMoved)
-				{
-					if (movement.IsRunning)
-					{
-						if (!controller.IsPlaying(in Config.CharacterFlee))
-						{
-							controller.StartAnimation(in Config.CharacterFlee);
-						}
-					}
-					else if (!controller.IsPlaying(in Config.CharacterWalk))
-					{
-						controller.StartAnimation(in Config.CharacterWalk);
-					}
-				}
-				else if (!controller.IsPlaying(in Config.CharacterIdle))
-				{
-					controller.StartAnimation(in Config.CharacterIdle);
+					controller.StartAnimation(in animation);
 				}
 			}
 		}

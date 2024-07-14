@@ -21,6 +21,7 @@ namespace U0071
 		Open = 1 << 9,
 		Administrate = 1 << 10,
 		Contaminate = 1 << 11,
+		SpreadDisease = 1 << 12,
 	}
 
 	public struct ActionData

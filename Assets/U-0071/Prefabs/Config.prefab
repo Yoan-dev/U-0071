@@ -62,12 +62,12 @@ MonoBehaviour:
     Looping: 1
   CharacterWalk:
     StartIndex: 4
-    Duration: 6
+    Duration: 4
     FrameTime: 0.1
     Looping: 1
   CharacterInteract:
-    StartIndex: 10
-    Duration: 4
+    StartIndex: 8
+    Duration: 6
     FrameTime: 0.15
     Looping: 1
   CharacterDie:
@@ -80,18 +80,28 @@ MonoBehaviour:
     Duration: 7
     FrameTime: 0.1
     Looping: 0
-  CharacterCrushedFromBelow:
-    StartIndex: 33
-    Duration: 7
-    FrameTime: 0.12
-    Looping: 0
   CharacterFlee:
     StartIndex: 27
     Duration: 6
     FrameTime: 0.075
     Looping: 1
-  CharacterDepixelate:
+  CharacterCrushedFromBelow:
+    StartIndex: 33
+    Duration: 7
+    FrameTime: 0.12
+    Looping: 0
+  CharacterSpreadDisease:
     StartIndex: 40
+    Duration: 9
+    FrameTime: 0.15
+    Looping: 0
+  CharacterPush:
+    StartIndex: 49
+    Duration: 6
+    FrameTime: 0.075
+    Looping: 0
+  CharacterDepixelate:
+    StartIndex: 55
     Duration: 17
     FrameTime: 0.2
     Looping: 0
@@ -119,7 +129,7 @@ MonoBehaviour:
   ChanceOfShortHair: 0.9
   ChanceOfLongHair: 0.6
   ChanceOfBeard: 0.3
-  UnitArrayMaxIndex: 39
+  UnitArrayMaxIndex: 54
   ContaminatedWastePrefab: {fileID: 1708813368808323750, guid: 80f746a3980560c40addf3b8fbca1168,
     type: 3}
   ContaminatedRawFoodPrefab: {fileID: 1708813368808323750, guid: 00ef4cf9776edec4fb3f506b6f913034,

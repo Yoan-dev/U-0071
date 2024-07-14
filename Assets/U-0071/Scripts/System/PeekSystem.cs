@@ -24,6 +24,7 @@ namespace U0071
 		private ComponentLookup<AuthorizationComponent> _authorizationLookup;
 		private ComponentLookup<AIController> _aiLookup;
 		private ComponentLookup<ActionController> _actionLookup;
+		private ComponentLookup<IsActing> _isActingLookup;
 		private NativeQueue<PeekingInfoComponent> _peekingInfos;
 		private NativeQueue<PeekingReactionEvent> _peekingReactions;
 
@@ -40,6 +41,7 @@ namespace U0071
 			_authorizationLookup = state.GetComponentLookup<AuthorizationComponent>(true);
 			_aiLookup = state.GetComponentLookup<AIController>();
 			_actionLookup = state.GetComponentLookup<ActionController>();
+			_isActingLookup = state.GetComponentLookup<IsActing>();
 		}
 
 		[BurstCompile]
@@ -56,6 +58,7 @@ namespace U0071
 			_interactionLookup.Update(ref state);
 			_authorizationLookup.Update(ref state);
 			_actionLookup.Update(ref state);
+			_isActingLookup.Update(ref state);
 			_aiLookup.Update(ref state);
 
 			state.Dependency = new PeekingJob
@@ -78,6 +81,7 @@ namespace U0071
 			state.Dependency = new PeekingReactionJob
 			{
 				ActionLookup = _actionLookup,
+				IsActingLookup = _isActingLookup,
 				AILookup = _aiLookup,
 				InteractableLookup = _interactionLookup,
 				PeekingReactions = _peekingReactions,
@@ -211,6 +215,7 @@ namespace U0071
 		{
 			public NativeQueue<PeekingReactionEvent> PeekingReactions;
 			public ComponentLookup<ActionController> ActionLookup;
+			public ComponentLookup<IsActing> IsActingLookup;
 			public ComponentLookup<AIController> AILookup;
 			[ReadOnly]
 			public ComponentLookup<InteractableComponent> InteractableLookup;
@@ -232,14 +237,13 @@ namespace U0071
 					controller.Timer = 0;
 					controller.IsResolving = false;
 					controller.ShouldStopFlag = false;
+					IsActingLookup.SetComponentEnabled(peekingReaction.Source, false);
 
 					InteractableComponent playerInteractable = InteractableLookup[peekingReaction.Target];
 
 					// push the player and become more suspicious (will decrease over time)
 					AILookup.GetRefRW(peekingReaction.Source).ValueRW.SuspicionValue = 1f;
 					controller.Action = new ActionData(peekingReaction.Target, ActionFlag.Push, 0, 0, peekingReaction.TargetPosition, playerInteractable.Range, playerInteractable.Time, playerInteractable.Cost);
-
-					// note: isActing tag component will stay on
 				}
 			}
 		}

@@ -26,8 +26,10 @@ namespace U0071
 		public Animation CharacterInteract;
 		public Animation CharacterDie;
 		public Animation CharacterCrushed;
-		public Animation CharacterCrushedFromBelow;
 		public Animation CharacterFlee;
+		public Animation CharacterCrushedFromBelow;
+		public Animation CharacterSpreadDisease;
+		public Animation CharacterPush;
 		public Animation CharacterDepixelate;
 
 		[Header("Unit Rendering")]
@@ -67,6 +69,8 @@ namespace U0071
 					CharacterInteract = authoring.CharacterInteract,
 					CharacterFlee = authoring.CharacterFlee,
 					CharacterCrushedFromBelow = authoring.CharacterCrushedFromBelow,
+					CharacterSpreadDisease = authoring.CharacterSpreadDisease,
+					CharacterPush = authoring.CharacterPush,
 					ChanceOfShortHair = authoring.ChanceOfShortHair,
 					ChanceOfLongHair = authoring.ChanceOfLongHair,
 					ChanceOfBeard = authoring.ChanceOfBeard,
