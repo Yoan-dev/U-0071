@@ -44,12 +44,6 @@ namespace U0071
 				controller.PrimaryAction.Reset();
 				controller.SecondaryAction.Reset();
 				controller.ActionTimer = 0f;
-
-				// lock last door
-				ref InteractableComponent interactable = ref SystemAPI.GetComponentRW<InteractableComponent>(ending.LastDoorEntity).ValueRW;
-				interactable.ActionFlags = 0;
-				interactable.Changed = true;
-
 			}
 			else if (!ending.PhaseTwoTriggered && position.y > ending.EndingPhaseTwoY)
 			{

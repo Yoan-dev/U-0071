@@ -41,7 +41,7 @@ namespace U0071
 				ref Config config = ref SystemAPI.GetSingletonRW<Config>().ValueRW;
 				config.Seed = _seed;
 				config.Iteration = _iteration;
-				Debug.Log("Iteration " + config.Iteration + " initialized with seed " +  config.Seed);
+				//Debug.Log("Iteration " + config.Iteration + " initialized with seed " +  config.Seed);
 			}
 
 			if (_resetStarted)
