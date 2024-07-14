@@ -471,6 +471,9 @@ namespace U0071
 					HasShortHair = random.NextFloat() <= config.ChanceOfShortHair,
 					HasLongHair = random.NextFloat() <= config.ChanceOfLongHair,
 					HasBeard = random.NextFloat() <= config.ChanceOfBeard,
+					StartingBoredom = random.NextFloat() / 2f,
+					StartingHunger = (0.5f + random.NextFloat() / 2f) * Const.MaxHunger,
+					StartingCreditsRatio = 0.5f + random.NextFloat() / 2f,
 				};
 			}
 

@@ -373,6 +373,8 @@ namespace U0071
 			Entity entity,
 			ref AuthorizationComponent authorization,
 			ref CreditsComponent credits,
+			ref HungerComponent hunger,
+			ref AIController aIController,
 			ref NameComponent name,
 			ref SkinColor skin,
 			ref ShortHairColor shortHair,
@@ -387,10 +389,13 @@ namespace U0071
 
 			authorization.Flag = Utilities.GetLowestAuthorization(Partition.GetAuthorization(position.Value));
 
-			credits.AdminCard = authorization.IsAdmin;
-			credits.Value = Const.GetStartingCredits(authorization.Flag);
-
 			UnitIdentity identity = Config.UnitIdentityData.Value.Identities[entity.Index % Config.UnitIdentityData.Value.Identities.Length];
+
+			credits.AdminCard = authorization.IsAdmin;
+			credits.Value = (int)(Const.GetStartingCredits(authorization.Flag) * identity.StartingCreditsRatio);
+
+			hunger.Value = identity.StartingHunger;
+			aIController.BoredomValue = identity.StartingBoredom;
 
 			name.Value = identity.Name;
 			pilosity.HasShortHair = identity.HasShortHair;

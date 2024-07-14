@@ -10,6 +10,9 @@ namespace U0071
 		public FixedString32Bytes Name;
 		public int SkinColorIndex;
 		public int HairColorIndex;
+		public float StartingBoredom;
+		public float StartingHunger;
+		public float StartingCreditsRatio;
 		public bool HasShortHair;
 		public bool HasLongHair;
 		public bool HasBeard;
