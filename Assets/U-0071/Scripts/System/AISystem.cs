@@ -197,7 +197,13 @@ namespace U0071
 
 					int classCredits = Const.GetStartingCredits(authorization.Flag);
 					float classCreditsRatio = classCredits > 0f ? 1f - credits.Value / classCredits : 0f;
-					controller.WorkWeight = math.clamp(Const.AIBaseWorkWeight + classCreditsRatio * (1f - Const.AIBaseWorkWeight), 0f, 1f);
+					float contaminationLevelModifier = contaminationLevel.Value > 0 ? math.clamp(contaminationLevel.Value / Const.ContaminationSicknessTreshold, 0f, 1f) * Const.ContaminationAntiworkWeight : 0f;
+					controller.WorkWeight = math.clamp(Const.AIBaseWorkWeight - contaminationLevelModifier + classCreditsRatio * (1f - Const.AIBaseWorkWeight), 0f, 1f);
+
+					if (contaminationLevelModifier > 0.1f)
+					{
+						contaminationLevelModifier = 0f;
+					}
 
 					controller.ChooseGoal(carry.HasItem, isFired);
 				}

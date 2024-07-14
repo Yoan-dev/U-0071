@@ -66,14 +66,14 @@ namespace U0071
 		public const float EatingHungerGain = 4f;
 		public const float MaxHunger = 10f;
 		public const float HungerDepleteRate = 0.1f;
-		public const float DeathSkinToneOffset = 0.15f;
+		public const float DeathSkinMultiplier = 0.2f;
 		public const float DecollisionStrength = 0.6f;
 		public const float CharacterZOffset = 0.3f;
 		public const float Small = 0.0001f;
 
 		// sickness
 		public const float ContaminatedEatingHungerGain = 2f;
-		public const float SickSkinToneOffset = 0.15f;
+		public const float ContaminatedSkinGreenModifier = 0.2f;
 		public const float SickSpeedMultiplier = 0.66f;
 		public const float SickHungerDepleteRate = 0.05f;
 		public const float SpreadSicknessTime = 9f;
@@ -85,6 +85,7 @@ namespace U0071
 		public const float MaxContaminationLevel = 10f;
 		public const float ContaminationSicknessTreshold = 1f;
 		public const float ContaminationSpreadDecreaseLevelValue = 0.4f;
+		public const float ContaminationAntiworkWeight = 0.3f;
 
 		// UI
 		public const float CodepadButtonFeedbackTime = 0.175f;

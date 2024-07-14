@@ -188,8 +188,8 @@ namespace U0071
 						interactable.ActionFlags |= ActionFlag.Search;
 					}
 				}
-
-				float4 deathColorOffset = new float4(Const.DeathSkinToneOffset, Const.DeathSkinToneOffset, Const.DeathSkinToneOffset, 0f);
+				
+				float4 deathColorOffset = new float4(skin.Value.x * Const.DeathSkinMultiplier, skin.Value.y * Const.DeathSkinMultiplier, skin.Value.z * Const.DeathSkinMultiplier, 0f);
 				if (!pilosity.HasShortHair) shortHair.Value += deathColorOffset;
 				if (!pilosity.HasLongHair) longHair.Value += deathColorOffset;
 				if (!pilosity.HasBeard) beard.Value += deathColorOffset;
@@ -239,7 +239,7 @@ namespace U0071
 					sick.IsResolved = true;
 					movement.Speed *= Const.SickSpeedMultiplier;
 
-					float4 sickColorOffset = new float4(0f, Const.SickSkinToneOffset, 0f, 0f);
+					float4 sickColorOffset = new float4(0f, skin.Value.y * Const.ContaminatedSkinGreenModifier, 0f, 0f);
 					if (!pilosity.HasShortHair) shortHair.Value += sickColorOffset;
 					if (!pilosity.HasLongHair) longHair.Value += sickColorOffset;
 					if (!pilosity.HasBeard) beard.Value += sickColorOffset;
@@ -265,7 +265,7 @@ namespace U0071
 					sick.IsResolved = false;
 					movement.Speed /= Const.SickSpeedMultiplier;
 
-					float4 sickColorOffset = new float4(0f, Const.SickSkinToneOffset, 0f, 0f);
+					float4 sickColorOffset = new float4(0f, skin.Value.y / (1f + Const.ContaminatedSkinGreenModifier), 0f, 0f);
 					if (!pilosity.HasShortHair) shortHair.Value -= sickColorOffset;
 					if (!pilosity.HasLongHair) longHair.Value -= sickColorOffset;
 					if (!pilosity.HasBeard) beard.Value -= sickColorOffset;
