@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &4283327955832820811
+--- !u!1 &4622882880223743362
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -8,10 +8,10 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 7505048543268599423}
-  - component: {fileID: 5464916705092437492}
-  - component: {fileID: 2636904360142276073}
-  - component: {fileID: 2131638304536175197}
+  - component: {fileID: 5046217529853667598}
+  - component: {fileID: 46405566007723158}
+  - component: {fileID: 3828875791415207693}
+  - component: {fileID: 6524314160873939866}
   m_Layer: 0
   m_Name: ExitDoor_Red
   m_TagString: Untagged
@@ -19,36 +19,36 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &7505048543268599423
+--- !u!4 &5046217529853667598
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4283327955832820811}
+  m_GameObject: {fileID: 4622882880223743362}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
-  m_LocalPosition: {x: 0, y: 0.1, z: 0}
+  m_LocalRotation: {x: 0.7071068, y: -0, z: -0, w: 0.7071068}
+  m_LocalPosition: {x: 0, y: 0.1, z: 1}
   m_LocalScale: {x: 2, y: 2, z: 2}
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
---- !u!33 &5464916705092437492
+--- !u!33 &46405566007723158
 MeshFilter:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4283327955832820811}
+  m_GameObject: {fileID: 4622882880223743362}
   m_Mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
---- !u!23 &2636904360142276073
+--- !u!23 &3828875791415207693
 MeshRenderer:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4283327955832820811}
+  m_GameObject: {fileID: 4622882880223743362}
   m_Enabled: 1
   m_CastShadows: 0
   m_ReceiveShadows: 1
@@ -84,13 +84,13 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!114 &2131638304536175197
+--- !u!114 &6524314160873939866
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4283327955832820811}
+  m_GameObject: {fileID: 4622882880223743362}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f31f27170626c2c468cc12af570e0ac3, type: 3}
@@ -102,11 +102,12 @@ MonoBehaviour:
   Time: 0.25
   CollisionRange: 0.45
   Collide: 0
-  CanBeMultiused: 0
+  CanBeMultiused: 1
   AdminStation: 0
+  CanContaminatedBeContaminated: 0
   Cost: 0
   AreaFlag: 8
-  DoorSize: 0.4
+  DoorSize: 0.75
   StaysOpenTime: 1.5
   AnimationCubicStrength: 12
   DestroyAction: 0
@@ -114,6 +115,7 @@ MonoBehaviour:
   RawFood: 0
   Food: 0
   Trash: 0
+  Contaminated: 0
   Prefab: {fileID: 0}
   VariantPrefab: {fileID: 0}
   SpawnOffset: 0.25

@@ -175,6 +175,9 @@ namespace U0071
 					// note: if we detect the door in the partition, it means it is open
 					// (no ActionFlag.Open otherwise)
 
+					// we assume one door per room since they should be in small corridors
+					// split the corridors if needed
+
 					DoorComponent door = DoorLookup[doorEntity];
 					
 					// vertical door

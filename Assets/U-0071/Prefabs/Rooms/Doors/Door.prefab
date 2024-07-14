@@ -27,13 +27,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5364722569542280026}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
   m_LocalPosition: {x: 0, y: 0, z: -0.1}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
 --- !u!33 &6666295228443002537
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -104,6 +104,7 @@ MonoBehaviour:
   Collide: 0
   CanBeMultiused: 0
   AdminStation: 0
+  CanContaminatedBeContaminated: 0
   Cost: 0
   AreaFlag: 1
   DoorSize: 0.4
@@ -114,6 +115,7 @@ MonoBehaviour:
   RawFood: 0
   Food: 0
   Trash: 0
+  Contaminated: 0
   Prefab: {fileID: 0}
   VariantPrefab: {fileID: 0}
   SpawnOffset: 0.25
