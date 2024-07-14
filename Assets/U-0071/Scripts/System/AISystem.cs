@@ -117,6 +117,7 @@ namespace U0071
 				controller.SuspicionValue = math.max(0f, controller.SuspicionValue - DeltaTime * Const.PeekingSuspicionDecreaseRate);
 				controller.ReassessmentTimer -= DeltaTime;
 				controller.ReassessedLastFrame = false;
+				controller.CantReachTimer = actionController.HasTarget && !actionController.IsResolving ? controller.CantReachTimer : 0f;
 
 				if (Cycle.CycleChanged && actionController.IsResolving && actionController.Action.ActionFlag == ActionFlag.Open)
 				{

@@ -71,10 +71,32 @@ namespace U0071
 			selected = 
 				(hasPriority || checkedType >= current) && 
 				(ActionFlags & filter & checkedType) != 0 && 
-				(!Utilities.RequireItem(checkedType) || HasItemFlag(itemFlag) || HasActionFlag(ActionFlag.Teleport) && canTeleportAll || (canProcessContaminated && HasItemFlag(ItemFlag.RawFood) && Utilities.HasItemFlag(itemFlag, ItemFlag.Contaminated))) &&
-				(checkedType != ActionFlag.Contaminate || (HasItemFlag(ItemFlag.Contaminated) == Utilities.HasItemFlag(itemFlag, ItemFlag.Contaminated))) ? checkedType : 0;
+				EvaluateItemAction(checkedType, itemFlag, canProcessContaminated, canTeleportAll) &&
+				EvaluateContaminateAction(checkedType, itemFlag) ? checkedType : 0;
 			
 			return selected != 0;
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		private bool EvaluateItemAction(ActionFlag checkedType, ItemFlag itemFlag, bool canProcessContaminated, bool canTeleportAll)
+		{
+			return
+				checkedType == ActionFlag.Contaminate || // evaluate later
+				!Utilities.RequireItem(checkedType) ||
+				HasItemFlag(itemFlag) ||
+				HasActionFlag(ActionFlag.Teleport) && canTeleportAll ||
+				(canProcessContaminated && HasItemFlag(ItemFlag.RawFood) && Utilities.HasItemFlag(itemFlag, ItemFlag.Contaminated));
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		private bool EvaluateContaminateAction(ActionFlag checkedType, ItemFlag itemFlag)
+		{
+			// we need either raw food or a contaminated item
+			// and we need a device that contaminate if our item is not (and opposite)
+			return
+				checkedType != ActionFlag.Contaminate ||
+				(Utilities.HasItemFlag(itemFlag, ItemFlag.RawFood) || Utilities.HasItemFlag(itemFlag, ItemFlag.Contaminated)) &&
+				HasItemFlag(ItemFlag.Contaminated) == Utilities.HasItemFlag(itemFlag, ItemFlag.Contaminated);
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
