@@ -115,7 +115,7 @@ namespace U0071
 				if (!contaminationLevel.IsSick && contaminationLevel.Value >= Const.ContaminationSicknessTreshold)
 				{
 					contaminationLevel.IsSick = true;
-					Ecb.SetComponent(chunkIndex, entity, new SickComponent { IsResolved = false, SpreadTimer = Const.SpreadSicknessTime });
+					Ecb.SetComponent(chunkIndex, entity, new SickComponent { IsResolved = false, SpreadTimer = Const.VomitTickTime });
 					Ecb.SetComponentEnabled<SickComponent>(chunkIndex, entity, true);
 				}
 				contaminationLevel.Value = math.max(0, contaminationLevel.Value - DeltaTime * Const.ContaminationLevelDepleteRate);
@@ -250,10 +250,10 @@ namespace U0071
 
 				sick.SpreadTimer += DeltaTime;
 
-				if (sick.SpreadTimer > Const.SpreadSicknessTime)
+				if (sick.SpreadTimer > Const.VomitTickTime)
 				{
-					sick.SpreadTimer -= Const.SpreadSicknessTime;
-					contaminationLevel.Value -= Const.ContaminationSpreadDecreaseLevelValue;
+					sick.SpreadTimer -= Const.VomitTickTime;
+					contaminationLevel.Value -= Const.ContaminationLevelVomitDecreaseValue;
 					controller.Stop(true, true);
 				}
 

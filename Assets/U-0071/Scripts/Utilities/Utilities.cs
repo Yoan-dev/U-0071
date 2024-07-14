@@ -94,7 +94,7 @@ namespace U0071
 			EnabledRefRW<IsActing> isActing)
 		{
 			controller.ShouldSpreadDiseaseFlag = false;
-			controller.Action = new ActionData(Entity.Null, ActionFlag.SpreadDisease, 0, 0, GetDropPosition(position.Value, orientation.Value, partition.ClosestEdgeX), 0f, Const.SpreadSicknessResolveTime, 0);
+			controller.Action = new ActionData(Entity.Null, ActionFlag.SpreadDisease, 0, 0, GetDropPosition(position.Value, orientation.Value, partition.ClosestEdgeX), 0f, Const.VomitResolveTime, 0);
 			controller.Start();
 			isActing.ValueRW = true;
 		}

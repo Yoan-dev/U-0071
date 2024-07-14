@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: M_Contaminated_Waste
+  m_Name: M_Contaminated_Matter
   m_Shader: {fileID: -6465566751694194690, guid: eabf6748803b4cf42b6e1c46fc4e33ce,
     type: 3}
   m_Parent: {fileID: 0}

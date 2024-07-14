@@ -223,6 +223,12 @@ namespace U0071
 					eatGoal ? ItemFlag.Food :
 					workGoal && !isAdmin ? ItemFlag.RawFood | ItemFlag.Trash : 0;
 				
+				if (!eatGoal && hunger.Value <= Const.MaxHunger * Const.AILightHungerRatio)
+				{
+					// opportunistic eating
+					actionFilter |= ActionFlag.Eat;
+				}
+
 				if (carry.HasItem)
 				{
 					actionFilter &= ~ActionFlag.Pick;

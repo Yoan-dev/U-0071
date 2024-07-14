@@ -97,9 +97,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Name: Potato
-  Range: 0.4
+  Range: 0.5
   Time: 0
-  ContaminationStrength: 0.1
+  IgnoreTime: 0
+  ContaminationStrength: 0.02
   OnlyContaminateCarrier: 1
   RawFood: 1
   Food: 0

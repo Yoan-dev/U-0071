@@ -97,8 +97,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Name: Meal
-  Range: 0.4
+  Range: 0.5
   Time: 1
+  IgnoreTime: 0
+  ContaminationStrength: 0
+  OnlyContaminateCarrier: 0
   RawFood: 0
   Food: 1
   Trash: 0
+  Contaminated: 0

@@ -63,28 +63,29 @@ namespace U0071
 		public const int LootCreditsCount = 10;
 		public const float PushedTimer = 0.35f;
 		public const float PushedSpeed = 3.75f;
-		public const float EatingHungerGain = 4f;
-		public const float MaxHunger = 10f;
-		public const float HungerDepleteRate = 0.1f;
 		public const float DeathSkinMultiplier = 0.2f;
 		public const float DecollisionStrength = 0.6f;
 		public const float CharacterZOffset = 0.3f;
 		public const float Small = 0.0001f;
 
+		// hunger
+		public const float EatingHungerGain = 4f;
+		public const float MaxHunger = 10f;
+		public const float HungerDepleteRate = 0.025f;
+
 		// sickness
 		public const float ContaminatedEatingHungerGain = 2f;
 		public const float ContaminatedSkinGreenModifier = 0.2f;
 		public const float SickSpeedMultiplier = 0.66f;
-		public const float SickHungerDepleteRate = 0.05f;
-		public const float SpreadSicknessTime = 9f;
-		public const float SpreadSicknessResolveTime = 1.35f;
-		public const float SickTime = 30f;
-		public const float CorpseContaminationStrength = 0.4f;
+		public const float SickHungerDepleteRate = 0.0125f;
+		public const float VomitTickTime = 14f;
+		public const float VomitResolveTime = 1.35f;
+		public const float CorpseContaminationStrength = 0.06f;
 		public const float ContaminationRange = 2f;
-		public const float ContaminationLevelDepleteRate = 0.05f;
-		public const float MaxContaminationLevel = 10f;
+		public const float MaxContaminationLevel = 2f;
 		public const float ContaminationSicknessTreshold = 1f;
-		public const float ContaminationSpreadDecreaseLevelValue = 0.4f;
+		public const float ContaminationLevelVomitDecreaseValue = 0.2f;
+		public const float ContaminationLevelDepleteRate = 0.01f;
 		public const float ContaminationAntiworkWeight = 0.3f;
 
 		// UI
