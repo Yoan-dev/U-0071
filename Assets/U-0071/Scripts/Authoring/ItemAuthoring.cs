@@ -16,6 +16,9 @@ namespace U0071
 		public float Range = 0.5f;
 		public float Time;
 
+		[Header("Ignore on Spawn")]
+		public float IgnoreTime;
+
 		[Header("Contamination")]
 		public float ContaminationStrength;
 		public bool OnlyContaminateCarrier;
@@ -46,6 +49,11 @@ namespace U0071
 				AddComponent(entity, new PickableComponent());
 				SetComponentEnabled<PickableComponent>(entity, false);
 
+				if (authoring.IgnoreTime > 0f)
+				{
+					AddComponent(entity, new IgnoredComponent { Timer = authoring.IgnoreTime });
+				}
+
 				// interactable
 				ItemFlag itemFlags = 0;
 				if (authoring.RawFood) itemFlags |= ItemFlag.RawFood;
@@ -58,6 +66,7 @@ namespace U0071
 					ItemFlags = itemFlags,
 					Range = authoring.Range,
 					Time = authoring.Time,
+					IsIgnored = authoring.IgnoreTime > 0f,
 				});
 				if (authoring.ContaminationStrength > 0f)
 				{

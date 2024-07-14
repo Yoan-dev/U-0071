@@ -24,6 +24,7 @@ namespace U0071
 		public float CantReachTimer;
 		public float BoredomValue;
 		public float SuspicionValue;
+		public float Awareness;
 
 		// cached for debug purposes
 		public float EatWeight;

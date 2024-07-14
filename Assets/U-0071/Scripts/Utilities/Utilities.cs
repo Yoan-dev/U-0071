@@ -42,7 +42,7 @@ namespace U0071
 				return true;
 			}
 
-			if (controller.ShouldSpreadDiseaseFlag)
+			if (!controller.IsResolving && controller.ShouldSpreadDiseaseFlag)
 			{
 				QueueSpreadDiseaseAction(ref controller, in orientation, in position, in partition, isActing);
 				return true;

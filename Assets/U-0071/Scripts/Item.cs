@@ -1,4 +1,5 @@
 using System;
+using Unity.Entities;
 
 namespace U0071
 {
@@ -10,5 +11,10 @@ namespace U0071
 		Trash = 1 << 2,
 		Contaminated = 1 << 3,
 		All = RawFood | Food | Trash,
+	}
+
+	public struct IgnoredComponent : IComponentData
+	{
+		public float Timer;
 	}
 }

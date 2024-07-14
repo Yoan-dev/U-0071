@@ -134,6 +134,7 @@ namespace U0071
 		public bool Changed;
 		public bool WorkingStationFlag;
 		public bool CanBeMultiused;
+		public bool IsIgnored;
 
 		public bool CanBeUsed => CanBeMultiused || CurrentUser == Entity.Null;
 

@@ -1,8 +1,6 @@
-using JetBrains.Annotations;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
-using Unity.Entities.UniversalDelegates;
 using Unity.Mathematics;
 
 namespace U0071
@@ -30,7 +28,7 @@ namespace U0071
 			_query = SystemAPI.QueryBuilder()
 				.WithAllRW<AIController>()
 				.WithAllRW<ActionController, Orientation>()
-				.WithAll<PositionComponent, PartitionComponent, CreditsComponent, HungerComponent, AuthorizationComponent>()
+				.WithAll<PositionComponent, PartitionComponent, CreditsComponent, HungerComponent, AuthorizationComponent, ContaminationLevelComponent>()
 				.WithPresent<CarryComponent, DeathComponent, PushedComponent>()
 				.WithPresentRW<IsActing>()
 				.Build();
@@ -107,6 +105,7 @@ namespace U0071
 				in CreditsComponent credits,
 				in AuthorizationComponent authorization,
 				in HungerComponent hunger,
+				in ContaminationLevelComponent contaminationLevel,
 				EnabledRefRW<IsActing> isActing,
 				EnabledRefRO<DeathComponent> death,
 				EnabledRefRO<PushedComponent> pushed)
@@ -118,6 +117,7 @@ namespace U0071
 				controller.ReassessmentTimer -= DeltaTime;
 				controller.ReassessedLastFrame = false;
 				controller.CantReachTimer = actionController.HasTarget && !actionController.IsResolving ? controller.CantReachTimer : 0f;
+				controller.Awareness = Const.GetCurrentAwareness(contaminationLevel.IsSick, controller.Goal);
 
 				if (Cycle.CycleChanged && actionController.IsResolving && actionController.Action.ActionFlag == ActionFlag.Open)
 				{
@@ -247,7 +247,7 @@ namespace U0071
 					{
 						RoomElementBufferElement target = enumerator.Current;
 
-						if (target.CanBeUsed && target.HasActionFlag(ActionFlag.Open))
+						if (!target.Interactable.IsIgnored && target.CanBeUsed && target.HasActionFlag(ActionFlag.Open))
 						{
 							DoorComponent door = DoorLookup[target.Entity];
 							bool isOnCodeSide = door.IsOnEnterCodeSide(position.Value, target.Position);
@@ -265,6 +265,7 @@ namespace U0071
 							}
 						}
 						if (target.Entity != entity &&
+							!target.Interactable.IsIgnored &&
 							target.CanBeUsed &&
 							target.HasActionFlag(actionFilter) &&
 							(itemFilter == 0 || target.HasItemFlag(itemFilter)) &&
