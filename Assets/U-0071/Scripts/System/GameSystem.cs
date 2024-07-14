@@ -416,7 +416,7 @@ namespace U0071
 	[UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
 	[UpdateAfter(typeof(GameInitSystem))]
 	[UpdateBefore(typeof(AIControllerSystem))]
-	public partial struct UnitIdentityInitSystem : ISystem
+	public partial struct RandomInitSystem : ISystem
 	{
 		private BlobAssetReference<UnitIdentityCollection> _unitNamesReference;
 
@@ -497,8 +497,19 @@ namespace U0071
 			builder.Dispose();
 			identities.Dispose();
 
+			new RandomGrowthStartJob().ScheduleParallel(state.Dependency).Complete();
+
 			// last system to initialize
 			state.EntityManager.RemoveComponent<GameInitFlag>(SystemAPI.GetSingletonEntity<Config>());
+		}
+
+		[BurstCompile]
+		public partial struct RandomGrowthStartJob : IJobEntity
+		{
+			public void Execute(Entity entity, ref GrowComponent grow)
+			{
+				grow.Timer = Random.CreateFromIndex((uint)(entity.Index * 10000)).NextFloat() * grow.Time;
+			}
 		}
 	}
 }
