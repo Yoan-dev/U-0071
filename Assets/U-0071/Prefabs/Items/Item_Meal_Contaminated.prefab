@@ -99,6 +99,8 @@ MonoBehaviour:
   Name: Meal
   Range: 0.4
   Time: 1
+  ContaminationStrength: 0.2
+  OnlyContaminateCarrier: 0
   RawFood: 0
   Food: 1
   Trash: 0

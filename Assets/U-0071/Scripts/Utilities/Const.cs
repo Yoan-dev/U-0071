@@ -77,7 +77,7 @@ namespace U0071
 		public const float SpreadSicknessTime = 9f;
 		public const float SpreadSicknessResolveTime = 1.35f;
 		public const float SickTime = 30f;
-		public const float CorpseContaminationStrength = 1f;
+		public const float CorpseContaminationStrength = 0.4f;
 		public const float ContaminationRange = 2f;
 		public const float ContaminationLevelDepleteRate = 0.05f;
 		public const float MaxContaminationLevel = 10f;

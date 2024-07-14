@@ -105,6 +105,7 @@ MonoBehaviour:
   CollisionRadius: 0.2
   Range: 0.6
   Time: 0.525
+  ContaminationStrength: 0.3
   ShirtColor: {r: 1, g: 1, b: 1, a: 1}
   SkinColor: {r: 0.9333334, g: 0.76470596, b: 0.6039216, a: 1}
   HairColor: {r: 0, g: 0, b: 0, a: 0}
