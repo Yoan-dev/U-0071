@@ -9,6 +9,9 @@ namespace U0071
 	public struct PartitionComponent : IComponentData
 	{
 		public Entity CurrentRoom;
+
+		// cached for drop offset
+		public float ClosestEdgeX;
 	}
 
 	public struct RoomData
@@ -16,7 +19,7 @@ namespace U0071
 		public RoomComponent Room;
 		public float2 Position;
 		public Entity Entity;
-		
+
 		public int Size => Room.Dimensions.x * Room.Dimensions.y;
 		public AreaAuthorization AreaFlag => Room.Area;
 
@@ -28,6 +31,14 @@ namespace U0071
 				x = (position.x - (Position.x - Room.Dimensions.x / 2f)) / Room.Dimensions.x,
 				y = -(position.y - (Position.y + Room.Dimensions.y / 2f)) / Room.Dimensions.y,
 			};
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public float GetClosestEdgeX(float x)
+		{
+			float left = Position.x - Room.Dimensions.x / 2f;
+			float right = Position.x + Room.Dimensions.x / 2f;
+			return x - left < right - x ? left : right;
 		}
 	}
 

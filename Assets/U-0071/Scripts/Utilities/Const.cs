@@ -1,5 +1,6 @@
 using System.Runtime.CompilerServices;
 using Unity.Mathematics;
+using Unity.VisualScripting;
 
 namespace U0071
 {
@@ -70,12 +71,18 @@ namespace U0071
 
 		// sickness
 		public const float ContaminatedEatingHungerGain = 2f;
-		public const float SickSkinToneOffset = 0.1f;
+		public const float SickSkinToneOffset = 0.15f;
 		public const float SickSpeedMultiplier = 0.66f;
 		public const float SickHungerDepleteRate = 0.05f;
 		public const float SpreadSicknessTime = 9f;
 		public const float SpreadSicknessResolveTime = 1.35f;
 		public const float SickTime = 30f;
+		public const float CorpseContaminationStrength = 1f;
+		public const float ContaminationRange = 2f;
+		public const float ContaminationLevelDepleteRate = 0.05f;
+		public const float MaxContaminationLevel = 10f;
+		public const float ContaminationSicknessTreshold = 1f;
+		public const float ContaminationSpreadDecreaseLevelValue = 0.4f;
 
 		// UI
 		public const float CodepadButtonFeedbackTime = 0.175f;
@@ -118,12 +125,6 @@ namespace U0071
 				authorization == AreaAuthorization.LevelTwo ? 1f :
 				authorization == AreaAuthorization.LevelThree ? 1.15f :
 				authorization == AreaAuthorization.Admin ? 1.3f : 0f;
-		}
-
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static float2 GetDropOffset(float orientation)
-		{
-			return new float2(DropOffsetX * orientation, DropOffsetY);
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]

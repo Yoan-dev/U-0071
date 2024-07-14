@@ -132,7 +132,7 @@ namespace U0071
 				controller.SecondaryAction.Reset();
 				controller.ActionTimer = 0f;
 
-				if (Utilities.ProcessUnitControllerStart(entity, ref actionController, in orientation, in position, in partition, isActing, death, pushed, in InteractableLookup, in PickableLookup))
+				if (Utilities.ProcessUnitControllerStart(entity, ref actionController, in orientation, in position, in partition, isActing, death, pushed, in InteractableLookup, in PickableLookup, in carry))
 				{
 					if (actionController.IsResolving)
 					{
@@ -157,7 +157,7 @@ namespace U0071
 					}
 
 					// set drop action
-					controller.SetSecondaryAction(new ActionData(carry.Picked, ActionFlag.Drop, 0, carry.Flags, position.Value + Const.GetDropOffset(orientation.Value), 0f, 0f, 0), in NameLookup, in ActionNameLookup, carry.Picked);
+					controller.SetSecondaryAction(new ActionData(carry.Picked, ActionFlag.Drop, 0, carry.Flags, Utilities.GetDropPosition(position.Value, orientation.Value, partition.ClosestEdgeX), 0f, 0f, 0), in NameLookup, in ActionNameLookup, carry.Picked);
 				}
 
 				// player assess all elements in range

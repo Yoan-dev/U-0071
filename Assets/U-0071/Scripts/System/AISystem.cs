@@ -127,7 +127,7 @@ namespace U0071
 
 				if (pushed.ValueRO) controller.LastMovementInput = float2.zero;
 
-				if (Utilities.ProcessUnitControllerStart(entity, ref actionController, in orientation, in position, in partition, isActing, death, pushed, in InteractableLookup, in PickableLookup))
+				if (Utilities.ProcessUnitControllerStart(entity, ref actionController, in orientation, in position, in partition, isActing, death, pushed, in InteractableLookup, in PickableLookup, in carry))
 				{
 					return;
 				}
@@ -184,7 +184,7 @@ namespace U0071
 					controller.Goal = AIGoal.Eat;
 					if (carry.HasItem && !Utilities.HasItemFlag(carry.Flags, ItemFlag.Food))
 					{
-						Utilities.QueueDropAction(ref actionController, in orientation, in position, in carry, isActing);
+						Utilities.QueueDropAction(ref actionController, in orientation, in position, in carry, in partition, isActing);
 					}
 				}
 				else if (controller.ShouldReassess(hungerRatio, carry.HasItem, hasOpportunity, isFired))
@@ -298,7 +298,7 @@ namespace U0071
 				{
 					// will not be able to interact with target
 					// drop item to be able on next tick
-					Utilities.QueueDropAction(ref actionController, in orientation, in position, in carry, isActing);
+					Utilities.QueueDropAction(ref actionController, in orientation, in position, in carry, in partition, isActing);
 				}
 				else if (actionController.HasTarget && position.IsInRange(actionController.Action.Position, actionController.Action.Range))
 				{

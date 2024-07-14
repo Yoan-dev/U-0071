@@ -16,6 +16,10 @@ namespace U0071
 		public float Range = 0.5f;
 		public float Time;
 
+		[Header("Contamination")]
+		public float ContaminationStrength;
+		public bool OnlyContaminateCarrier;
+
 		[Header("Item Flags")]
 		public bool RawFood;
 		public bool Food;
@@ -55,6 +59,14 @@ namespace U0071
 					Range = authoring.Range,
 					Time = authoring.Time,
 				});
+				if (authoring.ContaminationStrength > 0f)
+				{
+					AddComponent(entity, new ContaminateComponent { Strength = authoring.ContaminationStrength });
+					if (!authoring.OnlyContaminateCarrier)
+					{
+						AddComponent(entity, new ContinuousContaminationTag());
+					}
+				}
 			}
 		}
 	}

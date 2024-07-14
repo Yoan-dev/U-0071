@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -30,21 +31,24 @@ namespace U0071
 			EnabledRefRO<DeathComponent> death,
 			EnabledRefRO<PushedComponent> pushed,
 			in ComponentLookup<InteractableComponent> interactableLookup,
-			in ComponentLookup<PickableComponent> pickableLookup)
+			in ComponentLookup<PickableComponent> pickableLookup,
+			in CarryComponent carry)
 		{
 			// returns "should stop" to AI/Player controller jobs
 
 			if (death.ValueRO || pushed.ValueRO)
 			{
-				controller.Stop(true, false);
+				controller.Stop(carry.HasItem, false);
 				return true;
 			}
 
 			if (controller.ShouldSpreadDiseaseFlag)
 			{
-				QueueSpreadDiseaseAction(ref controller, in orientation, in position, isActing);
+				QueueSpreadDiseaseAction(ref controller, in orientation, in position, in partition, isActing);
 				return true;
 			}
+
+			if (!carry.HasItem && controller.ShouldDropFlag) controller.ShouldDropFlag = false;
 
 			if (controller.HasTarget && (
 				!interactableLookup.TryGetComponent(controller.Action.Target, out InteractableComponent interactable) ||
@@ -73,9 +77,10 @@ namespace U0071
 			in Orientation orientation,
 			in PositionComponent position,
 			in CarryComponent carry,
+			in PartitionComponent partition,
 			EnabledRefRW<IsActing> isActing)
 		{
-			controller.Action = new ActionData(carry.Picked, ActionFlag.Drop, 0, carry.Flags, position.Value + Const.GetDropOffset(orientation.Value), 0f, 0f, 0);
+			controller.Action = new ActionData(carry.Picked, ActionFlag.Drop, 0, carry.Flags, GetDropPosition(position.Value, orientation.Value, partition.ClosestEdgeX), 0f, 0f, 0);
 			controller.Start();
 			isActing.ValueRW = true;
 		}
@@ -85,12 +90,24 @@ namespace U0071
 			ref ActionController controller,
 			in Orientation orientation,
 			in PositionComponent position,
+			in PartitionComponent partition,
 			EnabledRefRW<IsActing> isActing)
 		{
 			controller.ShouldSpreadDiseaseFlag = false;
-			controller.Action = new ActionData(Entity.Null, ActionFlag.SpreadDisease, 0, 0, position.Value + Const.GetDropOffset(orientation.Value), 0f, Const.SpreadSicknessResolveTime, 0);
+			controller.Action = new ActionData(Entity.Null, ActionFlag.SpreadDisease, 0, 0, GetDropPosition(position.Value, orientation.Value, partition.ClosestEdgeX), 0f, Const.SpreadSicknessResolveTime, 0);
 			controller.Start();
 			isActing.ValueRW = true;
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static float2 GetDropPosition(float2 position, float orientation, float closestEdgePosition)
+		{
+			float x = position.x + Const.DropOffsetX * orientation;
+			bool isOutOfRoom = 
+				orientation > 0 && position.x <= closestEdgePosition && x >= closestEdgePosition || 
+				orientation < 0 && position.x >= closestEdgePosition && x <= closestEdgePosition;
+
+			return isOutOfRoom ? position : new float2(x, position.y + Const.DropOffsetY);
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]

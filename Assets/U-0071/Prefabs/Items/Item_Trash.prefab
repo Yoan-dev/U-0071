@@ -99,6 +99,8 @@ MonoBehaviour:
   Name: Trash
   Range: 0.5
   Time: 0
+  ContaminationStrength: 0.1
+  OnlyContaminateCarrier: 1
   RawFood: 0
   Food: 0
   Trash: 1

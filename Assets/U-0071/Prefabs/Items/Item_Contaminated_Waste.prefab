@@ -99,6 +99,7 @@ MonoBehaviour:
   Name: Contaminated Waste
   Range: 0.5
   Time: 0
+  ContaminationStrength: 0.5
   RawFood: 0
   Food: 0
   Trash: 1

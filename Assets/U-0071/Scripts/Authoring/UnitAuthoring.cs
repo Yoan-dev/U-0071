@@ -21,6 +21,9 @@ namespace U0071
 		public float Range = 0.5f;
 		public float Time = 1f;
 
+		[Header("Contamination")]
+		public float ContaminationStrength;
+		
 		[Header("Render")]
 		public Color ShirtColor;
 		public Color SkinColor;
@@ -73,6 +76,8 @@ namespace U0071
 				SetComponentEnabled<PushedComponent>(entity, false);
 				AddComponent(entity, new SickComponent());
 				SetComponentEnabled<SickComponent>(entity, false);
+				AddComponent(entity, new ContaminationLevelComponent());
+				AddComponent(entity, new ContaminateComponent { Strength = authoring.ContaminationStrength });
 
 				// areas
 				AddComponent(entity, new AuthorizationComponent

@@ -133,6 +133,7 @@ namespace U0071
 					position.CurrentYOffset = position.BaseYOffset +
 						roomRatio.x * Const.YOffsetRatioX +
 						roomRatio.y * Const.YOffsetRatioY;
+					partition.ClosestEdgeX = newRoom.GetClosestEdgeX(position.x);
 				}
 
 				if (newRoom.Entity != partition.CurrentRoom)

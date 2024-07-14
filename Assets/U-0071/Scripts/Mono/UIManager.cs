@@ -58,6 +58,7 @@ public class UIManager : MonoBehaviour
 	private VisualElement _root;
 	private VisualElement _fadeScreen;
 	private Label _hungerLabel;
+	private Label _contaminationLabel;
 	private Label _creditsLabel;
 	private Label _cycleLabel;
 	private Label _codeLabel;
@@ -84,6 +85,7 @@ public class UIManager : MonoBehaviour
 	{
 		_root = GetComponent<UIDocument>().rootVisualElement;
 		_hungerLabel = _root.Q<Label>("info_hunger");
+		_contaminationLabel = _root.Q<Label>("info_contamination");
 		_creditsLabel = _root.Q<Label>("info_credits");
 		_cycleLabel = _root.Q<Label>("info_cycle");
 		_codeLabel = _root.Q<Label>("info_code");
@@ -96,6 +98,7 @@ public class UIManager : MonoBehaviour
 		if (DisableIntro)
 		{
 			_hungerLabel.style.display = DisplayStyle.Flex;
+			_contaminationLabel.style.display = DisplayStyle.Flex;
 			_creditsLabel.style.display = DisplayStyle.Flex;
 			_cycleLabel.style.display = DisplayStyle.Flex;
 			_codeLabel.style.display = DisplayStyle.Flex;
@@ -104,6 +107,7 @@ public class UIManager : MonoBehaviour
 		else
 		{
 			_hungerLabel.style.display = DisplayStyle.None;
+			_contaminationLabel.style.display = DisplayStyle.None;
 			_creditsLabel.style.display = DisplayStyle.None;
 			_cycleLabel.style.display = DisplayStyle.None;
 			_codeLabel.style.display = DisplayStyle.None;
@@ -160,6 +164,7 @@ public class UIManager : MonoBehaviour
 					{
 						_endingPhaseOneProcessed = true;
 						_hungerLabel.style.display = DisplayStyle.None;
+						_contaminationLabel.style.display = DisplayStyle.None;
 						_creditsLabel.style.display = DisplayStyle.None;
 						_cycleLabel.style.display = DisplayStyle.None;
 						_codeLabel.style.display = DisplayStyle.None;
@@ -206,11 +211,12 @@ public class UIManager : MonoBehaviour
 					ActionController actionController = entityManager.GetComponentData<ActionController>(_player);
 					CreditsComponent credits = entityManager.GetComponentData<CreditsComponent>(_player);
 					HungerComponent hunger = entityManager.GetComponentData<HungerComponent>(_player);
+					ContaminationLevelComponent contaminationLevel = entityManager.GetComponentData<ContaminationLevelComponent>(_player);
 					PeekingInfoComponent peekingInfo = entityManager.GetComponentData<PeekingInfoComponent>(_player);
 					CycleComponent cycle = entityManager.GetComponentData<CycleComponent>(_gameSingleton);
 
 					UpdateInteraction(in playerController, position);
-					UpdateHUD(in credits, in hunger, in cycle);
+					UpdateHUD(in credits, in hunger, in contaminationLevel, in cycle);
 					ProcessPopEvents(in credits, position);
 					UpdateCodepad(in entityManager, in playerController, in actionController, in cycle);
 					UpdatePeekingBubble(in peekingInfo, in cycle);
@@ -220,9 +226,10 @@ public class UIManager : MonoBehaviour
 	}
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public void UpdateHUD(in CreditsComponent credits, in HungerComponent hunger, in CycleComponent cycle)
+	public void UpdateHUD(in CreditsComponent credits, in HungerComponent hunger, in ContaminationLevelComponent contaminationLevel, in CycleComponent cycle)
 	{
 		_hungerLabel.text = "Hunger " + (hunger.Value > 1f ? hunger.Value.ToString("0") : hunger.Value.ToString("0.0"));
+		_contaminationLabel.text = "Contamination " + (contaminationLevel.Value > 1f || contaminationLevel.Value == 0f ? contaminationLevel.Value.ToString("0") : contaminationLevel.Value.ToString("0.0"));
 		_creditsLabel.text = "Credits " + credits.Value;
 
 		int minutes = (int)(cycle.CycleTimer / 60f);
@@ -399,6 +406,7 @@ public class UIManager : MonoBehaviour
 			Interaction.gameObject.SetActive(false);
 
 			_hungerLabel.style.display = DisplayStyle.Flex;
+			_contaminationLabel.style.display = DisplayStyle.Flex;
 			_creditsLabel.style.display = DisplayStyle.Flex;
 			_cycleLabel.style.display = DisplayStyle.Flex;
 			_codeLabel.style.display = DisplayStyle.Flex;
@@ -415,6 +423,8 @@ public class UIManager : MonoBehaviour
 		_goCrazyTimer += Time.deltaTime;
 		if (_goCrazyTimer > _usedGoCrazyTime)
 		{
+			_contaminationLabel.style.display = DisplayStyle.None;
+
 			TickGoCrazyLabel(iteration, ref _goCrazyHungerInc, _hungerLabel, ref _goCrazyHungerTimer);
 			TickGoCrazyLabel(iteration, ref _goCrazyCreditsInc, _creditsLabel, ref _goCrazyCreditsTimer);
 			TickGoCrazyLabel(iteration, ref _goCrazyCycleInc, _cycleLabel, ref _goCrazyCycleTimer);

@@ -31,10 +31,22 @@ namespace U0071
 
 	public struct InvincibleTag : IComponentData { }
 
+	public struct ContaminationLevelComponent : IComponentData
+	{
+		public float Value;
+		public bool IsSick;
+	}
+
+	public struct ContaminateComponent : IComponentData
+	{
+		public float Strength;
+	}
+
 	public struct SickComponent : IComponentData, IEnableableComponent
 	{
-		public float Timer;
 		public float SpreadTimer;
 		public bool IsResolved;
 	}
+
+	public struct ContinuousContaminationTag : IComponentData { }
 }

@@ -99,6 +99,8 @@ MonoBehaviour:
   Name: Potato
   Range: 0.4
   Time: 0
+  ContaminationStrength: 0.1
+  OnlyContaminateCarrier: 1
   RawFood: 1
   Food: 0
   Trash: 0

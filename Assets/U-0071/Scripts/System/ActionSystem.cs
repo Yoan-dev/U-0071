@@ -273,6 +273,7 @@ namespace U0071
 				Entity entity,
 				ref ActionController controller,
 				ref HungerComponent hunger,
+				ref ContaminationLevelComponent contaminationLevel,
 				in PositionComponent position,
 				in CreditsComponent credits)
 			{
@@ -303,7 +304,7 @@ namespace U0071
 						hunger.Value = math.min(Const.MaxHunger, hunger.Value + (contaminated ? Const.ContaminatedEatingHungerGain : Const.EatingHungerGain));
 						if (contaminated)
 						{
-							Ecb.SetComponentEnabled<SickComponent>(chunkIndex, entity, true);
+							contaminationLevel.Value += Const.ContaminationSicknessTreshold;
 						}
 					}
 					else if (controller.Action.ActionFlag == ActionFlag.Push)
@@ -442,7 +443,7 @@ namespace U0071
 		{
 			public NativeQueue<PickDropEvent>.ParallelWriter PickDropEvents;
 
-			public void Execute(Entity entity, ref ActionController controller, in PositionComponent position, in Orientation orientation, in CarryComponent carry)
+			public void Execute(Entity entity, ref ActionController controller, in PositionComponent position, in Orientation orientation, in PartitionComponent partition, in CarryComponent carry)
 			{
 				if (controller.ShouldDropFlag)
 				{
@@ -451,7 +452,7 @@ namespace U0071
 					{
 						Source = entity,
 						Target = carry.Picked,
-						Position = position.Value + Const.GetDropOffset(orientation.Value),
+						Position = Utilities.GetDropPosition(position.Value, orientation.Value, partition.ClosestEdgeX),
 						Pick = false,
 					});
 				}
@@ -463,7 +464,7 @@ namespace U0071
 		{
 			public NativeQueue<ChangeInteractableEvent>.ParallelWriter ChangeInteractableEvents;
 
-			public void Execute(Entity entity, ref ActionController controller, in PositionComponent position, in Orientation orientation, EnabledRefRW<IsActing> isActing)
+			public void Execute(Entity entity, ref ActionController controller, in PositionComponent position, in Orientation orientation, in PartitionComponent partition, EnabledRefRW<IsActing> isActing)
 			{
 				if (controller.ShouldStop)
 				{
@@ -490,7 +491,7 @@ namespace U0071
 					// but too late in the jam to do it
 					if (controller.ShouldSpreadDiseaseFlag)
 					{
-						Utilities.QueueSpreadDiseaseAction(ref controller, in orientation, in position, isActing);
+						Utilities.QueueSpreadDiseaseAction(ref controller, in orientation, in position, in partition, isActing);
 					}
 				}
 			}

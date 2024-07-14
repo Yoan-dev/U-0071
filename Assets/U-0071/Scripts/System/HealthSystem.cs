@@ -2,23 +2,48 @@ using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
+using Unity.Jobs;
+using System;
 
 namespace U0071
 {
+	public struct ContaminationEvent
+	{
+		public Entity Target;
+		public float Value;
+	}
+
 	[UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
 	[UpdateAfter(typeof(ActionSystem))]
 	public partial struct HealthSystem : ISystem
 	{
+		private NativeQueue<ContaminationEvent> _contaminationEvents;
 		private BufferLookup<RoomElementBufferElement> _roomElementLookup;
 		private ComponentLookup<AIController> _aiLookup;
+		private ComponentLookup<ContaminationLevelComponent> _contaminationLevelLookup;
+		private EntityQuery _contaminationQuery;
 
 		[BurstCompile]
 		public void OnCreate(ref SystemState state)
 		{
 			state.RequireForUpdate<Config>();
 
+			_contaminationEvents = new NativeQueue<ContaminationEvent>(Allocator.Persistent);
+
+			_contaminationQuery = SystemAPI.QueryBuilder()
+				.WithAll<ContaminateComponent, PositionComponent, PartitionComponent>()
+				.WithAny<ContinuousContaminationTag, SickComponent>()
+				.Build();
+
 			_roomElementLookup = state.GetBufferLookup<RoomElementBufferElement>(true);
 			_aiLookup = SystemAPI.GetComponentLookup<AIController>(true);
+			_contaminationLevelLookup = SystemAPI.GetComponentLookup<ContaminationLevelComponent>();
+		}
+
+		[BurstCompile]
+		public void OnDestroy(ref SystemState state)
+		{
+			_contaminationEvents.Dispose();
 		}
 
 		[BurstCompile]
@@ -26,17 +51,37 @@ namespace U0071
 		{
 			_roomElementLookup.Update(ref state);
 			_aiLookup.Update(ref state);
+			_contaminationLevelLookup.Update(ref state);
 
 			var ecbs = SystemAPI.GetSingleton<EndFixedStepSimulationEntityCommandBufferSystem.Singleton>();
 
 			float deltaTime = SystemAPI.Time.DeltaTime;
+
+			state.Dependency = new ContaminationJob()
+			{
+				DeltaTime = deltaTime,
+				ContaminationEvents = _contaminationEvents.AsParallelWriter(),
+				RoomElementBufferLookup = _roomElementLookup,
+			}.ScheduleParallel(_contaminationQuery, state.Dependency);
+
+			state.Dependency = new PickableContaminationJob
+			{
+				ContaminationEvents = _contaminationEvents.AsParallelWriter(),
+				DeltaTime = deltaTime,
+			}.ScheduleParallel(state.Dependency);
+
+			state.Dependency = new ContaminationEventsJob()
+			{
+				ContaminationEvents = _contaminationEvents,
+				ContaminationLevelLookup = _contaminationLevelLookup,
+			}.Schedule(state.Dependency);
 
 			state.Dependency = new SickJob
 			{
 				DeltaTime = deltaTime,
 			}.ScheduleParallel(state.Dependency);
 
-			state.Dependency = new HungerJob
+			state.Dependency = new HealthJob
 			{
 				Ecb = ecbs.CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter(),
 				DeltaTime = deltaTime,
@@ -54,20 +99,26 @@ namespace U0071
 		[BurstCompile]
 		[WithNone(typeof(DeathComponent))]
 		[WithNone(typeof(InvincibleTag))]
-		public partial struct HungerJob : IJobEntity
+		public partial struct HealthJob : IJobEntity
 		{
 			public EntityCommandBuffer.ParallelWriter Ecb;
 			public float DeltaTime;
 
-			public void Execute([ChunkIndexInQuery] int chunkIndex, Entity entity, ref HungerComponent hunger)
+			public void Execute([ChunkIndexInQuery] int chunkIndex, Entity entity, ref HungerComponent hunger, ref ContaminationLevelComponent contaminationLevel)
 			{
 				hunger.Value -= DeltaTime * Const.HungerDepleteRate;
 				if (hunger.Value <= 0f)
 				{
-					DeathComponent death = new DeathComponent { Context = DeathType.Hunger };
-					Ecb.SetComponent(chunkIndex, entity, death);
+					Ecb.SetComponent(chunkIndex, entity, new DeathComponent { Context = DeathType.Hunger });
 					Ecb.SetComponentEnabled<DeathComponent>(chunkIndex, entity, true);
 				}
+				if (!contaminationLevel.IsSick && contaminationLevel.Value >= Const.ContaminationSicknessTreshold)
+				{
+					contaminationLevel.IsSick = true;
+					Ecb.SetComponent(chunkIndex, entity, new SickComponent { IsResolved = false, SpreadTimer = Const.SpreadSicknessTime });
+					Ecb.SetComponentEnabled<SickComponent>(chunkIndex, entity, true);
+				}
+				contaminationLevel.Value = math.max(0, contaminationLevel.Value - DeltaTime * Const.ContaminationLevelDepleteRate);
 			}
 		}
 
@@ -89,6 +140,7 @@ namespace U0071
 				ref PositionComponent position,
 				ref AnimationController animation,
 				ref InteractableComponent interactable,
+				ref ContaminateComponent contaminate,
 				ref SkinColor skin,
 				ref ShortHairColor shortHair,
 				ref LongHairColor longHair,
@@ -111,6 +163,9 @@ namespace U0071
 
 				interactable.Changed = true;
 				interactable.ActionFlags &= ~ActionFlag.Push;
+
+				contaminate.Strength = Const.CorpseContaminationStrength;
+				Ecb.AddComponent(chunkIndex, entity, new ContinuousContaminationTag());
 
 				if (death.Context == DeathType.Crushed)
 				{
@@ -175,6 +230,7 @@ namespace U0071
 				ref LongHairColor longHair,
 				ref BeardColor beard,
 				ref HungerComponent hunger,
+				ref ContaminationLevelComponent contaminationLevel,
 				in PilosityComponent pilosity,
 				EnabledRefRW<SickComponent> sickRef)
 			{
@@ -192,18 +248,18 @@ namespace U0071
 
 				hunger.Value -= DeltaTime * Const.SickHungerDepleteRate;
 
-				sick.Timer += DeltaTime;
 				sick.SpreadTimer += DeltaTime;
 
 				if (sick.SpreadTimer > Const.SpreadSicknessTime)
 				{
 					sick.SpreadTimer -= Const.SpreadSicknessTime;
+					contaminationLevel.Value -= Const.ContaminationSpreadDecreaseLevelValue;
 					controller.Stop(true, true);
 				}
 
-				if (sick.Timer > Const.SickTime)
+				if (contaminationLevel.Value <= 0f)
 				{
-					sick.Timer = 0f;
+					contaminationLevel.IsSick = false;
 					sick.SpreadTimer = 0;
 					sickRef.ValueRW = false;
 					sick.IsResolved = false;
@@ -214,6 +270,78 @@ namespace U0071
 					if (!pilosity.HasLongHair) longHair.Value -= sickColorOffset;
 					if (!pilosity.HasBeard) beard.Value -= sickColorOffset;
 					skin.Value -= sickColorOffset;
+				}
+			}
+		}
+
+		[BurstCompile]
+		[WithNone(typeof(PickableComponent))]
+		public partial struct ContaminationJob : IJobEntity
+		{
+			public NativeQueue<ContaminationEvent>.ParallelWriter ContaminationEvents;
+			[ReadOnly]
+			public BufferLookup<RoomElementBufferElement> RoomElementBufferLookup;
+			public float DeltaTime;
+
+			public void Execute(Entity entity, in ContaminateComponent contaminate, in PartitionComponent partition, in PositionComponent position)
+			{
+				if (partition.CurrentRoom == Entity.Null)
+				{
+					// continuous contaminer that are carried
+					return;
+				}
+				DynamicBuffer<RoomElementBufferElement> elements = RoomElementBufferLookup[partition.CurrentRoom];
+				using (var enumerator = elements.GetEnumerator())
+				{
+					while (enumerator.MoveNext())
+					{
+						// check for push action (living characters)
+						if (enumerator.Current.Entity != entity &&
+							enumerator.Current.HasActionFlag(ActionFlag.Push) &&
+							position.IsInRange(enumerator.Current.Position, Const.ContaminationRange))
+						{
+							ContaminationEvents.Enqueue(new ContaminationEvent
+							{
+								Value = contaminate.Strength * DeltaTime,
+								Target = enumerator.Current.Entity,
+							});
+						}
+					}
+				}
+			}
+		}
+
+		[BurstCompile]
+		[WithAll(typeof(PickableComponent))]
+		public partial struct PickableContaminationJob : IJobEntity
+		{
+			public NativeQueue<ContaminationEvent>.ParallelWriter ContaminationEvents;
+			public float DeltaTime;
+
+			public void Execute(in ContaminateComponent contaminate, in PickableComponent piackable)
+			{
+				ContaminationEvents.Enqueue(new ContaminationEvent
+				{
+					Value = contaminate.Strength * DeltaTime,
+					Target = piackable.Carrier,
+				});
+			}
+		}
+
+		[BurstCompile]
+		public partial struct ContaminationEventsJob : IJob
+		{
+			public NativeQueue<ContaminationEvent> ContaminationEvents;
+			public ComponentLookup<ContaminationLevelComponent> ContaminationLevelLookup;
+
+			public void Execute()
+			{
+				while (ContaminationEvents.Count > 0)
+				{
+					ContaminationEvent contaminationEvent = ContaminationEvents.Dequeue();
+					ref ContaminationLevelComponent contaminationLevel = ref ContaminationLevelLookup.GetRefRW(contaminationEvent.Target).ValueRW;
+
+					contaminationLevel.Value = math.min(Const.MaxContaminationLevel, contaminationEvent.Value + contaminationLevel.Value);
 				}
 			}
 		}

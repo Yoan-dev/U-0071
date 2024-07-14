@@ -2,6 +2,7 @@
     <Style src="project://database/Assets/UI%20Toolkit/HUD.uss?fileID=7433441132597879392&amp;guid=219dc7aaf1331e248a628025638434b1&amp;type=3#HUD" />
     <ui:VisualElement name="Container" style="flex-grow: 1;">
         <ui:VisualElement name="container_top_left" style="flex-grow: 1; left: 0; position: absolute; margin-top: 5px;">
+            <ui:Label tabindex="-1" text="Contamination 0.9" parse-escape-sequences="true" display-tooltip-when-elided="true" name="info_contamination" class="jam-label" />
             <ui:Label tabindex="-1" text="Hunger 10" parse-escape-sequences="true" display-tooltip-when-elided="true" name="info_hunger" class="jam-label" />
             <ui:Label tabindex="-1" text="Credits 30" parse-escape-sequences="true" display-tooltip-when-elided="true" name="info_credits" class="jam-label" />
         </ui:VisualElement>
