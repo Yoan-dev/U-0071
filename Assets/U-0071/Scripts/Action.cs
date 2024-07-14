@@ -39,8 +39,7 @@ namespace U0071
 		// hard-coded
 		public bool UseVariantSpawn => 
 			ActionFlag == ActionFlag.Store &&
-			Utilities.HasItemFlag(ItemFlags, ItemFlag.RawFood) &&
-			Utilities.HasItemFlag(UsedItemFlags, ItemFlag.Trash);
+			Utilities.HasItemFlag(ItemFlags, ItemFlag.RawFood) && Utilities.HasItemFlag(UsedItemFlags, ItemFlag.Trash | ItemFlag.Contaminated);
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public ActionData(Entity target, ActionFlag actionFlag, ItemFlag itemFlags, ItemFlag usedItemFlags, float2 position, float range, float time, int cost, bool multiusableFlag = true)

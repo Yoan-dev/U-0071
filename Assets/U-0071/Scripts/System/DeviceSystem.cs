@@ -89,7 +89,7 @@ namespace U0071
 		{
 			public void Execute(in SpawnerComponent spawner, in CapacityFeedbackComponent capacityFeedback, ref TextureArrayIndex index)
 			{
-				index.Value = math.clamp(spawner.Capacity, 0, capacityFeedback.StageCount - 1);
+				index.Value = math.clamp(spawner.Capacity + spawner.VariantCapacity, 0, capacityFeedback.StageCount - 1);
 			}
 		}
 

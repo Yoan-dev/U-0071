@@ -153,7 +153,7 @@ public class UIManager : MonoBehaviour
 			}
 			else
 			{
-				Ending ending = entityManager.GetComponentData<Ending>(_gameSingleton);
+				Ending ending = entityManager.HasComponent<Ending>(_gameSingleton) ? entityManager.GetComponentData<Ending>(_gameSingleton) : new Ending();
 				if (ending.PhaseOneTriggered)
 				{
 					if (!_endingPhaseOneProcessed)

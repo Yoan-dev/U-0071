@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 6375470121438603556}
   - component: {fileID: 7245211728077059523}
   m_Layer: 0
-  m_Name: Item_Organic_Waste
+  m_Name: Item_Contaminated_Waste
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

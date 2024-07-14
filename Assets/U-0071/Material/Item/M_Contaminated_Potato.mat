@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: M_Organic_Waste
+  m_Name: M_Contaminated_Potato
   m_Shader: {fileID: -6465566751694194690, guid: eabf6748803b4cf42b6e1c46fc4e33ce,
     type: 3}
   m_Parent: {fileID: 0}
@@ -25,7 +25,7 @@ Material:
     serializedVersion: 3
     m_TexEnvs:
     - _Texture:
-        m_Texture: {fileID: 2800000, guid: f201450e095ba2843bb1a8e4bd92c138, type: 3}
+        m_Texture: {fileID: 2800000, guid: a38a7d97261bc024c8f26b50ccf702fd, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - unity_Lightmaps:
