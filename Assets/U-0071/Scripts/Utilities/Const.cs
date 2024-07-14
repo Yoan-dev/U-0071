@@ -24,7 +24,7 @@ namespace U0071
 
 		// AI goal
 		public const float AILightHungerRatio = 0.85f;
-		public const float AIStarvingRatio = 0.15f;
+		public const float AIStarvingRatio = 0.25f;
 		public const int AIDesiredCreditsToEat = 10;
 		public const float AIBaseWorkWeight = 0.5f;
 		public const float AIMaxBoredomWeight = 0.7f;
