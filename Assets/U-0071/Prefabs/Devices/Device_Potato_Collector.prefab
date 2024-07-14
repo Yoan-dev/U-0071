@@ -96,14 +96,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f31f27170626c2c468cc12af570e0ac3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Name: Potato Collector
+  Name: Hopper
   ActionName: Drop
   Range: 1
   Time: 0.5
   CollisionRange: 0.25
   Collide: 1
-  CanBeMultiused: 0
+  CanBeMultiused: 1
   AdminStation: 0
+  CanContaminatedBeContaminated: 0
   Cost: -2
   AreaFlag: 0
   DoorSize: 0
@@ -114,6 +115,7 @@ MonoBehaviour:
   RawFood: 1
   Food: 0
   Trash: 0
+  Contaminated: 0
   Prefab: {fileID: 0}
   VariantPrefab: {fileID: 0}
   SpawnOffset: 0.25

@@ -2,6 +2,7 @@ using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
+using UnityEditorInternal;
 
 namespace U0071
 {
@@ -200,11 +201,6 @@ namespace U0071
 					float contaminationLevelModifier = contaminationLevel.Value > 0 ? math.clamp(contaminationLevel.Value / Const.ContaminationSicknessTreshold, 0f, 1f) * Const.ContaminationAntiworkWeight : 0f;
 					controller.WorkWeight = math.clamp(Const.AIBaseWorkWeight - contaminationLevelModifier + classCreditsRatio * (1f - Const.AIBaseWorkWeight), 0f, 1f);
 
-					if (contaminationLevelModifier > 0.1f)
-					{
-						contaminationLevelModifier = 0f;
-					}
-
 					controller.ChooseGoal(carry.HasItem, isFired);
 				}
 
@@ -247,6 +243,7 @@ namespace U0071
 				// look for target
 				DynamicBuffer<RoomElementBufferElement> elements = RoomElementBufferLookup[partition.CurrentRoom];
 				float minMagn = float.MaxValue;
+				bool teleportFlag = false;
 				using (var enumerator = elements.GetEnumerator())
 				{
 					while (enumerator.MoveNext())
@@ -285,11 +282,10 @@ namespace U0071
 								selectedActionFlag > actionController.Action.ActionFlag || 
 								magn < minMagn)
 							{
-								// pose as a storage
-								if (selectedActionFlag == ActionFlag.Store && target.Interactable.HasActionFlag(ActionFlag.Teleport))
-								{
-									selectedActionFlag = ActionFlag.Teleport;
-								}
+								// item teleporters pose as a storage
+								// (because of spaghetti code)
+								teleportFlag = selectedActionFlag == ActionFlag.Store && target.Interactable.HasActionFlag(ActionFlag.Teleport);
+								
 								minMagn = magn;
 								actionController.Action = target.ToActionData(selectedActionFlag, target.ItemFlags, carry.Flags);
 
@@ -299,6 +295,11 @@ namespace U0071
 							// lower prio would have been filtered in target.Evaluate
 						}
 					}
+				}
+
+				if (teleportFlag)
+				{
+					actionController.Action.ActionFlag = ActionFlag.Teleport;
 				}
 
 				if (actionController.HasTarget && carry.HasItem && 
