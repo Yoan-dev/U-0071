@@ -29,8 +29,10 @@ namespace U0071
 		public const float AIMaxBoredomWeight = 0.7f;
 		public const float AIBoredomSpeed = 0.01f;
 		public const float AIFulfilmentSpeed = -0.02f; // decrease boredom
+		public const float AICantReachTime = 10f;
 
 		// doors
+		public const float AICodeTypingRevealValue = 4.5f;
 		public const float AIUnitEnterCodeTime = 4f;
 		public const float PeekingStartRange = 5.5f;
 		public const float PeekingRange = 2f;

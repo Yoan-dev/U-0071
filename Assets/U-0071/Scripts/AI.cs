@@ -21,6 +21,7 @@ namespace U0071
 		public float2 LastMovementInput;
 		public AIGoal Goal;
 		public float ReassessmentTimer;
+		public float CantReachTimer;
 		public float BoredomValue;
 		public float SuspicionValue;
 

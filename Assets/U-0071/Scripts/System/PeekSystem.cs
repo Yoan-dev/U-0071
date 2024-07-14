@@ -125,7 +125,7 @@ namespace U0071
 					{
 						// progress
 						ActionController controller = ActionLookup[interactable.CurrentUser];
-						int newDigitIndex = (int)(5 * controller.Timer / controller.Action.Time);
+						int newDigitIndex = (int)(Const.AICodeTypingRevealValue * controller.Timer / controller.Action.Time);
 						
 						if (isPeeking)
 						{

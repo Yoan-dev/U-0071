@@ -143,6 +143,13 @@ namespace U0071
 						orientation.Update(actionController.Action.Position.x - position.Value.x);
 					}
 
+					// safe
+					controller.CantReachTimer += DeltaTime;
+					if (controller.CantReachTimer >= Const.AICantReachTime)
+					{
+						actionController.Stop(false);
+					}
+
 					// start interacting or going to target
 					return;
 				}
