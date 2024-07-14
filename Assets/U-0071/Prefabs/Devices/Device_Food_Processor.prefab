@@ -99,11 +99,12 @@ MonoBehaviour:
   Name: Food Processor
   ActionName: Process
   Range: 1
-  Time: 3
+  Time: 5
   CollisionRange: 0.25
   Collide: 1
   CanBeMultiused: 0
-  Cost: -5
+  AdminStation: 0
+  Cost: -7
   AreaFlag: 0
   DoorSize: 0
   StaysOpenTime: 0

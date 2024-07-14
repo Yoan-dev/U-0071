@@ -104,7 +104,7 @@ MonoBehaviour:
   Collide: 0
   CanBeMultiused: 1
   AdminStation: 0
-  Cost: -2
+  Cost: -3
   AreaFlag: 0
   DoorSize: 0
   StaysOpenTime: 0

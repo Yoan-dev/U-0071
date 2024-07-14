@@ -99,11 +99,12 @@ MonoBehaviour:
   Name: Autoponics
   ActionName: Harvest
   Range: 0.75
-  Time: 0.5
+  Time: 1
   CollisionRange: 0.25
   Collide: 1
   CanBeMultiused: 0
-  Cost: 0
+  AdminStation: 0
+  Cost: -5
   AreaFlag: 0
   DoorSize: 0
   StaysOpenTime: 0

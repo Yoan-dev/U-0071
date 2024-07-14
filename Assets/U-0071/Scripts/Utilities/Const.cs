@@ -60,7 +60,7 @@ namespace U0071
 		public const float PushedSpeed = 3.75f;
 		public const float EatingHungerGain = 4f;
 		public const float MaxHunger = 10f;
-		public const float HungerDepleteRate = 0f;//0.1f; DEBUG
+		public const float HungerDepleteRate = 0.1f;
 		public const float DeathSkinToneOffset = 0.15f;
 		public const float DecollisionStrength = 0.6f;
 		public const float CharacterZOffset = 0.3f;

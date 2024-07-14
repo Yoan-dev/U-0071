@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &4271635748625732498
+--- !u!1 &7719360783838250696
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -8,25 +8,24 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 1383143700477064126}
-  - component: {fileID: 626567029758951203}
-  - component: {fileID: 5234171763981190421}
-  - component: {fileID: 6182060189481554560}
-  - component: {fileID: 3479681225550186914}
+  - component: {fileID: 4840552597690502031}
+  - component: {fileID: 2003237602652179595}
+  - component: {fileID: 4722221821996346295}
+  - component: {fileID: 3958395862797132754}
   m_Layer: 0
-  m_Name: AIUnit
+  m_Name: ExitDoor_Yellow
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &1383143700477064126
+--- !u!4 &4840552597690502031
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4271635748625732498}
+  m_GameObject: {fileID: 7719360783838250696}
   serializedVersion: 2
   m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
   m_LocalPosition: {x: 0, y: 0.1, z: 0}
@@ -35,21 +34,21 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
---- !u!33 &626567029758951203
+--- !u!33 &2003237602652179595
 MeshFilter:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4271635748625732498}
+  m_GameObject: {fileID: 7719360783838250696}
   m_Mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
---- !u!23 &5234171763981190421
+--- !u!23 &4722221821996346295
 MeshRenderer:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4271635748625732498}
+  m_GameObject: {fileID: 7719360783838250696}
   m_Enabled: 1
   m_CastShadows: 0
   m_ReceiveShadows: 1
@@ -63,7 +62,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: b55e674ce2d8ff04994210fe88888fd9, type: 2}
+  - {fileID: 2100000, guid: 900c24ee7913a5b49b58eb720dcaf670, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -85,41 +84,49 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!114 &6182060189481554560
+--- !u!114 &3958395862797132754
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4271635748625732498}
+  m_GameObject: {fileID: 7719360783838250696}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 47307a53ae020a84ba8011964350f164, type: 3}
+  m_Script: {fileID: 11500000, guid: f31f27170626c2c468cc12af570e0ac3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Name: U-0000
-  Speed: 3
-  Hunger: 10
-  Authorisation: 0
-  Credits: 30
-  CollisionRadius: 0.2
-  Range: 0.6
+  Name: Door
+  ActionName: Open
+  Range: 1
   Time: 0.25
-  ShirtColor: {r: 0.60784316, g: 0.6784314, b: 0.7176471, a: 1}
-  SkinColor: {r: 0.9333334, g: 0.76470596, b: 0.6039216, a: 1}
-  HairColor: {r: 0, g: 0, b: 0, a: 0}
-  HasShortHair: 0
-  HasLongHair: 0
-  HasBeard: 0
---- !u!114 &3479681225550186914
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4271635748625732498}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3548b6a5cc41fe84f94bafe4a67ac2c4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  CollisionRange: 0.45
+  Collide: 0
+  CanBeMultiused: 0
+  AdminStation: 0
+  Cost: 0
+  AreaFlag: 32
+  DoorSize: 0.4
+  StaysOpenTime: 1.5
+  AnimationCubicStrength: 12
+  DestroyAction: 0
+  Teleporter: 0
+  RawFood: 0
+  Food: 0
+  Trash: 0
+  Prefab: {fileID: 0}
+  VariantPrefab: {fileID: 0}
+  SpawnOffset: 0.25
+  StartingCapacity: 0
+  GrowTime: -1
+  VisualStageCount: 12
+  AutoSpawner: 0
+  Destination: {fileID: 0}
+  SecondaryDestination: {fileID: 0}
+  DeathType: 0
+  Animated: 0
+  Animation:
+    StartIndex: 0
+    Duration: 0
+    FrameTime: 0
+    Looping: 0

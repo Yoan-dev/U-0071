@@ -50,9 +50,9 @@ MonoBehaviour:
   Seed: 1
   CycleDuration: 20
   HaveEnding: 0
-  EndingPhaseOneY: 15
-  EndingPhaseTwoY: 21
-  EndingPhaseThreeY: 27
+  EndingPhaseOneY: 38.5
+  EndingPhaseTwoY: 44.5
+  EndingPhaseThreeY: 50.5
   EndingPhaseThreeAbsX: 6
   LastDoor: {fileID: 0}
   CharacterIdle:
