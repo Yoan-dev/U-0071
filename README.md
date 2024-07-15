@@ -9,3 +9,6 @@ It uses Unity's Data-Oriented Technology Stack and their Entity Component System
 Link to the Jam: https://itch.io/jam/tmg-dots-1
 
 Link to the Submission: https://yoan-dev.itch.io/u-0071
+
+Used assets
+- Free Pixel Font - Thaleah: https://assetstore.unity.com/packages/2d/fonts/free-pixel-font-thaleah-140059
