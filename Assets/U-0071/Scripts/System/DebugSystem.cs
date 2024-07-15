@@ -40,7 +40,7 @@ namespace U0071
 		[BurstCompile]
 		public void OnCreate(ref SystemState state)
 		{
-			//state.Enabled = false;
+			state.Enabled = false;
 
 			state.RequireForUpdate<Config>();
 

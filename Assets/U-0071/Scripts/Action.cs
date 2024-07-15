@@ -9,17 +9,17 @@ namespace U0071
 	public enum ActionFlag
 	{
 		// sorted by priority
-		Drop = 1 << 0,
-		Eat = 1 << 1,
-		Push = 1 << 2,
-		Pick = 1 << 3,
-		Search = 1 << 4,
-		Collect = 1 << 5,
-		Destroy = 1 << 6,
-		Store = 1 << 7,
-		Teleport = 1 << 8,
-		Open = 1 << 9,
-		Administrate = 1 << 10,
+		Administrate = 1 << 0,
+		Drop = 1 << 1,
+		Eat = 1 << 2,
+		Push = 1 << 3,
+		Pick = 1 << 4,
+		Search = 1 << 5,
+		Collect = 1 << 6,
+		Destroy = 1 << 7,
+		Store = 1 << 8,
+		Teleport = 1 << 9,
+		Open = 1 << 10,
 		Contaminate = 1 << 11,
 		SpreadDisease = 1 << 12,
 	}

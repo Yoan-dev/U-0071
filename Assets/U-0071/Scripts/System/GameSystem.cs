@@ -174,7 +174,6 @@ namespace U0071
 			FlowfieldBuilder toDestroy = new FlowfieldBuilder(areaFlag, ActionFlag.Destroy, ItemFlag.Trash, in partition);
 			FlowfieldBuilder toProcess = new FlowfieldBuilder(areaFlag, ActionFlag.Store, ItemFlag.RawFood, in partition);
 			FlowfieldBuilder toWander = new FlowfieldBuilder(areaFlag, 0, 0, in partition);
-			FlowfieldBuilder toRelax = new FlowfieldBuilder(areaFlag, 0, 0, in partition); // TODO
 
 			state.Dependency = new DeviceFlowfieldInitJob
 			{
@@ -188,7 +187,6 @@ namespace U0071
 			state.Dependency = new WandererFlowfieldInitJob
 			{
 				ToWanderBuilder = toWander,
-				ToRelaxBuilder = toRelax, // TEMP, TODO: relax devices/spots (for now will run away from working stations)
 			}.Schedule(state.Dependency);
 
 			state.Dependency = new FlowfieldSpreadJob { Builder = toFood }.Schedule(state.Dependency);
@@ -196,14 +194,12 @@ namespace U0071
 			state.Dependency = new FlowfieldSpreadJob { Builder = toDestroy }.Schedule(state.Dependency);
 			state.Dependency = new FlowfieldSpreadJob { Builder = toProcess }.Schedule(state.Dependency);
 			state.Dependency = new FlowfieldSpreadJob { Builder = toWander }.Schedule(state.Dependency);
-			state.Dependency = new FlowfieldSpreadJob { Builder = toRelax }.Schedule(state.Dependency);
 
 			state.Dependency = new FlowfieldDirectionJob { Builder = toFood }.ScheduleParallel(size, Const.ParallelForCount, state.Dependency);
 			state.Dependency = new FlowfieldDirectionJob { Builder = toWork }.ScheduleParallel(size, Const.ParallelForCount, state.Dependency);
 			state.Dependency = new FlowfieldDirectionJob { Builder = toDestroy }.ScheduleParallel(size, Const.ParallelForCount, state.Dependency);
 			state.Dependency = new FlowfieldDirectionJob { Builder = toProcess }.ScheduleParallel(size, Const.ParallelForCount, state.Dependency);
 			state.Dependency = new FlowfieldDirectionJob { Builder = toWander }.ScheduleParallel(size, Const.ParallelForCount, state.Dependency);
-			state.Dependency = new FlowfieldDirectionJob { Builder = toRelax }.ScheduleParallel(size, Const.ParallelForCount, state.Dependency);
 
 			state.Dependency.Complete();
 
@@ -229,7 +225,6 @@ namespace U0071
 			toDestroy.Dispose();
 			toProcess.Dispose();
 			toWander.Dispose();
-			toRelax.Dispose();
 		}
 
 		[BurstCompile]
@@ -380,12 +375,10 @@ namespace U0071
 		public partial struct WandererFlowfieldInitJob : IJobEntity
 		{
 			[NativeDisableParallelForRestriction] public FlowfieldBuilder ToWanderBuilder;
-			[NativeDisableParallelForRestriction] public FlowfieldBuilder ToRelaxBuilder; // TEMP
 
-			public void Execute(in WandererComponent wanderer)
+			public void Execute(in WanderPointComponent wanderPoint)
 			{
-				ToWanderBuilder.InitStartingCell(ToWanderBuilder.GetIndex(wanderer.Position), true);
-				ToRelaxBuilder.InitStartingCell(ToRelaxBuilder.GetIndex(wanderer.Position), true);
+				ToWanderBuilder.InitStartingCell(ToWanderBuilder.GetIndex(wanderPoint.Position), true);
 			}
 		}
 

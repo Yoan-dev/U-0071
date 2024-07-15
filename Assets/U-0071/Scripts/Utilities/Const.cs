@@ -22,7 +22,7 @@ namespace U0071
 		// AI goal
 		public const float AILightHungerRatio = 0.85f;
 		public const float AIStarvingRatio = 0.25f;
-		public const int AIDesiredCreditsToEat = 10;
+		public const int AIDesiredCreditsToEat = 20; // price of a meal
 		public const float AIBaseWorkWeight = 0.5f;
 		public const float AIMaxBoredomWeight = 0.7f;
 		public const float AIBoredomSpeed = 0.01f;
@@ -109,7 +109,7 @@ namespace U0071
 		{
 			return goal switch
 			{
-				AIGoal.Eat => 10f,
+				AIGoal.Eat => 5f,
 				AIGoal.Work => 10f,
 				AIGoal.BoredWander => 20f,
 				AIGoal.WorkWander => 30f,

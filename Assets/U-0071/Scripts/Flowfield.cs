@@ -15,6 +15,11 @@ namespace U0071
 		public float2 Direction;
 	}
 
+	public struct WanderPointComponent : IComponentData
+	{
+		public float2 Position;
+	}
+
 	public struct FlowfieldCell
 	{
 		// TODO: pack the float2s (several 8-directions in a byte)

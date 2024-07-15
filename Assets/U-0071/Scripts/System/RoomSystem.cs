@@ -234,26 +234,28 @@ namespace U0071
 
 				if (dirtyPopulation || room.Population > room.Capacity)
 				{
-					Entity lowest = Entity.Null;
+					Entity fired = Entity.Null;
 
 					// recount all (safer because of death)
 					room.Population = 0;
-					using (var element = elements.GetEnumerator())
+					for (int i = elements.Length - 1; i >= 0; i--)
 					{
-						while (element.MoveNext())
+						RoomElementBufferElement element = elements[i];
+
+						// push check is the dirty way to check for characters
+						if (element.HasActionFlag(ActionFlag.Push))
 						{
-							// push check is the dirty way to check for characters
-							if (element.Current.HasActionFlag(ActionFlag.Push))
+							if (fired == Entity.Null)
 							{
-								lowest = lowest == Entity.Null || element.Current.Entity.Index < lowest.Index ? element.Current.Entity : lowest;
-								room.Population++;
+								fired = element.Entity;
 							}
+							room.Population++;
 						}
 					}
 
 					if (room.Population > room.Capacity)
 					{
-						room.FiredWorker = lowest;
+						room.FiredWorker = fired;
 					}
 				}
 			}

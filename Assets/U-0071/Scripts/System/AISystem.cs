@@ -128,6 +128,12 @@ namespace U0071
 					return;
 				}
 
+				if (actionController.IsResolving && controller.Goal == AIGoal.Work)
+				{
+					// found a job
+					controller.OpportunityFlag = false;
+				}
+
 				if (pushed.ValueRO) controller.LastMovementInput = float2.zero;
 
 				if (Utilities.ProcessUnitControllerStart(entity, ref actionController, in orientation, in position, in partition, isActing, death, pushed, in InteractableLookup, in PickableLookup, in carry))
@@ -157,22 +163,22 @@ namespace U0071
 					return;
 				}
 
-				bool hasOpportunity = false;
 				bool isFired = false;
 
 				// look for job opportunities
 				if (controller.Goal == AIGoal.WorkWander && WorkInfoLookup.HasComponent(partition.CurrentRoom))
 				{
 					WorkInfoComponent workInfo = WorkInfoLookup[partition.CurrentRoom];
-					hasOpportunity = workInfo.ShouldStopHere(authorization.Flag);
+					controller.OpportunityFlag = workInfo.ShouldStopHere(authorization.Flag);
 				}
 
 				// check if in a crowded workplace and fired
 				if (controller.Goal == AIGoal.Work)
 				{
 					RoomComponent room = RoomLookup[partition.CurrentRoom];
-					if (room.Capacity > 0 && room.Population > room.Capacity && room.FiredWorker == entity)
+					if (room.Capacity > 0 && room.Population > room.Capacity && room.FiredWorker == entity && Utilities.GetLowestAuthorization(room.Area) == authorization.Flag)
 					{
+						controller.OpportunityFlag = false; // consume flag
 						isFired = true;
 					}
 				}
@@ -189,7 +195,7 @@ namespace U0071
 						Utilities.QueueDropAction(ref actionController, in orientation, in position, in carry, in partition, isActing);
 					}
 				}
-				else if (controller.ShouldReassess(hungerRatio, carry.HasItem, hasOpportunity, isFired))
+				else if (controller.ShouldReassess(hungerRatio, carry.HasItem, isFired))
 				{
 					controller.ReassessedLastFrame = true;
 
@@ -223,7 +229,34 @@ namespace U0071
 				ItemFlag itemFilter =
 					eatGoal ? ItemFlag.Food :
 					workGoal && !isAdmin ? ItemFlag.RawFood | ItemFlag.Trash : 0;
-				
+
+				bool adminCleaning = false;
+				if (isAdmin && (workGoal || destroyGoal))
+				{
+					bool isInAdminRoom = RoomLookup[partition.CurrentRoom].Area == AreaAuthorization.Admin;
+
+					// admins are forced to clean their room
+					if (isInAdminRoom && !carry.HasItem)
+					{
+						adminCleaning = true;
+						actionFilter |= ActionFlag.Pick;
+						actionFilter |= ActionFlag.Destroy;
+						itemFilter |= ItemFlag.Trash;
+						itemFilter |= ItemFlag.RawFood;
+					}
+					else if (carry.HasItem && !isInAdminRoom)
+					{
+						// drop outside
+						Utilities.QueueDropAction(ref actionController, in orientation, in position, in carry, in partition, isActing);
+					}
+					else if (carry.HasItem && !controller.HasCriticalGoal)
+					{
+						actionFilter &= ~ActionFlag.Administrate;
+						controller.Goal = AIGoal.Destroy;
+						controller.IsPathing = true;
+					}
+				}
+
 				if (!eatGoal && hunger.Value <= Const.MaxHunger * Const.AILightHungerRatio)
 				{
 					// opportunistic eating
@@ -243,6 +276,10 @@ namespace U0071
 						actionController.Start();
 						orientation.Update(actionController.Action.Position.x - position.Value.x);
 						return;
+					}
+					else if (controller.Goal == AIGoal.Eat)
+					{
+						Utilities.QueueDropAction(ref actionController, in orientation, in position, in carry, in partition, isActing);
 					}
 				}
 
@@ -279,7 +316,7 @@ namespace U0071
 							target.HasActionFlag(actionFilter) &&
 							(itemFilter == 0 || target.HasItemFlag(itemFilter)) &&
 							(target.Cost <= 0f || target.Cost <= credits.Value) &&
-							target.Evaluate(actionController.Action.ActionFlag, actionFilter, carry.Flags, out ActionFlag selectedActionFlag, destroyGoal, eatGoal))
+							target.Evaluate(actionController.Action.ActionFlag, actionFilter, carry.Flags, out ActionFlag selectedActionFlag, destroyGoal, eatGoal || adminCleaning, false, false))
 						{
 							float magn = math.lengthsq(position.Value - target.Position);
 
