@@ -110,8 +110,10 @@ namespace U0071
 				EnabledRefRO<DeathComponent> death,
 				EnabledRefRO<PushedComponent> pushed)
 			{
+				bool isAdmin = authorization.IsAdmin;
+
 				// AI timers
-				bool isInActivity = actionController.IsResolving || controller.Goal == AIGoal.Destroy || controller.Goal == AIGoal.Process || controller.Goal == AIGoal.WorkWander || controller.Goal == AIGoal.BoredWander;
+				bool isInActivity = actionController.IsResolving && !isAdmin || controller.Goal == AIGoal.Destroy || controller.Goal == AIGoal.Process || controller.Goal == AIGoal.WorkWander || controller.Goal == AIGoal.BoredWander;
 				controller.BoredomValue = math.clamp(controller.BoredomValue + DeltaTime * (isInActivity ? Const.AIFulfilmentSpeed : Const.AIBoredomSpeed), 0f, Const.AIMaxBoredomWeight);
 				controller.SuspicionValue = math.max(0f, controller.SuspicionValue - DeltaTime * Const.PeekingSuspicionDecreaseRate);
 				controller.ReassessmentTimer -= DeltaTime;
@@ -155,7 +157,6 @@ namespace U0071
 					return;
 				}
 
-				bool isAdmin = authorization.IsAdmin;
 				bool hasOpportunity = false;
 				bool isFired = false;
 
@@ -196,7 +197,7 @@ namespace U0071
 					controller.EatWeight = shouldEat ? math.clamp(1f - math.unlerp(Const.AIStarvingRatio, Const.AILightHungerRatio, hungerRatio), 0f, 1f) : 0f;
 
 					int classCredits = Const.GetStartingCredits(authorization.Flag);
-					float classCreditsRatio = classCredits > 0f ? 1f - credits.Value / classCredits : 0f;
+					float classCreditsRatio = !isAdmin && classCredits > 0f ? 1f - credits.Value / (float)classCredits : 0f;
 					float contaminationLevelModifier = contaminationLevel.Value > 0 ? math.clamp(contaminationLevel.Value / Const.ContaminationSickTreshold, 0f, 1f) * Const.SickAntiworkWeight : 0f;
 					controller.WorkWeight = math.clamp(Const.AIBaseWorkWeight - contaminationLevelModifier + classCreditsRatio * (1f - Const.AIBaseWorkWeight), 0f, 1f);
 

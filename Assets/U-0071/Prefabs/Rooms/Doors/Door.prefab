@@ -108,7 +108,7 @@ MonoBehaviour:
   Cost: 0
   AreaFlag: 1
   DoorSize: 0.85
-  StaysOpenTime: 1.5
+  StaysOpenTime: 1.25
   AnimationCubicStrength: 12
   DestroyAction: 0
   Teleporter: 0

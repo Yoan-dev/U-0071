@@ -99,7 +99,7 @@ MonoBehaviour:
   Name: Autoponics
   ActionName: Harvest
   Range: 0.75
-  Time: 1
+  Time: 5
   CollisionRange: 0.25
   Collide: 1
   CanBeMultiused: 0

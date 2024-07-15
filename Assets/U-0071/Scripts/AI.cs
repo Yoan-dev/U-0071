@@ -67,6 +67,11 @@ namespace U0071
 			{
 				newGoal = AIGoal.WorkWander;
 			}
+			if (Goal == AIGoal.WorkWander && newGoal == AIGoal.Work)
+			{
+				// already looking for work
+				newGoal = AIGoal.WorkWander;
+			}
 
 			Goal = newGoal;
 			ReassessmentTimer = Const.GetReassessmentTimer(newGoal);

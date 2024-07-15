@@ -237,6 +237,7 @@ public class UIManager : MonoBehaviour
 
 		_hungerLabel.style.color = hunger.Value < 1f ? HungerColor : Color.white;
 		_contaminationLabel.style.color = contaminationLevel.IsSick || contaminationLevel.Value >= Const.ContaminationSickTreshold - 0.1f ? ContaminationColor : Color.white;
+		_cycleLabel.style.color = cycle.CycleTimer <= 10f ? HungerColor : Color.white;
 
 		int minutes = (int)(cycle.CycleTimer / 60f);
 		int seconds = (int)(cycle.CycleTimer - minutes * 60);

@@ -10,7 +10,6 @@ public class ManagedData : MonoBehaviour
 	public string[] StartingLines;
 	public string[] RespawnLines;
 	public string[] GoCrazyDeathLines;
-	public string[] GoCrazyEndLines;
 	public string[] EndingLines;
 
 	private void Awake()

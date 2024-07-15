@@ -85,6 +85,7 @@ namespace U0071
 		public const float PushedSpeed = 3.75f;
 		public const float DeathSkinMultiplier = 0.2f;
 		public const float DecollisionStrength = 0.6f;
+		public const float ItemClearUserTickTime = 0.6f;
 
 		// UI
 		public const float CodepadButtonFeedbackTime = 0.175f;
@@ -108,13 +109,13 @@ namespace U0071
 		{
 			return goal switch
 			{
-				AIGoal.Eat => 15f,
-				AIGoal.Work => 5f,
+				AIGoal.Eat => 10f,
+				AIGoal.Work => 10f,
 				AIGoal.BoredWander => 20f,
 				AIGoal.WorkWander => 30f,
 				AIGoal.Flee => 5f,
-				AIGoal.Destroy => 10f,
-				AIGoal.Process => 10f,
+				AIGoal.Destroy => 20f,
+				AIGoal.Process => 20f,
 				_ => 10f,
 			};
 		}

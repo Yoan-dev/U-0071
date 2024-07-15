@@ -180,6 +180,10 @@ namespace U0071
 									controller.PrimaryAction.Data.Time = int.MaxValue;
 									controller.CachedDoorAuthorization = door.AreaFlag;
 								}
+								else
+								{
+									controller.CachedDoorAuthorization = 0;
+								}
 								break;
 							}
 							// primary
