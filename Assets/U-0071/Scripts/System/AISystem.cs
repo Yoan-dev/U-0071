@@ -110,6 +110,9 @@ namespace U0071
 				EnabledRefRO<DeathComponent> death,
 				EnabledRefRO<PushedComponent> pushed)
 			{
+				// note: it was very hard to maintain both the player and the AI
+				// would probably re-think how much have to be in a "controller"
+
 				bool isAdmin = authorization.IsAdmin;
 
 				// AI timers

@@ -139,6 +139,10 @@ namespace U0071
 		[BurstCompile]
 		public void OnUpdate(ref SystemState state)
 		{
+			// Units (player and AIs) have an action controller that stores data
+			// of their target and resolving actions
+			// the progress is made in ResolveActionJob and we fire events afterwards
+
 			var ecbs = SystemAPI.GetSingleton<EndFixedStepSimulationEntityCommandBufferSystem.Singleton>();
 
 			_roomElementLookup.Update(ref state);
@@ -154,9 +158,6 @@ namespace U0071
 			_pushedLookup.Update(ref state);
 			_growLookup.Update(ref state);
 			_doorLookup.Update(ref state);
-
-			// TODO: have generic events (destroyed, modifyCredits etc) written when processing actions and processed afterwards in // (avoid Lookup-fest)
-			// TBD: use Ecb instead of Lookup-fest ?
 
 			state.Dependency = new ResolveActionJob
 			{

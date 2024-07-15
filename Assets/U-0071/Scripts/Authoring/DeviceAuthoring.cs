@@ -80,6 +80,12 @@ namespace U0071
 		{
 			public override void Bake(DeviceAuthoring authoring)
 			{
+				// note to reader: please do not judge my authoring scripts
+				// I usually create everything a runtime and only manage a couple of prefabs
+				// the good way would have (probably) been to split in much more authoring scripts (composition rather than "type-based")
+
+				// those with this authoring are the devices
+
 				Entity entity = GetEntity(TransformUsageFlags.Dynamic);
 
 				Vector3 worldPosition = authoring.gameObject.transform.position;
