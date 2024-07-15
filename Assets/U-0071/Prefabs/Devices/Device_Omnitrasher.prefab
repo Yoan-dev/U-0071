@@ -98,13 +98,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Name: Omnitrasher
   ActionName: Destroy
-  Range: 1.15
+  Range: 0.9
   Time: 1
   CollisionRange: 0.6
   Collide: 0
   CanBeMultiused: 1
   AdminStation: 0
-  Cost: -3
+  CanContaminatedBeContaminated: 0
+  Cost: -6
   AreaFlag: 0
   DoorSize: 0
   StaysOpenTime: 0
@@ -114,6 +115,7 @@ MonoBehaviour:
   RawFood: 0
   Food: 0
   Trash: 1
+  Contaminated: 0
   Prefab: {fileID: 0}
   VariantPrefab: {fileID: 0}
   SpawnOffset: 0

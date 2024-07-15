@@ -105,7 +105,7 @@ MonoBehaviour:
   CanBeMultiused: 0
   AdminStation: 0
   CanContaminatedBeContaminated: 1
-  Cost: -5
+  Cost: -2
   AreaFlag: 0
   DoorSize: 0
   StaysOpenTime: 0
@@ -121,7 +121,7 @@ MonoBehaviour:
     type: 3}
   SpawnOffset: 0.25
   StartingCapacity: 0
-  GrowTime: 10
+  GrowTime: 30
   VisualStageCount: 5
   AutoSpawner: 0
   Destination: {fileID: 0}

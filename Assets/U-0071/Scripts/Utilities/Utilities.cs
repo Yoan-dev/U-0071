@@ -151,6 +151,12 @@ namespace U0071
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static float GetCurrentAwareness(bool isSick, AIGoal currentGoal)
+		{
+			return 1f + (isSick ? Const.SicknessAwarenessModifier : 0f) + (currentGoal == AIGoal.Flee ? Const.PanicAwarenessModifier : 0f);
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static bool RequireItem(ActionFlag actionFlag)
 		{
 			return actionFlag == ActionFlag.Store || actionFlag == ActionFlag.Destroy || actionFlag == ActionFlag.Teleport || actionFlag == ActionFlag.Contaminate;

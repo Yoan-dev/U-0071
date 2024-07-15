@@ -117,7 +117,7 @@ namespace U0071
 				controller.ReassessmentTimer -= DeltaTime;
 				controller.ReassessedLastFrame = false;
 				controller.CantReachTimer = actionController.HasTarget && !actionController.IsResolving ? controller.CantReachTimer : 0f;
-				controller.Awareness = Const.GetCurrentAwareness(contaminationLevel.IsSick, controller.Goal);
+				controller.Awareness = Utilities.GetCurrentAwareness(contaminationLevel.IsSick, controller.Goal);
 
 				if (Cycle.CycleChanged && actionController.IsResolving && actionController.Action.ActionFlag == ActionFlag.Open)
 				{
@@ -197,7 +197,7 @@ namespace U0071
 
 					int classCredits = Const.GetStartingCredits(authorization.Flag);
 					float classCreditsRatio = classCredits > 0f ? 1f - credits.Value / classCredits : 0f;
-					float contaminationLevelModifier = contaminationLevel.Value > 0 ? math.clamp(contaminationLevel.Value / Const.ContaminationSicknessTreshold, 0f, 1f) * Const.ContaminationAntiworkWeight : 0f;
+					float contaminationLevelModifier = contaminationLevel.Value > 0 ? math.clamp(contaminationLevel.Value / Const.ContaminationSickTreshold, 0f, 1f) * Const.SickAntiworkWeight : 0f;
 					controller.WorkWeight = math.clamp(Const.AIBaseWorkWeight - contaminationLevelModifier + classCreditsRatio * (1f - Const.AIBaseWorkWeight), 0f, 1f);
 
 					controller.ChooseGoal(carry.HasItem, isFired);

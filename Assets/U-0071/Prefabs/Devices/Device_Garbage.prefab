@@ -98,7 +98,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Name: Garbage
   ActionName: 
-  Range: 1
+  Range: 0.75
   Time: 0.5
   CollisionRange: 0.25
   Collide: 1

@@ -112,7 +112,7 @@ namespace U0071
 					Ecb.SetComponent(chunkIndex, entity, new DeathComponent { Context = DeathType.Hunger });
 					Ecb.SetComponentEnabled<DeathComponent>(chunkIndex, entity, true);
 				}
-				if (!contaminationLevel.IsSick && contaminationLevel.Value >= Const.ContaminationSicknessTreshold)
+				if (!contaminationLevel.IsSick && contaminationLevel.Value >= Const.ContaminationSickTreshold)
 				{
 					contaminationLevel.IsSick = true;
 					Ecb.SetComponent(chunkIndex, entity, new SickComponent { IsResolved = false, SpreadTimer = Const.VomitTickTime });
@@ -239,7 +239,7 @@ namespace U0071
 					sick.IsResolved = true;
 					movement.Speed *= Const.SickSpeedMultiplier;
 
-					float4 sickColorOffset = new float4(0f, skin.Value.y * Const.ContaminatedSkinGreenModifier, 0f, 0f);
+					float4 sickColorOffset = new float4(0f, skin.Value.y * Const.SickSkinGreenModifier, 0f, 0f);
 					if (!pilosity.HasShortHair) shortHair.Value += sickColorOffset;
 					if (!pilosity.HasLongHair) longHair.Value += sickColorOffset;
 					if (!pilosity.HasBeard) beard.Value += sickColorOffset;
@@ -265,7 +265,7 @@ namespace U0071
 					sick.IsResolved = false;
 					movement.Speed /= Const.SickSpeedMultiplier;
 
-					float4 sickColorOffset = new float4(0f, skin.Value.y - (skin.Value.y / (1f + Const.ContaminatedSkinGreenModifier)), 0f, 0f);
+					float4 sickColorOffset = new float4(0f, skin.Value.y - (skin.Value.y / (1f + Const.SickSkinGreenModifier)), 0f, 0f);
 					if (!pilosity.HasShortHair) shortHair.Value -= sickColorOffset;
 					if (!pilosity.HasLongHair) longHair.Value -= sickColorOffset;
 					if (!pilosity.HasBeard) beard.Value -= sickColorOffset;

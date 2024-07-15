@@ -98,12 +98,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Name: Admin Workstation
   ActionName: Administrate
-  Range: 1
-  Time: 5
+  Range: 0.75
+  Time: 10
   CollisionRange: 0.25
   Collide: 1
   CanBeMultiused: 0
   AdminStation: 1
+  CanContaminatedBeContaminated: 0
   Cost: 0
   AreaFlag: 0
   DoorSize: 0
@@ -114,6 +115,7 @@ MonoBehaviour:
   RawFood: 0
   Food: 0
   Trash: 0
+  Contaminated: 0
   Prefab: {fileID: 0}
   VariantPrefab: {fileID: 0}
   SpawnOffset: 0.5

@@ -305,7 +305,7 @@ namespace U0071
 						hunger.Value = math.min(Const.MaxHunger, hunger.Value + (contaminated ? Const.ContaminatedEatingHungerGain : Const.EatingHungerGain));
 						if (contaminated)
 						{
-							contaminationLevel.Value += Const.ContaminationSicknessTreshold;
+							contaminationLevel.Value += Const.ContaminationSickTreshold;
 						}
 					}
 					else if (controller.Action.ActionFlag == ActionFlag.Push)

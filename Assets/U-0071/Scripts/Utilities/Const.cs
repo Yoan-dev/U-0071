@@ -1,13 +1,10 @@
 using System.Runtime.CompilerServices;
 using Unity.Mathematics;
-using Unity.VisualScripting;
 
 namespace U0071
 {
 	public static class Const
 	{
-		public const int ParallelForCount = 256;
-
 		// Ending
 		public const float EndingPhaseFourTime = 2f;
 		public const float EndingPhaseFiveTime = 3f;
@@ -29,8 +26,28 @@ namespace U0071
 		public const float AIBaseWorkWeight = 0.5f;
 		public const float AIMaxBoredomWeight = 0.7f;
 		public const float AIBoredomSpeed = 0.01f;
-		public const float AIFulfilmentSpeed = -0.02f; // decrease boredom
+		public const float AIFulfilmentSpeed = -0.02f; // decrease boredom when in activity
 		public const float AICantReachTime = 10f;
+
+		// hunger
+		public const float EatingHungerGain = 4f;
+		public const float MaxHunger = 10f;
+		public const float HungerDepleteRate = 0.025f;
+
+		// sickness
+		public const float ContaminatedEatingHungerGain = 2f;
+		public const float MaxContaminationLevel = 2f;
+		public const float VomitTickTime = 14f;
+		public const float VomitResolveTime = 1.35f;
+		public const float CorpseContaminationStrength = 0.06f;
+		public const float ContaminationRange = 2f;
+		public const float ContaminationLevelVomitDecreaseValue = 0.2f;
+		public const float ContaminationLevelDepleteRate = 0.01f;
+		public const float ContaminationSickTreshold = 1f;
+		public const float SickAntiworkWeight = 0.3f;
+		public const float SickSkinGreenModifier = 0.2f;
+		public const float SickSpeedMultiplier = 0.66f;
+		public const float SickHungerDepleteRate = 0.0125f;
 
 		// doors
 		public const float AICodeTypingRevealValue = 4.5f;
@@ -44,8 +61,8 @@ namespace U0071
 		public const float PeekingSuspicionSpeed = 0.4f;
 		public const float PeekingBustedFeedbackTreshold = 0.9f;
 		public const float PeekingSuspicionDecreaseRate = 0.01f;
-		public const float SicknessAwarenessModifier = -0.3f;
-		public const float PanicAwarenessModifier = -0.3f;
+		public const float SicknessAwarenessModifier = -0.45f;
+		public const float PanicAwarenessModifier = -0.45f;
 
 		// used for Y sorting
 		public const float PickableYOffset = 0.4f;
@@ -60,33 +77,14 @@ namespace U0071
 		public const float DropOffsetY = 0f;
 
 		// miscellaneous
+		public const int ParallelForCount = 256;
+		public const float Small = 0.0001f;
+		public const float CharacterZOffset = 0.3f;
 		public const int LootCreditsCount = 10;
 		public const float PushedTimer = 0.35f;
 		public const float PushedSpeed = 3.75f;
 		public const float DeathSkinMultiplier = 0.2f;
 		public const float DecollisionStrength = 0.6f;
-		public const float CharacterZOffset = 0.3f;
-		public const float Small = 0.0001f;
-
-		// hunger
-		public const float EatingHungerGain = 4f;
-		public const float MaxHunger = 10f;
-		public const float HungerDepleteRate = 0.025f;
-
-		// sickness
-		public const float ContaminatedEatingHungerGain = 2f;
-		public const float ContaminatedSkinGreenModifier = 0.2f;
-		public const float SickSpeedMultiplier = 0.66f;
-		public const float SickHungerDepleteRate = 0.0125f;
-		public const float VomitTickTime = 14f;
-		public const float VomitResolveTime = 1.35f;
-		public const float CorpseContaminationStrength = 0.06f;
-		public const float ContaminationRange = 2f;
-		public const float MaxContaminationLevel = 2f;
-		public const float ContaminationSicknessTreshold = 1f;
-		public const float ContaminationLevelVomitDecreaseValue = 0.2f;
-		public const float ContaminationLevelDepleteRate = 0.01f;
-		public const float ContaminationAntiworkWeight = 0.3f;
 
 		// UI
 		public const float CodepadButtonFeedbackTime = 0.175f;
@@ -119,12 +117,6 @@ namespace U0071
 				AIGoal.Process => 10f,
 				_ => 10f,
 			};
-		}
-
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static float GetCurrentAwareness(bool isSick, AIGoal currentGoal)
-		{
-			return 1f + (isSick ? SicknessAwarenessModifier : 0f) + (currentGoal == AIGoal.Flee ? PanicAwarenessModifier : 0f);
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
