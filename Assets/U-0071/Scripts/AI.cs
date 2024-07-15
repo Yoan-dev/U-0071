@@ -32,6 +32,7 @@ namespace U0071
 
 		public bool IsPathing;
 		public bool OpportunityFlag;
+		public bool EatFlag;
 
 		// for debugging
 		public bool ReassessedLastFrame;
@@ -39,11 +40,13 @@ namespace U0071
 		public bool HasCriticalGoal => IsCriticalGoal(Goal);
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public bool ShouldReassess(float hungerRatio, bool hasItem, bool isFired)
+		public bool ShouldReassess(bool hasItem, bool isFired)
 		{
+			bool eatFlag = EatFlag;
+			EatFlag = false; // consume
 			return 
 				ReassessmentTimer <= 0f || 
-				Goal == AIGoal.Eat && hungerRatio >= Const.AILightHungerRatio ||
+				Goal == AIGoal.Eat && eatFlag ||
 				Goal == AIGoal.Destroy && !hasItem ||
 				Goal == AIGoal.Process && !hasItem ||
 				Goal == AIGoal.WorkWander && OpportunityFlag ||

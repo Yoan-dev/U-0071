@@ -109,7 +109,7 @@ namespace U0071
 		{
 			return goal switch
 			{
-				AIGoal.Eat => 5f,
+				AIGoal.Eat => 20f,
 				AIGoal.Work => 10f,
 				AIGoal.BoredWander => 20f,
 				AIGoal.WorkWander => 30f,

@@ -195,7 +195,7 @@ namespace U0071
 						Utilities.QueueDropAction(ref actionController, in orientation, in position, in carry, in partition, isActing);
 					}
 				}
-				else if (controller.ShouldReassess(hungerRatio, carry.HasItem, isFired))
+				else if (controller.ShouldReassess(carry.HasItem, isFired))
 				{
 					controller.ReassessedLastFrame = true;
 
@@ -275,6 +275,7 @@ namespace U0071
 						actionController.Action = new ActionData(carry.Picked, ActionFlag.Eat, 0, carry.Flags, position.Value, 0f, carry.Time, 0);
 						actionController.Start();
 						orientation.Update(actionController.Action.Position.x - position.Value.x);
+						controller.EatFlag = true;
 						return;
 					}
 					else if (controller.Goal == AIGoal.Eat)
