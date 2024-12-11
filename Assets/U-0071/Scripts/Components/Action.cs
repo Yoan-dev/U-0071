@@ -18,7 +18,7 @@ namespace U0071
 		Collect = 1 << 6,
 		Destroy = 1 << 7,
 		Store = 1 << 8,
-		Teleport = 1 << 9,
+		TeleportItem = 1 << 9,
 		Open = 1 << 10,
 		Contaminate = 1 << 11,
 		SpreadDisease = 1 << 12,
@@ -36,12 +36,13 @@ namespace U0071
 		public int Cost;
 		public bool MultiusableFlag;
 
-		public bool Has => Target != Entity.Null;
+		public bool HasTarget => Target != Entity.Null;
 
 		// hard-coded
 		public bool UseVariantSpawn => 
 			ActionFlag == ActionFlag.Store &&
-			Utilities.HasItemFlag(ItemFlags, ItemFlag.RawFood) && Utilities.HasItemFlag(UsedItemFlags, ItemFlag.Trash | ItemFlag.Contaminated);
+			Utilities.HasItemFlag(ItemFlags, ItemFlag.RawFood) && 
+			Utilities.HasItemFlag(UsedItemFlags, ItemFlag.Trash | ItemFlag.Contaminated);
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public ActionData(Entity target, ActionFlag actionFlag, ItemFlag itemFlags, ItemFlag usedItemFlags, float2 position, float range, float time, int cost, bool multiusableFlag = true)
@@ -82,7 +83,7 @@ namespace U0071
 		public bool ShouldDropFlag;
 		public bool ShouldSpreadDiseaseFlag;
 
-		public bool HasTarget => Action.Has && !ShouldStopFlag;
+		public bool HasTarget => Action.HasTarget && !ShouldStopFlag;
 		public bool ShouldStop => Timer >= Action.Time || ShouldStopFlag;
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -42,45 +42,24 @@ namespace U0071
 	[UpdateBefore(typeof(ActionSystem))]
 	public partial struct PlayerControllerSystem : ISystem
 	{
-		private BufferLookup<RoomElementBufferElement> _roomElementLookup;
-		private ComponentLookup<NameComponent> _nameLookup;
-		private ComponentLookup<ActionNameComponent> _actionNameLookup;
-		private ComponentLookup<InteractableComponent> _interactableLookup;
-		private ComponentLookup<PickableComponent> _pickableLookup;
-		private ComponentLookup<DoorComponent> _doorLookup;
-
 		[BurstCompile]
 		public void OnCreate(ref SystemState state)
 		{
 			state.RequireForUpdate<PlayerController>();
 			state.RequireForUpdate<Partition>();
-
-			_roomElementLookup = state.GetBufferLookup<RoomElementBufferElement>(true);
-			_nameLookup = state.GetComponentLookup<NameComponent>(true);
-			_actionNameLookup = state.GetComponentLookup<ActionNameComponent>(true);
-			_doorLookup = state.GetComponentLookup<DoorComponent>(true);
-			_interactableLookup = state.GetComponentLookup<InteractableComponent>(true);
-			_pickableLookup = state.GetComponentLookup<PickableComponent>(true);
 		}
 
 		[BurstCompile]
 		public void OnUpdate(ref SystemState state)
 		{
-			_roomElementLookup.Update(ref state);
-			_nameLookup.Update(ref state);
-			_actionNameLookup.Update(ref state);
-			_doorLookup.Update(ref state);
-			_interactableLookup.Update(ref state);
-			_pickableLookup.Update(ref state);
-
 			state.Dependency = new PlayerActionJob
 			{
-				RoomElementBufferLookup = _roomElementLookup,
-				InteractableLookup = _interactableLookup,
-				PickableLookup = _pickableLookup,
-				NameLookup = _nameLookup,
-				ActionNameLookup = _actionNameLookup,
-				DoorLookup = _doorLookup,
+				RoomElementBufferLookup = SystemAPI.GetBufferLookup<RoomElementBufferElement>(true),
+				InteractableLookup = SystemAPI.GetComponentLookup<InteractableComponent>(true),
+				PickableLookup = SystemAPI.GetComponentLookup<PickableComponent>(true),
+				NameLookup = SystemAPI.GetComponentLookup<NameComponent>(true),
+				ActionNameLookup = SystemAPI.GetComponentLookup<ActionNameComponent>(true),
+				DoorLookup = SystemAPI.GetComponentLookup<DoorComponent>(true),
 			}.Schedule(state.Dependency);
 
 			state.Dependency = new PlayerMovementJob().Schedule(state.Dependency);
@@ -101,18 +80,12 @@ namespace U0071
 		[WithOptions(EntityQueryOptions.IgnoreComponentEnabledState)]
 		public partial struct PlayerActionJob : IJobEntity
 		{
-			[ReadOnly]
-			public BufferLookup<RoomElementBufferElement> RoomElementBufferLookup;
-			[ReadOnly]
-			public ComponentLookup<NameComponent> NameLookup;
-			[ReadOnly]
-			public ComponentLookup<ActionNameComponent> ActionNameLookup;
-			[ReadOnly]
-			public ComponentLookup<PickableComponent> PickableLookup;
-			[ReadOnly]
-			public ComponentLookup<InteractableComponent> InteractableLookup;
-			[ReadOnly]
-			public ComponentLookup<DoorComponent> DoorLookup;
+			[ReadOnly] public BufferLookup<RoomElementBufferElement> RoomElementBufferLookup;
+			[ReadOnly] public ComponentLookup<NameComponent> NameLookup;
+			[ReadOnly] public ComponentLookup<ActionNameComponent> ActionNameLookup;
+			[ReadOnly] public ComponentLookup<PickableComponent> PickableLookup;
+			[ReadOnly] public ComponentLookup<InteractableComponent> InteractableLookup;
+			[ReadOnly] public ComponentLookup<DoorComponent> DoorLookup;
 
 			public void Execute(
 				Entity entity,
@@ -121,7 +94,7 @@ namespace U0071
 				ref Orientation orientation,
 				in PositionComponent position,
 				in CarryComponent carry,
-				in PartitionComponent partition,
+				in PartitionInfoComponent partitionInfo,
 				in CreditsComponent credits,
 				EnabledRefRO<DeathComponent> death,
 				EnabledRefRO<PushedComponent> pushed,
@@ -132,7 +105,7 @@ namespace U0071
 				controller.SecondaryAction.Reset();
 				controller.ActionTimer = 0f;
 
-				if (Utilities.ProcessUnitControllerStart(entity, ref actionController, in orientation, in position, in partition, isActing, death, pushed, in InteractableLookup, in PickableLookup, in carry))
+				if (Utilities.ProcessUnitControllerStart(entity, ref actionController, in orientation, in position, in partitionInfo, isActing, death, pushed, in InteractableLookup, in PickableLookup, in carry))
 				{
 					if (actionController.IsResolving)
 					{
@@ -157,11 +130,11 @@ namespace U0071
 					}
 
 					// set drop action
-					controller.SetSecondaryAction(new ActionData(carry.Picked, ActionFlag.Drop, 0, carry.Flags, Utilities.GetDropPosition(position.Value, orientation.Value, partition.ClosestEdgeX), 0f, 0f, 0), in NameLookup, in ActionNameLookup, carry.Picked);
+					controller.SetSecondaryAction(new ActionData(carry.Picked, ActionFlag.Drop, 0, carry.Flags, Utilities.GetDropPosition(position.Value, orientation.Value, partitionInfo.ClosestEdgeX), 0f, 0f, 0), in NameLookup, in ActionNameLookup, carry.Picked);
 				}
 
 				// player assess all elements in range
-				DynamicBuffer<RoomElementBufferElement> elements = RoomElementBufferLookup[partition.CurrentRoom];
+				DynamicBuffer<RoomElementBufferElement> elements = RoomElementBufferLookup[partitionInfo.CurrentRoom];
 				using (var enumerator = elements.GetEnumerator())
 				{
 					while (enumerator.MoveNext())
@@ -193,9 +166,9 @@ namespace U0071
 								target.Evaluate(controller.PrimaryAction.Type, primaryFilter, carry.Flags, out ActionFlag selectedActionFlag, carry.HasItem, false, true, carry.HasItem))
 							{
 								// pose as a storage
-								if (selectedActionFlag == ActionFlag.Store && target.Interactable.HasActionFlag(ActionFlag.Teleport))
+								if (selectedActionFlag == ActionFlag.Store && target.Interactable.HasActionFlag(ActionFlag.TeleportItem))
 								{
-									selectedActionFlag = ActionFlag.Teleport;
+									selectedActionFlag = ActionFlag.TeleportItem;
 								}
 								controller.SetPrimaryAction(target.ToActionData(selectedActionFlag, target.ItemFlags, carry.Flags), in NameLookup, in ActionNameLookup, carry.Picked);
 							}

@@ -9,14 +9,7 @@ namespace U0071
 	[UpdateBefore(typeof(HealthSystem))]
 	public partial struct ItemSystem : ISystem
 	{
-		public ComponentLookup<ActionController> _actionControllerLookup;
 		private float _itemClearUserTick;
-
-		[BurstCompile]
-		public void OnCreate(ref SystemState state)
-		{
-			_actionControllerLookup = SystemAPI.GetComponentLookup<ActionController>(true);
-		}
 
 		[BurstCompile]
 		public void OnUpdate(ref SystemState state)
@@ -36,11 +29,10 @@ namespace U0071
 			if (_itemClearUserTick >= Const.ItemClearUserTickTime)
 			{
 				_itemClearUserTick -= Const.ItemClearUserTickTime;
-				_actionControllerLookup.Update(ref state);
 				
 				state.Dependency = new ItemClearUserJob
 				{
-					ActionControllerLookup = _actionControllerLookup,
+					ActionControllerLookup = SystemAPI.GetComponentLookup<ActionController>(true),
 				}.ScheduleParallel(state.Dependency);
 			}
 		}
@@ -66,8 +58,7 @@ namespace U0071
 		[BurstCompile]
 		public partial struct ItemClearUserJob : IJobEntity
 		{
-			[ReadOnly]
-			public ComponentLookup<ActionController> ActionControllerLookup;
+			[ReadOnly] public ComponentLookup<ActionController> ActionControllerLookup;
 
 			public void Execute(ref InteractableComponent interactable)
 			{

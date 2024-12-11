@@ -78,21 +78,6 @@ namespace U0071
 		private NativeQueue<ContaminateEvent> _contaminateEvent;
 		private NativeQueue<ChangeInteractableEvent> _changeInteractableEvents;
 
-		// lookups (alot)
-		private BufferLookup<RoomElementBufferElement> _roomElementLookup;
-		private ComponentLookup<CarryComponent> _pickLookup;
-		private ComponentLookup<PickableComponent> _pickableLookup;
-		private ComponentLookup<PositionComponent> _positionLookup;
-		private ComponentLookup<PartitionComponent> _partitionLookup;
-		private ComponentLookup<CreditsComponent> _creditsLookup;
-		private ComponentLookup<SpawnerComponent> _spawnerLookup;
-		private ComponentLookup<InteractableComponent> _interactableLookup;
-		private ComponentLookup<PushedComponent> _pushedLookup;
-		private ComponentLookup<TeleporterComponent> _teleporterLookup;
-		private ComponentLookup<StorageComponent> _storageLookup;
-		private ComponentLookup<DoorComponent> _doorLookup;
-		private ComponentLookup<GrowComponent> _growLookup;
-
 		[BurstCompile]
 		public void OnCreate(ref SystemState state)
 		{
@@ -107,20 +92,6 @@ namespace U0071
 			_openEvents = new NativeQueue<OpenEvent>(Allocator.Persistent);
 			_contaminateEvent = new NativeQueue<ContaminateEvent>(Allocator.Persistent);
 			_changeInteractableEvents = new NativeQueue<ChangeInteractableEvent>(Allocator.Persistent);
-
-			_roomElementLookup = state.GetBufferLookup<RoomElementBufferElement>();
-			_pickLookup = state.GetComponentLookup<CarryComponent>();
-			_pickableLookup = state.GetComponentLookup<PickableComponent>();
-			_positionLookup = state.GetComponentLookup<PositionComponent>();
-			_partitionLookup = state.GetComponentLookup<PartitionComponent>();
-			_creditsLookup = state.GetComponentLookup<CreditsComponent>();
-			_spawnerLookup = state.GetComponentLookup<SpawnerComponent>();
-			_interactableLookup = state.GetComponentLookup<InteractableComponent>();
-			_pushedLookup = state.GetComponentLookup<PushedComponent>();
-			_teleporterLookup = state.GetComponentLookup<TeleporterComponent>();
-			_doorLookup = state.GetComponentLookup<DoorComponent>();
-			_growLookup = state.GetComponentLookup<GrowComponent>();
-			_storageLookup = state.GetComponentLookup<StorageComponent>(true);
 		}
 
 		[BurstCompile]
@@ -145,19 +116,7 @@ namespace U0071
 
 			var ecbs = SystemAPI.GetSingleton<EndFixedStepSimulationEntityCommandBufferSystem.Singleton>();
 
-			_roomElementLookup.Update(ref state);
-			_pickLookup.Update(ref state);
-			_pickableLookup.Update(ref state);
-			_positionLookup.Update(ref state);
-			_partitionLookup.Update(ref state);
-			_creditsLookup.Update(ref state);
-			_spawnerLookup.Update(ref state);
-			_interactableLookup.Update(ref state);
-			_storageLookup.Update(ref state);
-			_teleporterLookup.Update(ref state);
-			_pushedLookup.Update(ref state);
-			_growLookup.Update(ref state);
-			_doorLookup.Update(ref state);
+			// queue action events
 
 			state.Dependency = new ResolveActionJob
 			{
@@ -170,7 +129,7 @@ namespace U0071
 				OpenEvents = _openEvents.AsParallelWriter(),
 				ContaminateEvents = _contaminateEvent.AsParallelWriter(),
 				ChangeInteractableEvents = _changeInteractableEvents.AsParallelWriter(),
-				StorageLookup = _storageLookup,
+				StorageLookup = SystemAPI.GetComponentLookup<StorageComponent>(true),
 				Config = SystemAPI.GetSingleton<Config>(),
 				DeltaTime = SystemAPI.Time.DeltaTime,
 			}.ScheduleParallel(state.Dependency);
@@ -190,28 +149,30 @@ namespace U0071
 				ChangeInteractableEvents = _changeInteractableEvents.AsParallelWriter(),
 			}.ScheduleParallel(state.Dependency);
 
+			// resolve events in the following jobs
+
 			state.Dependency = new PushEventJob
 			{
 				Events = _pushEvents,
-				PushedLookup = _pushedLookup,
+				PushedLookup = SystemAPI.GetComponentLookup<PushedComponent>(),
 			}.Schedule(state.Dependency);
 
 			state.Dependency = new CreditsEventJob
 			{
 				Events = _creditsEvents,
 				ChangedInteractableEvents = _changeInteractableEvents.AsParallelWriter(),
-				CreditsLookup = _creditsLookup,
+				CreditsLookup = SystemAPI.GetComponentLookup<CreditsComponent>(),
 			}.Schedule(state.Dependency);
 
 			state.Dependency = new PickDropEventJob
 			{
 				Events = _pickDropEvents,
-				RoomElementLookup = _roomElementLookup,
-				InteractableLookup = _interactableLookup,
-				PickLookup = _pickLookup,
-				PickableLookup = _pickableLookup,
-				PartitionLookup = _partitionLookup,
-				PositionLookup = _positionLookup,
+				RoomElementLookup = SystemAPI.GetBufferLookup<RoomElementBufferElement>(),
+				InteractableLookup = SystemAPI.GetComponentLookup<InteractableComponent>(),
+				PickLookup = SystemAPI.GetComponentLookup<CarryComponent>(),
+				PickableLookup = SystemAPI.GetComponentLookup<PickableComponent>(),
+				PartitionLookup = SystemAPI.GetComponentLookup<PartitionInfoComponent>(),
+				PositionLookup = SystemAPI.GetComponentLookup<PositionComponent>(),
 				Partition = SystemAPI.GetSingleton<Partition>(),
 			}.Schedule(state.Dependency);
 
@@ -220,35 +181,35 @@ namespace U0071
 				Ecb = ecbs.CreateCommandBuffer(state.WorldUnmanaged),
 				Events = _spawnerEvents,
 				ChangedInteractableEvents = _changeInteractableEvents.AsParallelWriter(),
-				SpawnerLookup = _spawnerLookup,
+				SpawnerLookup = SystemAPI.GetComponentLookup<SpawnerComponent>(),
 			}.Schedule(state.Dependency);
 
 			state.Dependency = new TeleportEventJob
 			{
 				Events = _teleportEvents,
-				TeleporterLookup = _teleporterLookup,
-				PickLookup = _pickLookup,
-				PickableLookup = _pickableLookup,
-				PositionLookup = _positionLookup,
+				TeleporterLookup = SystemAPI.GetComponentLookup<TeleporterComponent>(),
+				PickLookup = SystemAPI.GetComponentLookup<CarryComponent>(),
+				PickableLookup = SystemAPI.GetComponentLookup<PickableComponent>(),
+				PositionLookup = SystemAPI.GetComponentLookup<PositionComponent>(),
 			}.Schedule(state.Dependency);
 
 			state.Dependency = new OpenEventJob
 			{
 				Events = _openEvents,
-				DoorLookup = _doorLookup,
+				DoorLookup = SystemAPI.GetComponentLookup<DoorComponent>(),
 				ChangedInteractableEvents = _changeInteractableEvents.AsParallelWriter(),
 			}.Schedule(state.Dependency);
 
 			state.Dependency = new ContaminateEventJob
 			{
 				Events = _contaminateEvent,
-				GrowLookup = _growLookup,
+				GrowLookup = SystemAPI.GetComponentLookup<GrowComponent>(),
 			}.Schedule(state.Dependency);
 
 			state.Dependency = new ChangeInteractableEventJob
 			{
 				Events = _changeInteractableEvents,
-				InteractableLookup = _interactableLookup,
+				InteractableLookup = SystemAPI.GetComponentLookup<InteractableComponent>(),
 			}.Schedule(state.Dependency);
 		}
 
@@ -265,8 +226,7 @@ namespace U0071
 			public NativeQueue<OpenEvent>.ParallelWriter OpenEvents;
 			public NativeQueue<ContaminateEvent>.ParallelWriter ContaminateEvents;
 			public NativeQueue<ChangeInteractableEvent>.ParallelWriter ChangeInteractableEvents;
-			[ReadOnly]
-			public ComponentLookup<StorageComponent> StorageLookup;
+			[ReadOnly] public ComponentLookup<StorageComponent> StorageLookup;
 			public Config Config;
 			public float DeltaTime;
 
@@ -294,11 +254,12 @@ namespace U0071
 					});
 				}
 
+				// resolve actions
 				controller.Timer += DeltaTime;
 				if (controller.ShouldResolve(credits.Value))
 				{
 					// process behavior that can be in parallel here
-					// queue the rest
+					// queue the rest (events)
 
 					if (controller.Action.ActionFlag == ActionFlag.Eat)
 					{
@@ -365,7 +326,7 @@ namespace U0071
 							Spawn = true,
 						});
 					}
-					else if (controller.Action.ActionFlag == ActionFlag.Teleport)
+					else if (controller.Action.ActionFlag == ActionFlag.TeleportItem)
 					{
 						TeleportEvents.Enqueue(new TeleportEvent
 						{
@@ -445,7 +406,7 @@ namespace U0071
 		{
 			public NativeQueue<PickDropEvent>.ParallelWriter PickDropEvents;
 
-			public void Execute(Entity entity, ref ActionController controller, in PositionComponent position, in Orientation orientation, in PartitionComponent partition, in CarryComponent carry)
+			public void Execute(Entity entity, ref ActionController controller, in PositionComponent position, in Orientation orientation, in PartitionInfoComponent partitionInfo, in CarryComponent carry)
 			{
 				if (controller.ShouldDropFlag)
 				{
@@ -454,7 +415,7 @@ namespace U0071
 					{
 						Source = entity,
 						Target = carry.Picked,
-						Position = Utilities.GetDropPosition(position.Value, orientation.Value, partition.ClosestEdgeX),
+						Position = Utilities.GetDropPosition(position.Value, orientation.Value, partitionInfo.ClosestEdgeX),
 						Pick = false,
 					});
 				}
@@ -466,7 +427,7 @@ namespace U0071
 		{
 			public NativeQueue<ChangeInteractableEvent>.ParallelWriter ChangeInteractableEvents;
 
-			public void Execute(Entity entity, ref ActionController controller, in PositionComponent position, in Orientation orientation, in PartitionComponent partition, EnabledRefRW<IsActing> isActing)
+			public void Execute(Entity entity, ref ActionController controller, in PositionComponent position, in Orientation orientation, in PartitionInfoComponent partitionInfo, EnabledRefRW<IsActing> isActing)
 			{
 				if (controller.ShouldStop)
 				{
@@ -493,7 +454,7 @@ namespace U0071
 					// but too late in the jam to do it
 					if (controller.ShouldSpreadDiseaseFlag)
 					{
-						Utilities.QueueSpreadDiseaseAction(ref controller, in orientation, in position, in partition, isActing);
+						Utilities.QueueSpreadDiseaseAction(ref controller, in orientation, in position, in partitionInfo, isActing);
 					}
 				}
 			}
@@ -567,12 +528,10 @@ namespace U0071
 			public BufferLookup<RoomElementBufferElement> RoomElementLookup;
 			public ComponentLookup<CarryComponent> PickLookup;
 			public ComponentLookup<PickableComponent> PickableLookup;
-			public ComponentLookup<PartitionComponent> PartitionLookup;
+			public ComponentLookup<PartitionInfoComponent> PartitionLookup;
 			public ComponentLookup<PositionComponent> PositionLookup;
-			[ReadOnly]
-			public ComponentLookup<InteractableComponent> InteractableLookup;
-			[ReadOnly]
-			public Partition Partition;
+			[ReadOnly] public ComponentLookup<InteractableComponent> InteractableLookup;
+			[ReadOnly] public Partition Partition;
 
 			public void Execute()
 			{
@@ -694,8 +653,7 @@ namespace U0071
 			public ComponentLookup<CarryComponent> PickLookup;
 			public ComponentLookup<PickableComponent> PickableLookup;
 			public ComponentLookup<PositionComponent> PositionLookup;
-			[ReadOnly]
-			public ComponentLookup<TeleporterComponent> TeleporterLookup;
+			[ReadOnly] public ComponentLookup<TeleporterComponent> TeleporterLookup;
 
 			public void Execute()
 			{

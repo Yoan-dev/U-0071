@@ -51,7 +51,7 @@ namespace U0071
 				});
 				AddComponent(entity, new MovementComponent { Speed = authoring.Speed });
 				AddComponent(entity, AnimationController.GetDefault());
-				AddComponent(entity, new PartitionComponent());
+				AddComponent(entity, new PartitionInfoComponent());
 				AddComponent(entity, new ActionController());
 				AddComponent(entity, new IsActing());
 				SetComponentEnabled<IsActing>(entity, false);

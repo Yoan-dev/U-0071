@@ -35,7 +35,7 @@ namespace U0071
 				AddComponent(entity, new RoomComponent
 				{
 					Dimensions = transform.rotation.eulerAngles.y == 0f || transform.rotation.eulerAngles.y == 180f ? new int2((int)scale.x, (int)scale.y) : new int2((int)scale.y, (int)scale.x),
-					Area = authoring.Area,
+					Authorization = authoring.Area,
 					IsWanderPath = authoring.IsWanderPath,
 					Capacity = authoring.CapacityModifier,
 				});

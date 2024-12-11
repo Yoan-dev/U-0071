@@ -25,7 +25,7 @@ namespace U0071
 			ref ActionController controller,
 			in Orientation orientation,
 			in PositionComponent position,
-			in PartitionComponent partition,
+			in PartitionInfoComponent partitionInfo,
 			EnabledRefRW<IsActing> isActing,
 			EnabledRefRO<DeathComponent> death,
 			EnabledRefRO<PushedComponent> pushed,
@@ -43,7 +43,7 @@ namespace U0071
 
 			if (!controller.IsResolving && controller.ShouldSpreadDiseaseFlag)
 			{
-				QueueSpreadDiseaseAction(ref controller, in orientation, in position, in partition, isActing);
+				QueueSpreadDiseaseAction(ref controller, in orientation, in position, in partitionInfo, isActing);
 				return true;
 			}
 
@@ -62,7 +62,7 @@ namespace U0071
 			}
 
 			// cannot act if not in partition or already acting
-			if (partition.CurrentRoom == Entity.Null || controller.IsResolving)
+			if (partitionInfo.CurrentRoom == Entity.Null || controller.IsResolving)
 			{
 				return true;
 			}
@@ -76,10 +76,10 @@ namespace U0071
 			in Orientation orientation,
 			in PositionComponent position,
 			in CarryComponent carry,
-			in PartitionComponent partition,
+			in PartitionInfoComponent partitionInfo,
 			EnabledRefRW<IsActing> isActing)
 		{
-			controller.Action = new ActionData(carry.Picked, ActionFlag.Drop, 0, carry.Flags, GetDropPosition(position.Value, orientation.Value, partition.ClosestEdgeX), 0f, 0f, 0);
+			controller.Action = new ActionData(carry.Picked, ActionFlag.Drop, 0, carry.Flags, GetDropPosition(position.Value, orientation.Value, partitionInfo.ClosestEdgeX), 0f, 0f, 0);
 			controller.Start();
 			isActing.ValueRW = true;
 		}
@@ -89,11 +89,11 @@ namespace U0071
 			ref ActionController controller,
 			in Orientation orientation,
 			in PositionComponent position,
-			in PartitionComponent partition,
+			in PartitionInfoComponent partitionInfo,
 			EnabledRefRW<IsActing> isActing)
 		{
 			controller.ShouldSpreadDiseaseFlag = false;
-			controller.Action = new ActionData(Entity.Null, ActionFlag.SpreadDisease, 0, 0, GetDropPosition(position.Value, orientation.Value, partition.ClosestEdgeX), 0f, Const.VomitResolveTime, 0);
+			controller.Action = new ActionData(Entity.Null, ActionFlag.SpreadDisease, 0, 0, GetDropPosition(position.Value, orientation.Value, partitionInfo.ClosestEdgeX), 0f, Const.VomitResolveTime, 0);
 			controller.Start();
 			isActing.ValueRW = true;
 		}
@@ -158,7 +158,7 @@ namespace U0071
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static bool RequireItem(ActionFlag actionFlag)
 		{
-			return actionFlag == ActionFlag.Store || actionFlag == ActionFlag.Destroy || actionFlag == ActionFlag.Teleport || actionFlag == ActionFlag.Contaminate;
+			return actionFlag == ActionFlag.Store || actionFlag == ActionFlag.Destroy || actionFlag == ActionFlag.TeleportItem || actionFlag == ActionFlag.Contaminate;
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -10,12 +10,6 @@ namespace U0071
 	[UpdateBefore(typeof(ActionSystem))]
 	public partial struct AIControllerSystem : ISystem
 	{
-		private BufferLookup<RoomElementBufferElement> _roomElementLookup;
-		private ComponentLookup<RoomComponent> _roomLookup;
-		private ComponentLookup<WorkInfoComponent> _workInfoLookup;
-		private ComponentLookup<InteractableComponent> _interactableLookup;
-		private ComponentLookup<PickableComponent> _pickableLookup;
-		private ComponentLookup<DoorComponent> _doorLookup;
 		private EntityQuery _query;
 
 		[BurstCompile]
@@ -28,29 +22,15 @@ namespace U0071
 			_query = SystemAPI.QueryBuilder()
 				.WithAllRW<AIController>()
 				.WithAllRW<ActionController, Orientation>()
-				.WithAll<PositionComponent, PartitionComponent, CreditsComponent, HungerComponent, AuthorizationComponent, ContaminationLevelComponent>()
+				.WithAll<PositionComponent, PartitionInfoComponent, CreditsComponent, HungerComponent, AuthorizationComponent, ContaminationLevelComponent>()
 				.WithPresent<CarryComponent, DeathComponent, PushedComponent>()
 				.WithPresentRW<IsActing>()
 				.Build();
-
-			_roomElementLookup = state.GetBufferLookup<RoomElementBufferElement>(true);
-			_roomLookup = state.GetComponentLookup<RoomComponent>(true);
-			_workInfoLookup = state.GetComponentLookup<WorkInfoComponent>(true);
-			_interactableLookup = state.GetComponentLookup<InteractableComponent>(true);
-			_pickableLookup = state.GetComponentLookup<PickableComponent>(true);
-			_doorLookup = state.GetComponentLookup<DoorComponent>(true);
 		}
 
 		[BurstCompile]
 		public void OnUpdate(ref SystemState state)
 		{
-			_roomElementLookup.Update(ref state);
-			_interactableLookup.Update(ref state);
-			_roomLookup.Update(ref state);
-			_workInfoLookup.Update(ref state);
-			_pickableLookup.Update(ref state);
-			_doorLookup.Update(ref state);
-
 			state.Dependency = new AIUnitInitJob
 			{
 				Partition = SystemAPI.GetSingleton<Partition>(),
@@ -59,12 +39,12 @@ namespace U0071
 
 			state.Dependency = new AIActionJob
 			{
-				RoomElementBufferLookup = _roomElementLookup,
-				InteractableLookup = _interactableLookup,
-				RoomLookup = _roomLookup,
-				WorkInfoLookup = _workInfoLookup,
-				PickableLookup = _pickableLookup,
-				DoorLookup = _doorLookup,
+				RoomElementBufferLookup = SystemAPI.GetBufferLookup<RoomElementBufferElement>(true),
+				InteractableLookup = SystemAPI.GetComponentLookup<InteractableComponent>(true),
+				RoomLookup = SystemAPI.GetComponentLookup<RoomComponent>(true),
+				WorkInfoLookup = SystemAPI.GetComponentLookup<WorkInfoComponent>(true),
+				PickableLookup = SystemAPI.GetComponentLookup<PickableComponent>(true),
+				DoorLookup = SystemAPI.GetComponentLookup<DoorComponent>(true),
 				Cycle = SystemAPI.GetSingleton<CycleComponent>(),
 				DeltaTime = SystemAPI.Time.DeltaTime,
 			}.ScheduleParallel(_query, state.Dependency);
@@ -79,18 +59,12 @@ namespace U0071
 		[WithOptions(EntityQueryOptions.IgnoreComponentEnabledState)]
 		public partial struct AIActionJob : IJobEntity
 		{
-			[ReadOnly]
-			public BufferLookup<RoomElementBufferElement> RoomElementBufferLookup;
-			[ReadOnly]
-			public ComponentLookup<RoomComponent> RoomLookup;
-			[ReadOnly]
-			public ComponentLookup<WorkInfoComponent> WorkInfoLookup;
-			[ReadOnly]
-			public ComponentLookup<PickableComponent> PickableLookup;
-			[ReadOnly]
-			public ComponentLookup<InteractableComponent> InteractableLookup;
-			[ReadOnly]
-			public ComponentLookup<DoorComponent> DoorLookup;
+			[ReadOnly] public BufferLookup<RoomElementBufferElement> RoomElementBufferLookup;
+			[ReadOnly] public ComponentLookup<RoomComponent> RoomLookup;
+			[ReadOnly] public ComponentLookup<WorkInfoComponent> WorkInfoLookup;
+			[ReadOnly] public ComponentLookup<PickableComponent> PickableLookup;
+			[ReadOnly] public ComponentLookup<InteractableComponent> InteractableLookup;
+			[ReadOnly] public ComponentLookup<DoorComponent> DoorLookup;
 			public CycleComponent Cycle;
 			public float DeltaTime;
 
@@ -101,7 +75,7 @@ namespace U0071
 				ref Orientation orientation,
 				in PositionComponent position,
 				in CarryComponent carry,
-				in PartitionComponent partition,
+				in PartitionInfoComponent partitionInfo,
 				in CreditsComponent credits,
 				in AuthorizationComponent authorization,
 				in HungerComponent hunger,
@@ -110,8 +84,9 @@ namespace U0071
 				EnabledRefRO<DeathComponent> death,
 				EnabledRefRO<PushedComponent> pushed)
 			{
-				// note: it was very hard to maintain both the player and the AI
-				// would probably re-think how much have to be in a "controller"
+				// post gamejam thoughts
+				// - should be split in different jobs
+				// - should have more logic shared with player
 
 				bool isAdmin = authorization.IsAdmin;
 
@@ -126,7 +101,7 @@ namespace U0071
 
 				if (Cycle.CycleChanged && actionController.IsResolving && actionController.Action.ActionFlag == ActionFlag.Open)
 				{
-					// stop interacting with door if cycle changed
+					// stop interacting with door if cycle changed (code changed)
 					actionController.Stop(death.ValueRO || pushed.ValueRO, false);
 					return;
 				}
@@ -137,10 +112,14 @@ namespace U0071
 					controller.OpportunityFlag = false;
 				}
 
-				if (pushed.ValueRO) controller.LastMovementInput = float2.zero;
-
-				if (Utilities.ProcessUnitControllerStart(entity, ref actionController, in orientation, in position, in partition, isActing, death, pushed, in InteractableLookup, in PickableLookup, in carry))
+				if (pushed.ValueRO)
 				{
+					controller.LastMovementInput = float2.zero;
+				}
+
+				if (Utilities.ProcessUnitControllerStart(entity, ref actionController, in orientation, in position, in partitionInfo, isActing, death, pushed, in InteractableLookup, in PickableLookup, in carry))
+				{
+					// return early if the AI behaviour is stopped (dead, pushed, ...)
 					return;
 				}
 
@@ -169,17 +148,17 @@ namespace U0071
 				bool isFired = false;
 
 				// look for job opportunities
-				if (controller.Goal == AIGoal.WorkWander && WorkInfoLookup.HasComponent(partition.CurrentRoom))
+				if (controller.Goal == AIGoal.WorkWander && WorkInfoLookup.HasComponent(partitionInfo.CurrentRoom))
 				{
-					WorkInfoComponent workInfo = WorkInfoLookup[partition.CurrentRoom];
+					WorkInfoComponent workInfo = WorkInfoLookup[partitionInfo.CurrentRoom];
 					controller.OpportunityFlag = workInfo.ShouldStopHere(authorization.Flag);
 				}
 
 				// check if in a crowded workplace and fired
 				if (controller.Goal == AIGoal.Work)
 				{
-					RoomComponent room = RoomLookup[partition.CurrentRoom];
-					if (room.Capacity > 0 && room.Population > room.Capacity && room.FiredWorker == entity && Utilities.GetLowestAuthorization(room.Area) == authorization.Flag)
+					RoomComponent room = RoomLookup[partitionInfo.CurrentRoom];
+					if (room.Capacity > 0 && room.Population > room.Capacity && room.FiredWorker == entity && Utilities.GetLowestAuthorization(room.Authorization) == authorization.Flag)
 					{
 						controller.OpportunityFlag = false; // consume flag
 						isFired = true;
@@ -195,12 +174,14 @@ namespace U0071
 					controller.Goal = AIGoal.Eat;
 					if (carry.HasItem && !Utilities.HasItemFlag(carry.Flags, ItemFlag.Food))
 					{
-						Utilities.QueueDropAction(ref actionController, in orientation, in position, in carry, in partition, isActing);
+						Utilities.QueueDropAction(ref actionController, in orientation, in position, in carry, in partitionInfo, isActing);
 					}
 				}
 				else if (controller.ShouldReassess(carry.HasItem, isFired))
 				{
 					controller.ReassessedLastFrame = true;
+
+					// compute goal weights and reassess current goal
 
 					bool shouldEat = hungerRatio <= Const.AILightHungerRatio && credits.Value >= Const.AIDesiredCreditsToEat;
 					controller.EatWeight = shouldEat ? math.clamp(1f - math.unlerp(Const.AIStarvingRatio, Const.AILightHungerRatio, hungerRatio), 0f, 1f) : 0f;
@@ -215,28 +196,31 @@ namespace U0071
 
 				// look for new target
 
-				bool fleeGoal = controller.Goal == AIGoal.Flee;
 				bool eatGoal = controller.Goal == AIGoal.Eat;
 				bool workGoal = controller.Goal == AIGoal.Work;
 				bool destroyGoal = controller.Goal == AIGoal.Destroy;
-				bool processGoal = controller.Goal == AIGoal.Process;
 
-				// retrieve relevant action types
-				ActionFlag actionFilter =
-					fleeGoal ? 0 :
-					eatGoal ? ActionFlag.Pick | ActionFlag.Eat | ActionFlag.Collect :
-					workGoal ? isAdmin ? ActionFlag.Administrate : ActionFlag.Pick | ActionFlag.Store | ActionFlag.Destroy | ActionFlag.Collect | ActionFlag.Search :
-					destroyGoal ? ActionFlag.Destroy :
-					processGoal ? ActionFlag.Store :
-					ActionFlag.Search;
-				ItemFlag itemFilter =
-					eatGoal ? ItemFlag.Food :
-					workGoal && !isAdmin ? ItemFlag.RawFood | ItemFlag.Trash : 0;
+				// retrieve relevant action and item types depending on current goal
+				ActionFlag actionFilter = controller.Goal switch
+				{
+					AIGoal.Flee => 0,
+					AIGoal.Eat => ActionFlag.Pick | ActionFlag.Eat | ActionFlag.Collect,
+					AIGoal.Work => isAdmin ? ActionFlag.Administrate : ActionFlag.Pick | ActionFlag.Store | ActionFlag.Destroy | ActionFlag.Collect | ActionFlag.Search,
+					AIGoal.Destroy => ActionFlag.Destroy,
+					AIGoal.Process => ActionFlag.Store,
+					_ => ActionFlag.Search
+				};
+				ItemFlag itemFilter = controller.Goal switch
+				{
+					AIGoal.Eat => ItemFlag.Food,
+					AIGoal.Work => !isAdmin ? ItemFlag.RawFood | ItemFlag.Trash : 0,
+					_ => 0
+				};
 
 				bool adminCleaning = false;
 				if (isAdmin && (workGoal || destroyGoal))
 				{
-					bool isInAdminRoom = RoomLookup[partition.CurrentRoom].Area == AreaAuthorization.Admin;
+					bool isInAdminRoom = RoomLookup[partitionInfo.CurrentRoom].Authorization == AreaAuthorization.Admin;
 
 					// admins are forced to clean their room
 					if (isInAdminRoom && !carry.HasItem)
@@ -250,7 +234,7 @@ namespace U0071
 					else if (carry.HasItem && !isInAdminRoom)
 					{
 						// drop outside
-						Utilities.QueueDropAction(ref actionController, in orientation, in position, in carry, in partition, isActing);
+						Utilities.QueueDropAction(ref actionController, in orientation, in position, in carry, in partitionInfo, isActing);
 					}
 					else if (carry.HasItem && !controller.HasCriticalGoal)
 					{
@@ -283,20 +267,21 @@ namespace U0071
 					}
 					else if (controller.Goal == AIGoal.Eat)
 					{
-						Utilities.QueueDropAction(ref actionController, in orientation, in position, in carry, in partition, isActing);
+						Utilities.QueueDropAction(ref actionController, in orientation, in position, in carry, in partitionInfo, isActing);
 					}
 				}
 
-				// look for target
-				DynamicBuffer<RoomElementBufferElement> elements = RoomElementBufferLookup[partition.CurrentRoom];
+				// look for target in current room
+				DynamicBuffer<RoomElementBufferElement> elements = RoomElementBufferLookup[partitionInfo.CurrentRoom];
 				float minMagn = float.MaxValue;
-				bool teleportFlag = false;
+				bool teleportItemFlag = false;
 				using (var enumerator = elements.GetEnumerator())
 				{
 					while (enumerator.MoveNext())
 					{
 						RoomElementBufferElement target = enumerator.Current;
 
+						// door interaction (special case)
 						if (!target.Interactable.IsIgnored && target.CanBeUsed && target.HasActionFlag(ActionFlag.Open))
 						{
 							DoorComponent door = DoorLookup[target.Entity];
@@ -314,6 +299,8 @@ namespace U0071
 								break;
 							}
 						}
+
+						// other interactions
 						if (target.Entity != entity &&
 							!target.Interactable.IsIgnored &&
 							target.CanBeUsed &&
@@ -329,9 +316,9 @@ namespace U0071
 								selectedActionFlag > actionController.Action.ActionFlag || 
 								magn < minMagn)
 							{
-								// item teleporters pose as a storage
+								// item teleporters pose as storage
 								// (because of spaghetti code)
-								teleportFlag = selectedActionFlag == ActionFlag.Store && target.Interactable.HasActionFlag(ActionFlag.Teleport);
+								teleportItemFlag = selectedActionFlag == ActionFlag.Store && target.Interactable.HasActionFlag(ActionFlag.TeleportItem);
 								
 								minMagn = magn;
 								actionController.Action = target.ToActionData(selectedActionFlag, target.ItemFlags, carry.Flags);
@@ -344,9 +331,9 @@ namespace U0071
 					}
 				}
 
-				if (teleportFlag)
+				if (teleportItemFlag)
 				{
-					actionController.Action.ActionFlag = ActionFlag.Teleport;
+					actionController.Action.ActionFlag = ActionFlag.TeleportItem;
 				}
 
 				if (actionController.HasTarget && carry.HasItem && 
@@ -354,7 +341,7 @@ namespace U0071
 				{
 					// will not be able to interact with target
 					// drop item to be able on next tick
-					Utilities.QueueDropAction(ref actionController, in orientation, in position, in carry, in partition, isActing);
+					Utilities.QueueDropAction(ref actionController, in orientation, in position, in carry, in partitionInfo, isActing);
 				}
 				else if (actionController.HasTarget && position.IsInRange(actionController.Action.Position, actionController.Action.Range))
 				{
@@ -368,6 +355,7 @@ namespace U0071
 				{
 					if (carry.HasItem && !controller.HasCriticalGoal)
 					{
+						// if not busy, carry hold item to processor/trash
 						controller.Goal = Utilities.HasItemFlag(carry.Flags, ItemFlag.RawFood) ? AIGoal.Process : AIGoal.Destroy;
 					}
 
@@ -383,8 +371,7 @@ namespace U0071
 		[WithNone(typeof(PushedComponent))]
 		public partial struct AIMovementJob : IJobEntity
 		{
-			[ReadOnly]
-			public FlowfieldCollection FlowfieldCollection;
+			[ReadOnly] public FlowfieldCollection FlowfieldCollection;
 
 			public void Execute(ref MovementComponent movement, ref AIController controller, in PositionComponent position, in ActionController actionController, in AuthorizationComponent authorisation)
 			{
@@ -398,6 +385,7 @@ namespace U0071
 				}
 				else if (!actionController.IsResolving && controller.IsPathing)
 				{
+					// retrieve direction from flowfield
 					movement.Input = FlowfieldCollection.GetDirection(authorisation.Flag, controller.Goal, position.Value);
 					if (movement.Input.Equals(float2.zero))
 					{
@@ -419,8 +407,7 @@ namespace U0071
 	[WithAll(typeof(AIController))]
 	public partial struct AIUnitInitJob : IJobEntity
 	{
-		[ReadOnly]
-		public Partition Partition;
+		[ReadOnly] public Partition Partition;
 		public Config Config;
 
 		public void Execute(
@@ -441,29 +428,26 @@ namespace U0071
 		{
 			initTag.ValueRW = false;
 
-			authorization.Flag = Utilities.GetLowestAuthorization(Partition.GetAuthorization(position.Value));
-
 			UnitIdentity identity = Config.UnitIdentityData.Value.Identities[entity.Index % Config.UnitIdentityData.Value.Identities.Length];
+			name.Value = identity.Name;
 
+			// init unit gameplay data
+			authorization.Flag = Utilities.GetLowestAuthorization(Partition.GetAuthorization(position.Value));
 			credits.AdminCard = authorization.IsAdmin;
 			credits.Value = (int)(Const.GetStartingCredits(authorization.Flag) * identity.StartingCreditsRatio);
-
 			hunger.Value = identity.StartingHunger;
 			aIController.BoredomValue = identity.StartingBoredom;
-
-			name.Value = identity.Name;
+			
+			// init material property components (for shader)
 			pilosity.HasShortHair = identity.HasShortHair;
 			pilosity.HasLongHair = identity.HasLongHair;
 			pilosity.HasBeard = identity.HasBeard;
-
 			float4 skinColor = Config.UnitIdentityData.Value.SkinColors[identity.SkinColorIndex];
 			float4 hairColor = Config.UnitIdentityData.Value.HairColors[identity.HairColorIndex];
-
 			skin.Value = skinColor;
 			shortHair.Value = pilosity.HasShortHair ? hairColor : skinColor;
 			longHair.Value = pilosity.HasLongHair ? hairColor : skinColor;
 			beard.Value = pilosity.HasBeard ? hairColor : skinColor;
-
 			shirt.Value =
 				authorization.Flag == AreaAuthorization.LevelOne ? Config.LevelOneShirtColor :
 				authorization.Flag == AreaAuthorization.LevelTwo ? Config.LevelTwoShirtColor :

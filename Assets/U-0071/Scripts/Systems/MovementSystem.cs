@@ -9,27 +9,15 @@ namespace U0071
 	[UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
 	public partial struct MovementSystem : ISystem
 	{
-		private ComponentLookup<CarryComponent> _pickLookup;
-		private BufferLookup<RoomElementBufferElement> _roomElementLookup;
-		private ComponentLookup<DoorComponent> _doorLookup;
-
 		[BurstCompile]
 		public void OnCreate(ref SystemState state)
 		{
 			state.RequireForUpdate<Partition>();
-
-			_pickLookup = SystemAPI.GetComponentLookup<CarryComponent>(true);
-			_roomElementLookup = state.GetBufferLookup<RoomElementBufferElement>(true);
-			_doorLookup = state.GetComponentLookup<DoorComponent>(true);
 		}
 
 		[BurstCompile]
 		public void OnUpdate(ref SystemState state)
 		{
-			_pickLookup.Update(ref state);
-			_roomElementLookup.Update(ref state);
-			_doorLookup.Update(ref state);
-
 			Partition partition = SystemAPI.GetSingleton<Partition>();
 
 			state.Dependency = new MovementJob
@@ -48,14 +36,14 @@ namespace U0071
 
 			state.Dependency = new PickablePositionJob
 			{
-				PickLookup = _pickLookup,
+				PickLookup = SystemAPI.GetComponentLookup<CarryComponent>(true),
 			}.ScheduleParallel(state.Dependency);
 
 			state.Dependency = new DecollisionJob
 			{
 				Partition = partition,
-				RoomElementBufferLookup = _roomElementLookup,
-				DoorLookup = _doorLookup,
+				RoomElementBufferLookup = SystemAPI.GetBufferLookup<RoomElementBufferElement>(true),
+				DoorLookup = SystemAPI.GetComponentLookup<DoorComponent>(true),
 			}.ScheduleParallel(state.Dependency);
 		}
 
@@ -87,8 +75,7 @@ namespace U0071
 		[WithNone(typeof(DeathComponent))]
 		public partial struct PushedJob : IJobEntity
 		{
-			[ReadOnly]
-			public Partition Partition;
+			[ReadOnly] public Partition Partition;
 			public float DeltaTime;
 
 			public void Execute(ref PushedComponent pushed, ref PositionComponent position, EnabledRefRW<PushedComponent> pushedRef)
@@ -117,14 +104,11 @@ namespace U0071
 		[WithAll(typeof(MovementComponent))]
 		public partial struct DecollisionJob : IJobEntity
 		{
-			[ReadOnly]
-			public Partition Partition;
-			[ReadOnly]
-			public BufferLookup<RoomElementBufferElement> RoomElementBufferLookup;
-			[ReadOnly]
-			public ComponentLookup<DoorComponent> DoorLookup;
+			[ReadOnly] public Partition Partition;
+			[ReadOnly] public BufferLookup<RoomElementBufferElement> RoomElementBufferLookup;
+			[ReadOnly] public ComponentLookup<DoorComponent> DoorLookup;
 
-			public void Execute(Entity entity, ref PositionComponent position, in PartitionComponent partition, in InteractableComponent interactable)
+			public void Execute(Entity entity, ref PositionComponent position, in PartitionInfoComponent partitionInfo, in InteractableComponent interactable)
 			{
 				// rough decollision to avoid characters stacking on each others / on devices
 				// will not trigger between rooms
@@ -133,7 +117,7 @@ namespace U0071
 
 				Entity doorEntity = Entity.Null;
 				float2 doorPosition = float2.zero;
-				DynamicBuffer<RoomElementBufferElement> elements = RoomElementBufferLookup[partition.CurrentRoom];
+				DynamicBuffer<RoomElementBufferElement> elements = RoomElementBufferLookup[partitionInfo.CurrentRoom];
 				using (var enumerator = elements.GetEnumerator())
 				{
 					while (enumerator.MoveNext())
@@ -214,8 +198,7 @@ namespace U0071
 		public partial struct PickablePositionJob : IJobEntity
 		{
 			[NativeDisableParallelForRestriction]
-			[ReadOnly]
-			public ComponentLookup<CarryComponent> PickLookup;
+			[ReadOnly] public ComponentLookup<CarryComponent> PickLookup;
 
 			public void Execute(ref PositionComponent position, in PickableComponent pickable)
 			{

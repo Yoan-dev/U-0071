@@ -5,8 +5,8 @@ using Unity.Mathematics;
 
 namespace U0071
 {
-	// goal was to have separated workforces, then separated admin colors
-	// no time so auth is incremental and admins have access to all
+	// original goal was to have separated workforces and separated admin colors
+	// no time so authorization is incremental and admins (white suits) have access to all
 	[Flags]
 	public enum AreaAuthorization
 	{

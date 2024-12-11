@@ -45,7 +45,7 @@ namespace U0071
 					Value = new float2(position.x, position.z),
 					BaseYOffset = Const.PickableYOffset,
 				});
-				AddComponent(entity, new PartitionComponent());
+				AddComponent(entity, new PartitionInfoComponent());
 				AddComponent(entity, new PickableComponent());
 				SetComponentEnabled<PickableComponent>(entity, false);
 

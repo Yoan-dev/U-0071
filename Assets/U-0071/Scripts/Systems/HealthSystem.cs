@@ -18,9 +18,6 @@ namespace U0071
 	public partial struct HealthSystem : ISystem
 	{
 		private NativeQueue<ContaminationEvent> _contaminationEvents;
-		private BufferLookup<RoomElementBufferElement> _roomElementLookup;
-		private ComponentLookup<AIController> _aiLookup;
-		private ComponentLookup<ContaminationLevelComponent> _contaminationLevelLookup;
 		private EntityQuery _contaminationQuery;
 
 		[BurstCompile]
@@ -31,13 +28,9 @@ namespace U0071
 			_contaminationEvents = new NativeQueue<ContaminationEvent>(Allocator.Persistent);
 
 			_contaminationQuery = SystemAPI.QueryBuilder()
-				.WithAll<ContaminateComponent, PositionComponent, PartitionComponent>()
+				.WithAll<ContaminateComponent, PositionComponent, PartitionInfoComponent>()
 				.WithAny<ContinuousContaminationTag, SickComponent>()
 				.Build();
-
-			_roomElementLookup = state.GetBufferLookup<RoomElementBufferElement>(true);
-			_aiLookup = SystemAPI.GetComponentLookup<AIController>(true);
-			_contaminationLevelLookup = SystemAPI.GetComponentLookup<ContaminationLevelComponent>();
 		}
 
 		[BurstCompile]
@@ -49,10 +42,6 @@ namespace U0071
 		[BurstCompile]
 		public void OnUpdate(ref SystemState state)
 		{
-			_roomElementLookup.Update(ref state);
-			_aiLookup.Update(ref state);
-			_contaminationLevelLookup.Update(ref state);
-
 			var ecbs = SystemAPI.GetSingleton<EndFixedStepSimulationEntityCommandBufferSystem.Singleton>();
 
 			float deltaTime = SystemAPI.Time.DeltaTime;
@@ -61,7 +50,7 @@ namespace U0071
 			{
 				DeltaTime = deltaTime,
 				ContaminationEvents = _contaminationEvents.AsParallelWriter(),
-				RoomElementBufferLookup = _roomElementLookup,
+				RoomElementBufferLookup = SystemAPI.GetBufferLookup<RoomElementBufferElement>(true),
 			}.ScheduleParallel(_contaminationQuery, state.Dependency);
 
 			state.Dependency = new PickableContaminationJob
@@ -73,7 +62,7 @@ namespace U0071
 			state.Dependency = new ContaminationEventsJob()
 			{
 				ContaminationEvents = _contaminationEvents,
-				ContaminationLevelLookup = _contaminationLevelLookup,
+				ContaminationLevelLookup = SystemAPI.GetComponentLookup<ContaminationLevelComponent>(),
 			}.Schedule(state.Dependency);
 
 			state.Dependency = new SickJob
@@ -90,8 +79,8 @@ namespace U0071
 			state.Dependency = new DeathJob
 			{
 				Ecb = ecbs.CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter(),
-				RoomElementBufferLookup = _roomElementLookup,
-				AILookup = _aiLookup,
+				RoomElementBufferLookup = SystemAPI.GetBufferLookup<RoomElementBufferElement>(true),
+				AILookup = SystemAPI.GetComponentLookup<AIController>(),
 				Config = SystemAPI.GetSingleton<Config>(),
 			}.ScheduleParallel(state.Dependency);
 		}
@@ -126,10 +115,8 @@ namespace U0071
 		public partial struct DeathJob : IJobEntity
 		{
 			public EntityCommandBuffer.ParallelWriter Ecb;
-			[ReadOnly]
-			public BufferLookup<RoomElementBufferElement> RoomElementBufferLookup;
-			[ReadOnly]
-			public ComponentLookup<AIController> AILookup;
+			[ReadOnly] public BufferLookup<RoomElementBufferElement> RoomElementBufferLookup;
+			[ReadOnly] public ComponentLookup<AIController> AILookup;
 			public Config Config;
 
 			public void Execute(
@@ -147,7 +134,7 @@ namespace U0071
 				ref BeardColor beard,
 				in CreditsComponent credits,
 				in PilosityComponent pilosity,
-				in PartitionComponent partition,
+				in PartitionInfoComponent partitionInfo,
 				EnabledRefRW<ResolveDeathTag> resolveDeath)
 			{
 				resolveDeath.ValueRW = false;
@@ -196,7 +183,7 @@ namespace U0071
 				skin.Value += deathColorOffset;
 
 				// trigger flee behavior
-				DynamicBuffer<RoomElementBufferElement> elements = RoomElementBufferLookup[partition.CurrentRoom];
+				DynamicBuffer<RoomElementBufferElement> elements = RoomElementBufferLookup[partitionInfo.CurrentRoom];
 				using (var enumerator = elements.GetEnumerator())
 				{
 					while (enumerator.MoveNext())
@@ -279,18 +266,17 @@ namespace U0071
 		public partial struct ContaminationJob : IJobEntity
 		{
 			public NativeQueue<ContaminationEvent>.ParallelWriter ContaminationEvents;
-			[ReadOnly]
-			public BufferLookup<RoomElementBufferElement> RoomElementBufferLookup;
+			[ReadOnly] public BufferLookup<RoomElementBufferElement> RoomElementBufferLookup;
 			public float DeltaTime;
 
-			public void Execute(Entity entity, in ContaminateComponent contaminate, in PartitionComponent partition, in PositionComponent position)
+			public void Execute(Entity entity, in ContaminateComponent contaminate, in PartitionInfoComponent partitionInfo, in PositionComponent position)
 			{
-				if (partition.CurrentRoom == Entity.Null)
+				if (partitionInfo.CurrentRoom == Entity.Null)
 				{
 					// continuous contaminer that are carried
 					return;
 				}
-				DynamicBuffer<RoomElementBufferElement> elements = RoomElementBufferLookup[partition.CurrentRoom];
+				DynamicBuffer<RoomElementBufferElement> elements = RoomElementBufferLookup[partitionInfo.CurrentRoom];
 				using (var enumerator = elements.GetEnumerator())
 				{
 					while (enumerator.MoveNext())

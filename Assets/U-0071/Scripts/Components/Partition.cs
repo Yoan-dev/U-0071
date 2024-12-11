@@ -6,12 +6,10 @@ using Unity.Mathematics;
 
 namespace U0071
 {
-	public struct PartitionComponent : IComponentData
+	public struct PartitionInfoComponent : IComponentData
 	{
-		public Entity CurrentRoom;
-
-		// cached for drop offset
-		public float ClosestEdgeX;
+		public Entity CurrentRoom; // room the entitiy is currently in
+		public float ClosestEdgeX; // cached for drop offset
 	}
 
 	public struct RoomData
@@ -21,7 +19,7 @@ namespace U0071
 		public Entity Entity;
 
 		public int Size => Room.Dimensions.x * Room.Dimensions.y;
-		public AreaAuthorization AreaFlag => Room.Area;
+		public AreaAuthorization AreaFlag => Room.Authorization;
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public float2 GetRoomRatio(float2 position)

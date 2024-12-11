@@ -78,7 +78,7 @@ namespace U0071
 					movement.FreeMovement = true;
 					movement.Speed = Const.EndCameraSpeed;
 
-					state.EntityManager.RemoveComponent<PartitionComponent>(playerEntity); // TBD if safe
+					state.EntityManager.RemoveComponent<PartitionInfoComponent>(playerEntity); // TBD if safe
 				}
 
 			}

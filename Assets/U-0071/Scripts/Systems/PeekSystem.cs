@@ -19,12 +19,6 @@ namespace U0071
 	[UpdateAfter(typeof(HealthSystem))]
 	public partial struct PeekSystem : ISystem
 	{
-		private ComponentLookup<PositionComponent> _positionLookup;
-		private ComponentLookup<InteractableComponent> _interactionLookup;
-		private ComponentLookup<AuthorizationComponent> _authorizationLookup;
-		private ComponentLookup<AIController> _aiLookup;
-		private ComponentLookup<ActionController> _actionLookup;
-		private ComponentLookup<IsActing> _isActingLookup;
 		private NativeQueue<PeekingInfoComponent> _peekingInfos;
 		private NativeQueue<PeekingReactionEvent> _peekingReactions;
 
@@ -35,13 +29,6 @@ namespace U0071
 
 			_peekingInfos = new NativeQueue<PeekingInfoComponent>(Allocator.Persistent);
 			_peekingReactions = new NativeQueue<PeekingReactionEvent>(Allocator.Persistent);
-
-			_positionLookup = state.GetComponentLookup<PositionComponent>(true);
-			_interactionLookup = state.GetComponentLookup<InteractableComponent>(true);
-			_authorizationLookup = state.GetComponentLookup<AuthorizationComponent>(true);
-			_aiLookup = state.GetComponentLookup<AIController>();
-			_actionLookup = state.GetComponentLookup<ActionController>();
-			_isActingLookup = state.GetComponentLookup<IsActing>();
 		}
 
 		[BurstCompile]
@@ -54,22 +41,15 @@ namespace U0071
 		[BurstCompile]
 		public void OnUpdate(ref SystemState state)
 		{
-			_positionLookup.Update(ref state);
-			_interactionLookup.Update(ref state);
-			_authorizationLookup.Update(ref state);
-			_actionLookup.Update(ref state);
-			_isActingLookup.Update(ref state);
-			_aiLookup.Update(ref state);
-
 			state.Dependency = new PeekingJob
 			{
 				PlayerEntity = SystemAPI.GetSingletonEntity<PlayerController>(),
-				PositionLookup = _positionLookup,
-				AuthorizationLookup = _authorizationLookup,
-				ActionLookup = _actionLookup,
+				PositionLookup = SystemAPI.GetComponentLookup<PositionComponent>(true),
+				AuthorizationLookup = SystemAPI.GetComponentLookup<AuthorizationComponent>(true),
+				ActionLookup = SystemAPI.GetComponentLookup<ActionController>(),
 				PeekingInfos = _peekingInfos.AsParallelWriter(),
 				PeekingReactions = _peekingReactions.AsParallelWriter(),
-				AILookup = _aiLookup,
+				AILookup = SystemAPI.GetComponentLookup<AIController>(),
 				DeltaTime = SystemAPI.Time.DeltaTime,
 			}.ScheduleParallel(state.Dependency);
 
@@ -80,10 +60,10 @@ namespace U0071
 
 			state.Dependency = new PeekingReactionJob
 			{
-				ActionLookup = _actionLookup,
-				IsActingLookup = _isActingLookup,
-				AILookup = _aiLookup,
-				InteractableLookup = _interactionLookup,
+				ActionLookup = SystemAPI.GetComponentLookup<ActionController>(),
+				IsActingLookup = SystemAPI.GetComponentLookup<IsActing>(),
+				AILookup = SystemAPI.GetComponentLookup<AIController>(),
+				InteractableLookup = SystemAPI.GetComponentLookup<InteractableComponent>(true),
 				PeekingReactions = _peekingReactions,
 			}.Schedule(state.Dependency);
 		}

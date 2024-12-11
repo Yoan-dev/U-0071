@@ -7,19 +7,20 @@ namespace U0071
 	public struct RoomComponent : IComponentData
 	{
 		public int2 Dimensions;
-		public AreaAuthorization Area;
+		public AreaAuthorization Authorization; // room access level
 		public int Capacity; // amount of possible workers
 		public int Population; // current amount of units in room
 		public Entity FiredWorker; // should leave (workplace too crowded)
-		public bool IsWanderPath;
+		public bool IsWanderPath; // used for AI navigation (hallways)
 	}
 
 	[InternalBufferCapacity(32)]
 	public struct RoomElementBufferElement : IBufferElementData
 	{
+		// rooms cache their interactables (units, items, devices) for easy access by enquiring processes
 		public Entity Entity;
 		public float2 Position;
-		public InteractableComponent Interactable; // cached
+		public InteractableComponent Interactable;
 
 		public ActionFlag ActionFlags => Interactable.ActionFlags;
 		public ItemFlag ItemFlags => Interactable.ItemFlags;
@@ -27,12 +28,6 @@ namespace U0071
 		public float Time => Interactable.Time;
 		public int Cost => Interactable.Cost;
 		public bool CanBeUsed => Interactable.CanBeUsed;
-
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public ActionData ToActionData(ActionFlag selectedActionFlag, ItemFlag itemFlags, ItemFlag usedItemFlags)
-		{
-			return new ActionData(Entity, selectedActionFlag, itemFlags, usedItemFlags, Position, Range, Const.GetActionTime(selectedActionFlag, Time), Cost, Interactable.CanBeMultiused);
-		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public RoomElementBufferElement(Entity entity, float2 position, in InteractableComponent interactable)
@@ -51,30 +46,39 @@ namespace U0071
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public bool Evaluate(ActionFlag current, ActionFlag actionFilter, ItemFlag carriedFlag, out ActionFlag selected, bool canDestroyAll = false, bool pickHavePriority = false, bool canProcessTrash = false, bool canTeleportAll = false)
+		public ActionData ToActionData(ActionFlag selectedActionFlag, ItemFlag itemFlags, ItemFlag usedItemFlags)
 		{
-			// retrieve eligible action in priority order
-			return
-				EvaluateActionFlag(ActionFlag.Contaminate, current, actionFilter, carriedFlag, out selected, false, canProcessTrash, canTeleportAll) ||
-				EvaluateActionFlag(ActionFlag.Store, current, actionFilter, carriedFlag, out selected, false, canProcessTrash, canTeleportAll) ||
-				EvaluateActionFlag(ActionFlag.Destroy, current, actionFilter, canDestroyAll ? ItemFlag.All : carriedFlag, out selected) ||
-				EvaluateActionFlag(ActionFlag.Collect, current, actionFilter, carriedFlag, out selected) ||
-				EvaluateActionFlag(ActionFlag.Search, current, actionFilter, carriedFlag, out selected) ||
-				EvaluateActionFlag(ActionFlag.Pick, current, actionFilter, carriedFlag, out selected, pickHavePriority) ||
-				EvaluateActionFlag(ActionFlag.Push, current, actionFilter, carriedFlag, out selected) ||
-				EvaluateActionFlag(ActionFlag.Administrate, current, actionFilter, carriedFlag, out selected);
+			return new ActionData(Entity, selectedActionFlag, itemFlags, usedItemFlags, Position, Range, Const.GetActionTime(selectedActionFlag, Time), Cost, Interactable.CanBeMultiused);
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		private bool EvaluateActionFlag(ActionFlag checkedType, ActionFlag current, ActionFlag filter, ItemFlag itemFlag, out ActionFlag selected, bool hasPriority = false, bool canProcessContaminated = false, bool canTeleportAll = false)
+		public bool Evaluate(ActionFlag current, ActionFlag actionFilter, ItemFlag carriedFlag, out ActionFlag selectedAction, bool canDestroyAll = false, bool pickHavePriority = false, bool canProcessTrash = false, bool canTeleportAll = false)
 		{
-			selected = 
-				(hasPriority || checkedType >= current) && 
-				(ActionFlags & filter & checkedType) != 0 && 
+			// retrieve eligible action in priority order
+			return
+				EvaluateActionFlag(ActionFlag.Contaminate, current, actionFilter, carriedFlag, out selectedAction, false, canProcessTrash, canTeleportAll) ||
+				EvaluateActionFlag(ActionFlag.Store, current, actionFilter, carriedFlag, out selectedAction, false, canProcessTrash, canTeleportAll) ||
+				EvaluateActionFlag(ActionFlag.Destroy, current, actionFilter, canDestroyAll ? ItemFlag.All : carriedFlag, out selectedAction) ||
+				EvaluateActionFlag(ActionFlag.Collect, current, actionFilter, carriedFlag, out selectedAction) ||
+				EvaluateActionFlag(ActionFlag.Search, current, actionFilter, carriedFlag, out selectedAction) ||
+				EvaluateActionFlag(ActionFlag.Pick, current, actionFilter, carriedFlag, out selectedAction, pickHavePriority) ||
+				EvaluateActionFlag(ActionFlag.Push, current, actionFilter, carriedFlag, out selectedAction) ||
+				EvaluateActionFlag(ActionFlag.Administrate, current, actionFilter, carriedFlag, out selectedAction);
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		private bool EvaluateActionFlag(ActionFlag checkedType, ActionFlag current, ActionFlag filter, ItemFlag itemFlag, out ActionFlag selectedAction, bool hasPriority = false, bool canProcessContaminated = false, bool canTeleportAll = false)
+		{
+			// verify action validity
+			bool isValid =
+				(hasPriority || checkedType >= current) &&
+				(ActionFlags & filter & checkedType) != 0 &&
 				EvaluateItemAction(checkedType, itemFlag, canProcessContaminated, canTeleportAll) &&
-				EvaluateContaminateAction(checkedType, itemFlag) ? checkedType : 0;
+				EvaluateContaminateAction(checkedType, itemFlag);
+
+			selectedAction = isValid ? checkedType : 0;
 			
-			return selected != 0;
+			return isValid;
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -84,19 +88,21 @@ namespace U0071
 				checkedType == ActionFlag.Contaminate || // evaluate later
 				!Utilities.RequireItem(checkedType) ||
 				HasItemFlag(itemFlag) ||
-				HasActionFlag(ActionFlag.Teleport) && canTeleportAll ||
+				HasActionFlag(ActionFlag.TeleportItem) && canTeleportAll ||
 				(canProcessContaminated && HasItemFlag(ItemFlag.RawFood) && Utilities.HasItemFlag(itemFlag, ItemFlag.Contaminated));
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		private bool EvaluateContaminateAction(ActionFlag checkedType, ItemFlag itemFlag)
 		{
-			// we need either raw food or a contaminated item
-			// and we need a device that contaminate if our item is not (and opposite)
+			// contamination actions are either contaminating a hold item (raw food)
+			// or contaminating a target with an already contaminated item in hand
+
+			bool isContaminationEligible = Utilities.HasItemFlag(itemFlag, ItemFlag.RawFood) || Utilities.HasItemFlag(itemFlag, ItemFlag.Contaminated);
+
 			return
 				checkedType != ActionFlag.Contaminate ||
-				(Utilities.HasItemFlag(itemFlag, ItemFlag.RawFood) || Utilities.HasItemFlag(itemFlag, ItemFlag.Contaminated)) &&
-				HasItemFlag(ItemFlag.Contaminated) == Utilities.HasItemFlag(itemFlag, ItemFlag.Contaminated);
+				isContaminationEligible && HasItemFlag(ItemFlag.Contaminated) == Utilities.HasItemFlag(itemFlag, ItemFlag.Contaminated);
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -142,12 +148,13 @@ namespace U0071
 
 	public struct WorkInfoComponent : IComponentData
 	{
+		// component that tracks nearby work opportunities (hallways)
 		public int LevelOneOpportunityCount;
 		public int LevelTwoOpportunityCount;
 		public int LevelThreeOpportunityCount;
 		public int AdminOpportunityCount;
 
-		// TODO: buffer that auto-fills after world init
+		// target rooms (workplaces, hard-coded to two)
 		public Entity Room1;
 		public Entity Room2;
 
@@ -180,6 +187,7 @@ namespace U0071
 
 	public struct CorridorOverrideComponent : IComponentData
 	{
+		// allow to consider part of a room as a hallway (for AI navigation)
 		public float2 Position;
 		public int2 Dimensions;
 	}

@@ -5,13 +5,12 @@ using Unity.Mathematics;
 
 namespace U0071
 {
-	// note to reader: this is an attempt of a room-based partitioning system (see Room.cs for the components/singleton)
-	// the goal is to ease detection by only iterating the elements in the same room of the enquiring process
+	// the goal of this system is to ease detection by only iterating the elements in the same room of the enquiring process
 	// at the beginning of the frame, objects that move or change will queue an update for the related room entities (addition, deletion, cache update)
 	// rooms can be queried afterwards in order to retrieve their elements
 	// room elements can also be modified outside of this system (example in ActionSystem.cs)
+	// (see Room.cs for the components/singleton)
 
-	// TODO: update before everyone except game init
 	[UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
 	public partial struct RoomSystem : ISystem, ISystemStartStop
 	{
@@ -28,9 +27,8 @@ namespace U0071
 			public RoomUpdateType Type;
 		}
 
-		private ComponentLookup<RoomComponent> _roomLookup;
 		private NativeParallelMultiHashMap<Entity, RoomUpdateEvent> _updates;
-		private EntityQuery _query;
+		private EntityQuery _movingEntityquery;
 		private EntityQuery _deviceQuery;
 
 		[BurstCompile]
@@ -38,19 +36,18 @@ namespace U0071
 		{
 			state.RequireForUpdate<Partition>();
 
-			_query = SystemAPI.QueryBuilder()
-				.WithAllRW<PartitionComponent>()
+			_movingEntityquery = SystemAPI.QueryBuilder()
+				.WithAllRW<PartitionInfoComponent>()
 				.WithAllRW<PositionComponent, InteractableComponent>()
 				.WithNone<PickableComponent, DeviceTag>()
 				.Build();
 
 			_deviceQuery = SystemAPI.QueryBuilder()
-				.WithAllRW<PartitionComponent, InteractableComponent>()
+				.WithAllRW<PartitionInfoComponent, InteractableComponent>()
 				.WithAll<PositionComponent, DeviceTag>()
 				.Build();
 
 			_updates = new NativeParallelMultiHashMap<Entity, RoomUpdateEvent>(0, Allocator.Persistent);
-			_roomLookup = state.GetComponentLookup<RoomComponent>(true);
 		}
 
 		[BurstCompile]
@@ -78,28 +75,29 @@ namespace U0071
 		{
 			Partition partition = SystemAPI.GetSingleton<Partition>();
 
-			_roomLookup.Update(ref state);
-
 			// map should be able to receive an add and leave event per moving entity and one per device
-			int count = _query.CalculateEntityCount() * 2 + _deviceQuery.CalculateEntityCount();
+			int count = _movingEntityquery.CalculateEntityCount() * 2 + _deviceQuery.CalculateEntityCount();
 			if (_updates.Capacity < count)
 			{
 				_updates.Capacity = count;
 			}
 			_updates.Clear();
 
-			state.Dependency = new RoomUpdateJob
+			// queue add/remove/update events for moving entities
+			state.Dependency = new RoomMovingEntityUpdateJob
 			{
 				Partition = partition,
 				Updates = _updates.AsParallelWriter(),
-			}.ScheduleParallel(_query, state.Dependency);
+			}.ScheduleParallel(_movingEntityquery, state.Dependency);
 
+			// queue add/update events for static entities
 			state.Dependency = new RoomDeviceUpdateJob
 			{
 				Partition = partition,
 				Updates = _updates.AsParallelWriter(),
 			}.ScheduleParallel(_deviceQuery, state.Dependency);
 
+			// update rooms buffer
 			state.Dependency = new PartitionUpdateJob
 			{
 				Updates = _updates,
@@ -107,21 +105,20 @@ namespace U0071
 
 			state.Dependency = new RoomInitJob().ScheduleParallel(state.Dependency);
 
+			// update work info providers (hallways, for AI)
 			state.Dependency = new WorkProviderJob
 			{
-				RoomLookup = _roomLookup,
+				RoomLookup = SystemAPI.GetComponentLookup<RoomComponent>(true),
 			}.ScheduleParallel(state.Dependency);
 		}
 
 		[BurstCompile]
-		public partial struct RoomUpdateJob : IJobEntity
+		public partial struct RoomMovingEntityUpdateJob : IJobEntity
 		{
-			[ReadOnly]
-			public Partition Partition;
-			[WriteOnly]
-			public NativeParallelMultiHashMap<Entity, RoomUpdateEvent>.ParallelWriter Updates;
+			[ReadOnly] public Partition Partition;
+			[WriteOnly] public NativeParallelMultiHashMap<Entity, RoomUpdateEvent>.ParallelWriter Updates;
 
-			public void Execute(Entity entity, ref PartitionComponent partition, ref PositionComponent position, ref InteractableComponent interactable)
+			public void Execute(Entity entity, ref PartitionInfoComponent partitionInfo, ref PositionComponent position, ref InteractableComponent interactable)
 			{
 				// Entity.Null events will be ignored during partition update
 				RoomData newRoom = Partition.GetRoomData(position.Value);
@@ -133,22 +130,22 @@ namespace U0071
 					position.CurrentYOffset = position.BaseYOffset +
 						roomRatio.x * Const.YOffsetRatioX +
 						roomRatio.y * Const.YOffsetRatioY;
-					partition.ClosestEdgeX = newRoom.GetClosestEdgeX(position.x);
+					partitionInfo.ClosestEdgeX = newRoom.GetClosestEdgeX(position.x);
 				}
 
-				if (newRoom.Entity != partition.CurrentRoom)
+				if (newRoom.Entity != partitionInfo.CurrentRoom)
 				{
 					Updates.Add(newRoom.Entity, new RoomUpdateEvent
 					{
 						Element = new RoomElementBufferElement(entity, position.Value, in interactable),
 						Type = RoomUpdateType.Addition,
 					});
-					Updates.Add(partition.CurrentRoom, new RoomUpdateEvent
+					Updates.Add(partitionInfo.CurrentRoom, new RoomUpdateEvent
 					{
 						Element = new RoomElementBufferElement(entity),
 						Type = RoomUpdateType.Deletion,
 					});
-					partition.CurrentRoom = newRoom.Entity;
+					partitionInfo.CurrentRoom = newRoom.Entity;
 				}
 				else if (position.HasMoved || interactable.Changed)
 				{
@@ -156,7 +153,7 @@ namespace U0071
 					position.LastPosition = position.Value;
 					interactable.Changed = false;
 
-					Updates.Add(partition.CurrentRoom, new RoomUpdateEvent
+					Updates.Add(partitionInfo.CurrentRoom, new RoomUpdateEvent
 					{
 						Element = new RoomElementBufferElement(entity, position.Value, in interactable),
 						Type = RoomUpdateType.Update,
@@ -168,14 +165,12 @@ namespace U0071
 		[BurstCompile]
 		public partial struct RoomDeviceUpdateJob : IJobEntity
 		{
-			[ReadOnly]
-			public Partition Partition;
-			[WriteOnly]
-			public NativeParallelMultiHashMap<Entity, RoomUpdateEvent>.ParallelWriter Updates;
+			[ReadOnly] public Partition Partition;
+			[WriteOnly] public NativeParallelMultiHashMap<Entity, RoomUpdateEvent>.ParallelWriter Updates;
 
-			public void Execute(Entity entity, in PositionComponent position, ref PartitionComponent partition, ref InteractableComponent interactable)
+			public void Execute(Entity entity, in PositionComponent position, ref PartitionInfoComponent partitionInfo, ref InteractableComponent interactable)
 			{
-				if (partition.CurrentRoom == Entity.Null)
+				if (partitionInfo.CurrentRoom == Entity.Null)
 				{
 					Entity room = Partition.GetRoomData(position.Value).Entity;
 					Updates.Add(room, new RoomUpdateEvent
@@ -183,14 +178,14 @@ namespace U0071
 						Element = new RoomElementBufferElement(entity, position.Value, in interactable),
 						Type = RoomUpdateType.Addition,
 					});
-					partition.CurrentRoom = room;
+					partitionInfo.CurrentRoom = room;
 				}
 				else if (interactable.Changed)
 				{
 					// consume
 					interactable.Changed = false;
 
-					Updates.Add(partition.CurrentRoom, new RoomUpdateEvent
+					Updates.Add(partitionInfo.CurrentRoom, new RoomUpdateEvent
 					{
 						Element = new RoomElementBufferElement(entity, position.Value, in interactable),
 						Type = RoomUpdateType.Update,
@@ -202,8 +197,7 @@ namespace U0071
 		[BurstCompile]
 		public partial struct PartitionUpdateJob : IJobEntity
 		{
-			[ReadOnly]
-			public NativeParallelMultiHashMap<Entity, RoomUpdateEvent> Updates;
+			[ReadOnly] public NativeParallelMultiHashMap<Entity, RoomUpdateEvent> Updates;
 
 			public void Execute(Entity entity, ref RoomComponent room, ref DynamicBuffer<RoomElementBufferElement> elements)
 			{
@@ -211,9 +205,9 @@ namespace U0071
 
 				if (Updates.TryGetFirstValue(entity, out RoomUpdateEvent update, out var it))
 				{
+					// process all updates for this room
 					do
 					{
-						// TODO: keep an eye on perf (deletion/update)
 						if (update.Type == RoomUpdateType.Deletion)
 						{
 							dirtyPopulation = true;
@@ -232,6 +226,7 @@ namespace U0071
 					while (Updates.TryGetNextValue(out update, ref it));
 				}
 
+				// update room population info
 				if (dirtyPopulation || room.Population > room.Capacity)
 				{
 					Entity fired = Entity.Null;
@@ -242,7 +237,7 @@ namespace U0071
 					{
 						RoomElementBufferElement element = elements[i];
 
-						// push check is the dirty way to check for characters
+						// checking for push action flag is the dirty way to check for characters
 						if (element.HasActionFlag(ActionFlag.Push))
 						{
 							if (fired == Entity.Null)
@@ -255,6 +250,7 @@ namespace U0071
 
 					if (room.Population > room.Capacity)
 					{
+						// workplace too crowded, fire someone
 						room.FiredWorker = fired;
 					}
 				}
@@ -264,8 +260,7 @@ namespace U0071
 		[BurstCompile]
 		public partial struct WorkProviderJob : IJobEntity
 		{
-			[ReadOnly]
-			public ComponentLookup<RoomComponent> RoomLookup;
+			[ReadOnly] public ComponentLookup<RoomComponent> RoomLookup;
 
 			public void Execute(ref WorkInfoComponent info)
 			{
@@ -289,10 +284,10 @@ namespace U0071
 					{
 						int opportunityCount = room.Capacity - room.Population;
 
-						if (Utilities.HasAuthorization(room.Area, AreaAuthorization.LevelOne)) info.LevelOneOpportunityCount += opportunityCount;
-						else if (Utilities.HasAuthorization(room.Area, AreaAuthorization.LevelTwo)) info.LevelTwoOpportunityCount += opportunityCount;
-						else if (Utilities.HasAuthorization(room.Area, AreaAuthorization.LevelThree)) info.LevelThreeOpportunityCount += opportunityCount;
-						else if (Utilities.HasAuthorization(room.Area, AreaAuthorization.Admin)) info.AdminOpportunityCount += opportunityCount;
+						if (Utilities.HasAuthorization(room.Authorization, AreaAuthorization.LevelOne)) info.LevelOneOpportunityCount += opportunityCount;
+						else if (Utilities.HasAuthorization(room.Authorization, AreaAuthorization.LevelTwo)) info.LevelTwoOpportunityCount += opportunityCount;
+						else if (Utilities.HasAuthorization(room.Authorization, AreaAuthorization.LevelThree)) info.LevelThreeOpportunityCount += opportunityCount;
+						else if (Utilities.HasAuthorization(room.Authorization, AreaAuthorization.Admin)) info.AdminOpportunityCount += opportunityCount;
 					}
 				}
 			}

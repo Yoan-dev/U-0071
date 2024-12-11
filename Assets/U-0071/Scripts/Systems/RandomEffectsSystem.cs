@@ -33,6 +33,9 @@ namespace U0071
 		[BurstCompile]
 		public void OnUpdate(ref SystemState state)
 		{
+			// gives random colors and animations to units on player death
+			// (simulation going wild)
+
 			if (state.EntityManager.IsComponentEnabled<DeathComponent>(SystemAPI.GetSingletonEntity<PlayerController>()))
 			{
 				if (_started)

@@ -11,22 +11,16 @@ namespace U0071
 	[UpdateBefore(typeof(HealthSystem))]
 	public partial struct DeviceSystem : ISystem
 	{
-		public BufferLookup<RoomElementBufferElement> _roomElementLookup;
-
 		[BurstCompile]
 		public void OnCreate(ref SystemState state)
 		{
 			state.RequireForUpdate<Partition>();
-
-			_roomElementLookup = state.GetBufferLookup<RoomElementBufferElement>(true);
 		}
 
 		[BurstCompile]
 		public void OnUpdate(ref SystemState state)
 		{
 			var ecbs = SystemAPI.GetSingleton<EndFixedStepSimulationEntityCommandBufferSystem.Singleton>();
-
-			_roomElementLookup.Update(ref state);
 
 			float deltaTime = SystemAPI.Time.DeltaTime;
 
@@ -55,7 +49,7 @@ namespace U0071
 			state.Dependency = new HazardJob
 			{
 				Ecb = ecbs.CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter(),
-				RoomElementBufferLookup = _roomElementLookup,
+				RoomElementBufferLookup = SystemAPI.GetBufferLookup<RoomElementBufferElement>(true),
 			}.ScheduleParallel(state.Dependency);
 		}
 
@@ -191,10 +185,9 @@ namespace U0071
 		public partial struct HazardJob : IJobEntity
 		{
 			public EntityCommandBuffer.ParallelWriter Ecb;
-			[ReadOnly]
-			public BufferLookup<RoomElementBufferElement> RoomElementBufferLookup;
+			[ReadOnly] public BufferLookup<RoomElementBufferElement> RoomElementBufferLookup;
 
-			public void Execute([ChunkIndexInQuery] int chunkIndex, Entity entity, in HazardComponent hazard, in PartitionComponent partition , in BoundsComponent bounds, in PositionComponent position)
+			public void Execute([ChunkIndexInQuery] int chunkIndex, Entity entity, in HazardComponent hazard, in PartitionInfoComponent partition , in BoundsComponent bounds, in PositionComponent position)
 			{
 				DynamicBuffer<RoomElementBufferElement> elements = RoomElementBufferLookup[partition.CurrentRoom];
 				using (var enumerator = elements.GetEnumerator())

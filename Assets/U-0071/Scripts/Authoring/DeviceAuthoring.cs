@@ -105,7 +105,7 @@ namespace U0071
 					Value = position,
 				});
 				AddComponent(entity, new DeviceTag());
-				AddComponent(entity, new PartitionComponent());
+				AddComponent(entity, new PartitionInfoComponent());
 
 				// device actions
 				ActionFlag actionFlags = 0;
@@ -166,7 +166,7 @@ namespace U0071
 				}
 				if (authoring.Teleporter)
 				{
-					actionFlags |= ActionFlag.Teleport;
+					actionFlags |= ActionFlag.TeleportItem;
 					actionFlags |= ActionFlag.Store;
 					Vector3 destination = authoring.Destination.transform.position;
 					AddComponent(entity, new TeleporterComponent

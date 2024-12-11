@@ -36,8 +36,7 @@ namespace U0071
 
 			public void Execute(ref AnimationController controller, in MovementComponent movement, in PositionComponent position, in ActionController actionController)
 			{
-				// should have animations as ids and just queue an id
-				// (with a blob asset)
+				// should have animations as ids and just queue an id (with a blob asset)
 				Animation animation =
 					actionController.IsResolving && actionController.Action.Time > 0f ?
 					actionController.Action.ActionFlag == ActionFlag.Push ? Config.CharacterPush :

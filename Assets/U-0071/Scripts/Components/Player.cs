@@ -17,7 +17,7 @@ namespace U0071
 
 		public int Cost => Data.Cost;
 		public ActionFlag Type => Data.ActionFlag;
-		public bool Has => Data.Has;
+		public bool Has => Data.HasTarget;
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public void Reset()
