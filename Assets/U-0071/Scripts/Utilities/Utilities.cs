@@ -205,5 +205,20 @@ namespace U0071
 		{
 			return new float4(color.r, color.g, color.b, color.a);
 		}
+
+		public static string GetAuthorizationText(AreaAuthorization authorization)
+		{
+			return authorization switch
+			{
+				AreaAuthorization.LevelOne => "LVL1",
+				AreaAuthorization.LevelTwo => "LVL2",
+				AreaAuthorization.LevelThree => "LVL3",
+				AreaAuthorization.Red => "RED",
+				AreaAuthorization.Blue => "BLUE",
+				AreaAuthorization.Yellow => "YELLOW",
+				AreaAuthorization.Admin => "ADMIN",
+				_ => "ERROR",
+			};
+		}
 	}
 }

@@ -16,7 +16,7 @@ namespace U0071
 			state.RequireForUpdate<CycleComponent>();
 		}
 
-		[BurstCompile]
+		//[BurstCompile]
 		public void OnUpdate(ref SystemState state)
 		{
 			Config config = SystemAPI.GetSingleton<Config>();
@@ -38,6 +38,18 @@ namespace U0071
 				cycle.RedCode = random.NextInt(0, 10000);
 				cycle.BlueCode = random.NextInt(0, 10000);
 				cycle.YellowCode = random.NextInt(0, 10000);
+
+				// discover LVL1 code for this cycle
+				char[] digits = cycle.GetCode(AreaAuthorization.LevelOne).ToString("0000").ToCharArray();
+				KnownCodes.Instance.UpdateKnownCode(new KnownCode
+				{
+					Cycle = cycle.CycleCounter,
+					Authorization = AreaAuthorization.LevelOne,
+					FirstDigit = int.Parse(digits[0].ToString()),
+					SecondDigit = int.Parse(digits[1].ToString()),
+					ThirdDigit = int.Parse(digits[2].ToString()),
+					FourthDigit = int.Parse(digits[3].ToString()),
+				});
 			}
 		}
 	}

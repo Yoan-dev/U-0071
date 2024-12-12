@@ -141,7 +141,7 @@ namespace U0071
 
 		private string GetDefaultText()
 		{
-			return (_accessDenied ? "Access Denied\n" : "Required Access\n") + GetAuthorizationText() + "-Cycle" + _cycleCounter + "\n";
+			return (_accessDenied ? "Access Denied\n" : "Required Access\n") + Utilities.GetAuthorizationText(_authorization) + "-Cycle" + _cycleCounter + "\n";
 		}
 
 		private string GetCodeText()
@@ -152,21 +152,6 @@ namespace U0071
 				length == 1 ? "___" :
 				length == 2 ? "__" :
 				length == 3 ? "_" : "");
-		}
-
-		private string GetAuthorizationText()
-		{
-			return _authorization switch
-			{
-				AreaAuthorization.LevelOne => "LVL1",
-				AreaAuthorization.LevelTwo => "LVL2",
-				AreaAuthorization.LevelThree => "LVL3",
-				AreaAuthorization.Red => "RED",
-				AreaAuthorization.Blue => "BLUE",
-				AreaAuthorization.Yellow => "YELLOW",
-				AreaAuthorization.Admin => "ADMIN",
-				_ => "ERROR",
-			};
 		}
 	}
 }

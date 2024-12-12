@@ -222,7 +222,7 @@ public class UIManager : MonoBehaviour
 					UpdateHUD(in credits, in hunger, in contaminationLevel, in cycle);
 					ProcessPopEvents(in credits, position);
 					UpdateCodepad(in entityManager, in playerController, in actionController, in cycle);
-					UpdatePeekingBubble(in peekingInfo, in cycle);
+					UpdatePeekingBubble(peekingInfo, in cycle);
 				}
 			}
 		}
@@ -241,8 +241,18 @@ public class UIManager : MonoBehaviour
 
 		int minutes = (int)(cycle.CycleTimer / 60f);
 		int seconds = (int)(cycle.CycleTimer - minutes * 60);
-		_cycleLabel.text = minutes.ToString("00") + ":" + seconds.ToString("00") + " - Cycle " + cycle.CycleCounter.ToString();
-		_codeLabel.text = cycle.LevelOneCode.ToString("0000") + " - LVL1";
+		_cycleLabel.text = minutes.ToString("00") + ":" + seconds.ToString("00") + " - CYCLE " + cycle.CycleCounter.ToString();
+
+		// known codes
+		string codeText = "CODES\n";
+		foreach (KnownCode knownCode in KnownCodes.Instance.Codes)
+		{
+			if (knownCode.IsPartiallyDiscovered())
+			{
+				codeText += knownCode.ToString() + "\n";
+			}
+		}
+		_codeLabel.text = codeText;
 	}
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -367,7 +377,7 @@ public class UIManager : MonoBehaviour
 		entityManager.SetComponentData(_player, controller);
 	}
 
-	public void	UpdatePeekingBubble(in PeekingInfoComponent info, in CycleComponent cycle)
+	public void	UpdatePeekingBubble(PeekingInfoComponent info, in CycleComponent cycle)
 	{
 		Transform bubbleAnchor = PeekingBubble.transform.parent;
 		
@@ -384,12 +394,26 @@ public class UIManager : MonoBehaviour
 				info.IsPeeking ? info.Peeking.Suspicion >= Const.PeekingBustedFeedbackTreshold ? BustedBubbleMaterial : BubbleMaterial : DisabledBubbleMaterial;
 
 			char[] digits = cycle.GetCode(info.Authorization).ToString("0000").ToCharArray();
-			
+
+			// update peeking info with already known code
+			KnownCode knownCode = KnownCodes.Instance.GetKnownCode(cycle.CycleCounter, info.Authorization);
+			if (info.Peeking.DigitIndex > 0 && knownCode.FirstDigit != -1) info.Peeking.FirstDiscovered = true;
+			if (info.Peeking.DigitIndex > 1 && knownCode.SecondDigit != -1) info.Peeking.SecondDiscovered = true;
+			if (info.Peeking.DigitIndex > 2 && knownCode.ThirdDigit != -1) info.Peeking.ThirdDiscovered = true;
+			if (info.Peeking.DigitIndex > 3 && knownCode.FourthDigit != -1) info.Peeking.FourthDiscovered = true;
+
 			PeekingBubble.text = "" +
 				(info.Peeking.FirstDiscovered ? digits[0] : info.Peeking.DigitIndex > 0 ? "?" : "_") +
 				(info.Peeking.SecondDiscovered ? digits[1] : info.Peeking.DigitIndex > 1 ? "?" : "_") +
 				(info.Peeking.ThirdDiscovered ? digits[2] : info.Peeking.DigitIndex > 2 ? "?" : "_") +
 				(info.Peeking.FourthDiscovered ? digits[3] : info.Peeking.DigitIndex > 3 ? "?" : "_");
+
+			// update known code with new digits
+			if (info.Peeking.FirstDiscovered) knownCode.FirstDigit = int.Parse(digits[0].ToString());
+			if (info.Peeking.SecondDiscovered) knownCode.SecondDigit = int.Parse(digits[1].ToString());
+			if (info.Peeking.ThirdDiscovered) knownCode.ThirdDigit = int.Parse(digits[2].ToString());
+			if (info.Peeking.FourthDiscovered) knownCode.FourthDigit = int.Parse(digits[3].ToString());
+			KnownCodes.Instance.UpdateKnownCode(knownCode);
 		}
 		else
 		{
@@ -412,6 +436,11 @@ public class UIManager : MonoBehaviour
 			Interaction.text = "";
 			Interaction.gameObject.SetActive(false);
 
+			_hungerLabel.text = "";
+			_contaminationLabel.text = "";
+			_creditsLabel.text = "";
+			_cycleLabel.text = "";
+			_codeLabel.text = "";
 			_hungerLabel.style.display = DisplayStyle.Flex;
 			_contaminationLabel.style.display = DisplayStyle.Flex;
 			_creditsLabel.style.display = DisplayStyle.Flex;
