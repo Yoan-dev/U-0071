@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 6335449402853418732}
   - component: {fileID: 4769200795234443077}
   - component: {fileID: 7630079052482566446}
+  - component: {fileID: 3786691688920664233}
   m_Layer: 0
   m_Name: Debug_Wanderer_Unit
   m_TagString: Untagged
@@ -60,6 +61,9 @@ MeshRenderer:
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -105,6 +109,7 @@ MonoBehaviour:
   CollisionRadius: 0.2
   Range: 0.6
   Time: 0.25
+  ContaminationStrength: 0
   ShirtColor: {r: 0.60784316, g: 0.6784314, b: 0.7176471, a: 1}
   SkinColor: {r: 0.9333334, g: 0.76470596, b: 0.6039216, a: 1}
   HairColor: {r: 0, g: 0, b: 0, a: 0}
@@ -123,3 +128,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3548b6a5cc41fe84f94bafe4a67ac2c4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &3786691688920664233
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 533614297052410266}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3ac64790fbe44104a922367a180d1ba8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  UseSpecificAnimation: 0
+  SpecificAnimation:
+    StartIndex: 0
+    Duration: 0
+    FrameTime: 0
+    Looping: 0

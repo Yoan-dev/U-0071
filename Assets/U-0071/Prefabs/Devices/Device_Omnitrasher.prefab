@@ -12,6 +12,8 @@ GameObject:
   - component: {fileID: 6974654136566561813}
   - component: {fileID: 4980161819497224902}
   - component: {fileID: -6266540913623479672}
+  - component: {fileID: 215869010014660566}
+  - component: {fileID: 4863973651089835728}
   m_Layer: 0
   m_Name: Device_Omnitrasher
   m_TagString: Untagged
@@ -59,6 +61,9 @@ MeshRenderer:
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -126,9 +131,35 @@ MonoBehaviour:
   Destination: {fileID: 0}
   SecondaryDestination: {fileID: 0}
   DeathType: 1
-  Animated: 1
-  Animation:
+--- !u!114 &215869010014660566
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3777985933561052076}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3ac64790fbe44104a922367a180d1ba8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  UseSpecificAnimation: 1
+  SpecificAnimation:
     StartIndex: 0
     Duration: 10
     FrameTime: 0.1
     Looping: 1
+--- !u!114 &4863973651089835728
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3777985933561052076}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3ada51a2dcf7622409e114c8c1d297ea, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  DeathType: 1
+  CollisionRange: 0.6

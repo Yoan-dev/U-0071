@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 8213487279518831875}
   - component: {fileID: 4575550971128346084}
   - component: {fileID: 3815755158628794256}
+  - component: {fileID: -8493430726958485499}
   m_Layer: 0
   m_Name: Device_Food_Processor
   m_TagString: Untagged
@@ -59,6 +60,9 @@ MeshRenderer:
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -128,6 +132,24 @@ MonoBehaviour:
   DeathType: 0
   Animated: 1
   Animation:
+    StartIndex: 0
+    Duration: 6
+    FrameTime: 0.12
+    Looping: 1
+--- !u!114 &-8493430726958485499
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9080024899523976190}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3ac64790fbe44104a922367a180d1ba8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  UseSpecificAnimation: 1
+  SpecificAnimation:
     StartIndex: 0
     Duration: 6
     FrameTime: 0.12

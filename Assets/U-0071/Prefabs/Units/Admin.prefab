@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 6358109271556304243}
   - component: {fileID: 8320379237301718644}
   - component: {fileID: 9165658260146294656}
+  - component: {fileID: 801453447695512410}
   m_Layer: 0
   m_Name: Admin
   m_TagString: Untagged
@@ -60,6 +61,9 @@ MeshRenderer:
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -124,3 +128,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3548b6a5cc41fe84f94bafe4a67ac2c4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &801453447695512410
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2154693584962354792}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3ac64790fbe44104a922367a180d1ba8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  UseSpecificAnimation: 0
+  SpecificAnimation:
+    StartIndex: 0
+    Duration: 0
+    FrameTime: 0
+    Looping: 0

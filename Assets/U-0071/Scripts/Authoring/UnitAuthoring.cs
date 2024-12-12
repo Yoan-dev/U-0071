@@ -50,7 +50,6 @@ namespace U0071
 					BaseZOffset = Const.CharacterZOffset,
 				});
 				AddComponent(entity, new MovementComponent { Speed = authoring.Speed });
-				AddComponent(entity, AnimationController.GetDefault());
 				AddComponent(entity, new PartitionInfoComponent());
 				AddComponent(entity, new ActionController());
 				AddComponent(entity, new IsActing());
@@ -86,7 +85,6 @@ namespace U0071
 				});
 
 				// render
-				AddComponent(entity, new TextureArrayIndex { Value = 0f });
 				AddComponent(entity, new Orientation { Value = 1f });
 				AddComponent(entity, new ShirtColor { Value = authoring.ShirtColor.linear.ToFloat4() });
 				AddComponent(entity, new SkinColor { Value = authoring.SkinColor.linear.ToFloat4() });

@@ -51,13 +51,6 @@ namespace U0071
 		public GameObject Destination;
 		public GameObject SecondaryDestination;
 
-		[Header("Hazard")]
-		public DeathType DeathType;
-
-		[Header("Animation")]
-		public bool Animated;
-		public Animation Animation;
-
 		public float2 GetFacingDirection(GameObject gameObject)
 		{
 			float yaw = gameObject.transform.rotation.eulerAngles.y;
@@ -80,14 +73,10 @@ namespace U0071
 		{
 			public override void Bake(DeviceAuthoring authoring)
 			{
-				// note to reader: please do not judge my authoring scripts
-				// I usually create everything a runtime and only manage a couple of prefabs
-				// the good way would have (probably) been to split in much more authoring scripts (composition rather than "type-based")
-
-				// those with this authoring are the devices
-
 				Entity entity = GetEntity(TransformUsageFlags.Dynamic);
 
+				// should be done at game init, not in authoring
+				// (heat of the gamejam)
 				Vector3 worldPosition = authoring.gameObject.transform.position;
 
 				bool isWorkingStation = false;
@@ -140,7 +129,7 @@ namespace U0071
 							StageCount = authoring.VisualStageCount,
 						});
 					}
-					if (authoring.VisualStageCount > 0 && !authoring.Animated)
+					if (authoring.VisualStageCount > 0)
 					{
 						// growing/capacity stages
 						AddComponent(entity, new TextureArrayIndex());
@@ -224,32 +213,6 @@ namespace U0071
 					CollisionRadius = authoring.Collide ? authoring.CollisionRange : 0f,
 					CanBeMultiused = authoring.CanBeMultiused,
 				});
-
-				// miscellaneous
-				if (authoring.DeathType > DeathType.Hunger)
-				{
-					AddComponent(entity, new HazardComponent
-					{
-						DeathType = authoring.DeathType,
-					});
-					if (authoring.AreaFlag == 0) // doors arleady have bounds
-					{
-						float2 dimensions = new float2(authoring.CollisionRange, authoring.CollisionRange);
-						AddComponent(entity, new BoundsComponent
-						{
-							Min = position - dimensions,
-							Max = position + dimensions,
-						});
-					}
-				}
-				if (authoring.Animated)
-				{
-					AnimationController controller = new AnimationController();
-					controller.StartAnimation(authoring.Animation);
-					AddComponent(entity, controller);
-					AddComponent(entity, new SimpleAnimationTag());
-					AddComponent(entity, new TextureArrayIndex());
-				}
 			}
 		}
 	}
