@@ -53,8 +53,6 @@ namespace U0071
 			{
 				// cycle changed, update infos
 				ShowCodepad(_authorization, in cycle, null);
-
-				// TODO: can click on buttons but does nothing + cool text shuffle effect
 			}
 
 			if (numeric != -1)
@@ -126,7 +124,6 @@ namespace U0071
 				// TODO: positive sound feedback "granted"
 				_callback?.Invoke();
 				ExitScreen();
-				// TODO: lock screen until door is closed (TBD)
 			}
 			else
 			{
@@ -139,7 +136,6 @@ namespace U0071
 
 		private void UpdateScreenText()
 		{
-			// TODO: depends on context (ACCESS DENIED / GRANTED / CYCLE RESET)
 			_screenText.text = GetDefaultText() + GetCodeText();
 		}
 

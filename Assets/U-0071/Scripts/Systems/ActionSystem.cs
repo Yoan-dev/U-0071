@@ -116,7 +116,7 @@ namespace U0071
 
 			var ecbs = SystemAPI.GetSingleton<EndFixedStepSimulationEntityCommandBufferSystem.Singleton>();
 
-			// queue action events
+			// queue events
 
 			state.Dependency = new ResolveActionJob
 			{
@@ -149,7 +149,7 @@ namespace U0071
 				ChangeInteractableEvents = _changeInteractableEvents.AsParallelWriter(),
 			}.ScheduleParallel(state.Dependency);
 
-			// resolve events in the following jobs
+			// resolve events
 
 			state.Dependency = new PushEventJob
 			{

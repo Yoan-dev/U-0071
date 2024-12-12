@@ -138,7 +138,7 @@ namespace U0071
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static AreaAuthorization GetLowestAuthorization(AreaAuthorization areaFlags)
 		{
-			// return by inverse-priority (meh bitwise magic to use ?)
+			// return by inverse-priority
 			return
 				HasAuthorization(areaFlags, AreaAuthorization.LevelOne) ? AreaAuthorization.LevelOne :
 				HasAuthorization(areaFlags, AreaAuthorization.LevelTwo) ? AreaAuthorization.LevelTwo :

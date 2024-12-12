@@ -93,8 +93,8 @@ namespace U0071
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static float GetActionTime(ActionFlag type, float baseTime)
 		{
-			// not very fancy but otherwise would need an 
-			//  interaction timeper item per action type
+			// not very fancy but would otherwise need an 
+			// interaction time per item per action type
 			return type switch
 			{
 				ActionFlag.Pick => 0f,

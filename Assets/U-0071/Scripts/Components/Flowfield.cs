@@ -22,7 +22,6 @@ namespace U0071
 
 	public struct FlowfieldCell
 	{
-		// TODO: pack the float2s (several 8-directions in a byte)
 		public float2 ToFood;
 		public float2 ToWork;
 		public float2 ToDestroy;
@@ -67,10 +66,8 @@ namespace U0071
 		}
 	}
 
-	public struct Flowfield : /*IComponentData, ISharedComponentData,*/IDisposable
+	public struct Flowfield : IDisposable
 	{
-		// TBD: could be a component shared by same-authorization entities ?
-
 		public NativeArray<FlowfieldCell> Cells;
 		public int2 Dimensions;
 
@@ -261,7 +258,7 @@ namespace U0071
 		{
 			// flow can go from low to high authorization (unset value) but not the opposite,
 			// except if we start from high authorization (flowfield area flag)
-			// allows for all cells to have a value (can go back to authorized if lost somehow)
+			// allows for all cells to have a value (unit can go back to authorized area if lost)
 			// but never path to an un-authorized cell (in the case of a loop / go through room)
 			if (checkedCell.Pathable && checkedCell.Value > cell.Value + 1 && (
 				Utilities.CompareAuthorization(checkedCell.LowestAreaFlag, cell.LowestAreaFlag) && checkedCell.Value == int.MaxValue ||
