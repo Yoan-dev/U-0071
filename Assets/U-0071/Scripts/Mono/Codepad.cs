@@ -124,6 +124,18 @@ namespace U0071
 				// TODO: positive sound feedback "granted"
 				_callback?.Invoke();
 				ExitScreen();
+
+				// update known codes
+				// (in case of guessed code)
+				KnownCodes.Instance.UpdateKnownCode(new KnownCode
+				{
+					Cycle = (uint)_cycleCounter,
+					Authorization = _authorization,
+					FirstDigit = int.Parse(_code[0].ToString()),
+					SecondDigit = int.Parse(_code[1].ToString()),
+					ThirdDigit = int.Parse(_code[2].ToString()),
+					FourthDigit = int.Parse(_code[3].ToString()),
+				});
 			}
 			else
 			{
