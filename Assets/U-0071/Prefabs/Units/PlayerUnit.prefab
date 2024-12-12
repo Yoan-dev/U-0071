@@ -103,7 +103,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Name: U-0071
   Speed: 5
-  Hunger: 100
+  Hunger: 10
   Authorisation: 1
   Credits: 10
   CollisionRadius: 0.2

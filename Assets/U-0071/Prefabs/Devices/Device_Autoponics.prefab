@@ -124,7 +124,7 @@ MonoBehaviour:
     type: 3}
   SpawnOffset: 0.25
   StartingCapacity: 0
-  GrowTime: 27
+  GrowTime: 30
   VisualStageCount: 5
   AutoSpawner: 0
   Destination: {fileID: 0}

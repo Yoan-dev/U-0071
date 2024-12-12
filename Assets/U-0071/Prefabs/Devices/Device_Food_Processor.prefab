@@ -103,7 +103,7 @@ MonoBehaviour:
   Name: Food Processor
   ActionName: Process
   Range: 0.75
-  Time: 9
+  Time: 8
   CollisionRange: 0.25
   Collide: 1
   CanBeMultiused: 0
