@@ -103,7 +103,7 @@ MonoBehaviour:
   Name: Food Processor
   ActionName: Process
   Range: 0.75
-  Time: 10
+  Time: 9
   CollisionRange: 0.25
   Collide: 1
   CanBeMultiused: 0
@@ -129,13 +129,6 @@ MonoBehaviour:
   AutoSpawner: 0
   Destination: {fileID: 0}
   SecondaryDestination: {fileID: 0}
-  DeathType: 0
-  Animated: 1
-  Animation:
-    StartIndex: 0
-    Duration: 6
-    FrameTime: 0.12
-    Looping: 1
 --- !u!114 &-8493430726958485499
 MonoBehaviour:
   m_ObjectHideFlags: 0

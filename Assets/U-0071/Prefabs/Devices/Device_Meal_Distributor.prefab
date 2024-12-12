@@ -59,6 +59,9 @@ MeshRenderer:
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -105,7 +108,7 @@ MonoBehaviour:
   CanBeMultiused: 0
   AdminStation: 0
   CanContaminatedBeContaminated: 0
-  Cost: 20
+  Cost: 15
   AreaFlag: 0
   DoorSize: 0
   StaysOpenTime: 0
@@ -126,10 +129,3 @@ MonoBehaviour:
   AutoSpawner: 0
   Destination: {fileID: 0}
   SecondaryDestination: {fileID: 0}
-  DeathType: 0
-  Animated: 0
-  Animation:
-    StartIndex: 0
-    Duration: 3
-    FrameTime: 0.2
-    Looping: 1
